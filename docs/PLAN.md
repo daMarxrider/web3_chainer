@@ -22,13 +22,18 @@ Decisions made with the user:
 
 ## Status
 
-- **Milestone 1: done** (core library and CLI for EVM chains through LI.FI). Verified with unit tests, live quotes, a live balance scan and a run through Tor. A real mainnet send has not been done yet; it needs a funded wallet.
-- Milestones 2-9: not started.
+- **Milestone 1: done** (core library and CLI for EVM chains through LI.FI).
+- **Milestone 2: done** (chained transfers with resume, automatic multi-hop routing, live status, plan files, testnet mode).
+- Milestones 3-9: not started.
 
-Deviations from the original plan, decided during milestone 1:
+Verified so far: unit tests (`npm test`), live quotes, a live balance scan, all traffic through Tor, and real signing and sending against a local test chain. Not yet done: a transfer over a real bridge, on a testnet or mainnet; that needs a funded wallet.
+
+Deviations from the original plan, decided while building:
 
 - npm workspaces instead of pnpm (pnpm is not installed; npm needs nothing extra).
 - Node's built-in test runner instead of vitest, and Node runs the TypeScript directly, so there is no build step for the CLI.
+- Test mode maps a route onto testnets only when every chain in it has one (currently Ethereum, Optimism, Arbitrum and Base, via their Sepolia networks); otherwise it says so and points to `--dry-run`, because a dry leg in the middle would leave later legs without funds. Test runs are journalled separately; the wallet is shared with mainnet.
+- CLI names: `chainer pipeline run <plan.yaml>`, `chainer status [id]`, `chainer resume <id>`.
 - LI.FI's bridge allow-list defaults to all of its bridges, since every one is non-custodial and needs no account; `lifi.allowBridges` / `lifi.denyBridges` in the settings narrow it.
 
 ## Stack
