@@ -135,7 +135,7 @@ The graphical app is not built yet. It is planned for Windows, Linux, macOS and 
 
 The app will ask for a theme on first launch, and the choice can be changed later in the settings:
 
-- **Retro** (the default): an original early-2000s desktop look
+- **Retro** (the default): an original early-2000s desktop look, designed for this project and not a copy of any operating system's interface
 - **Modern**
 
 Step-by-step instructions and one screenshot per theme will be added here when the app exists.
@@ -155,6 +155,16 @@ npm run chainer -- quote 100 USDC arbitrum base
 ```
 
 The code is TypeScript, run directly by Node.js without a build step. `packages/core` holds all logic; `apps/cli` is the command line on top of it.
+
+## Not supported, and why
+
+Some features were left out on purpose. This tool is meant for moving your own funds between chains cheaply and quickly, and it should stay clearly that. Features whose main effect is to hide where funds come from, or who is sending them, raise legal risk for the people who write and publish software like this, so they are not part of it.
+
+- **Monero and other privacy coins.** They are not offered as a source, a destination or a stop-over, and they are filtered out of route sources that list them.
+- **Built-in proxy, VPN or Tor routing.** The app has no setting for it and does not install or start anything of the kind.
+- **Custodial or account-based services.** Only non-custodial services that need no account are used, so nobody else ever holds your funds.
+
+These are deliberate decisions, not missing work, and requests to add them will be declined.
 
 ## Third-party services
 

@@ -137,9 +137,10 @@ Technically possible: the app acts as the dApp side, shows a QR code (GUI, and i
 Decided on 14 Nov 2026 to keep the legal risk for the author low:
 
 - **Monero is not supported**, as source, destination or stop-over. Route sources that list it (THORChain once its pool is live, BasicSwap) must have XMR filtered out by a built-in rule the user cannot switch off; eigenwallet (BTC <-> XMR only) is not integrated.
-- **No proxy, VPN or Tor support.** The app has no proxy setting and does not install, bundle, start or mention any of them. The proxy setting built in milestone 1 was removed. Anyone who wants one sets it up on their own system, outside the app.
+- **No proxy, VPN or Tor support.** The app has no proxy setting and does not install, bundle or start any of them. The proxy setting built in milestone 1 was removed. Anyone who wants one sets it up on their own system, outside the app.
 - **The default theme is "Retro"**, an original early-2000s desktop look written for this project. It uses no Microsoft names, logos, wallpapers, icons, sounds or fonts, does not copy the Windows XP visual style pixel for pixel, and does not use the XP.css library.
 - **Disclaimer.** The README and `chainer --help` state that the author is not liable for losses from bugs or misuse; the GUI must show the same text on first launch and in its About screen.
+- **The README says so.** Its "Not supported, and why" section lists Monero and built-in proxy, VPN or Tor routing with the reason, so users are not left guessing. It gives no instructions or hints for doing either outside the app.
 - Wording everywhere stays functional (cost, speed, self-custody); never "anonymous" or "untraceable".
 
 Atomic-swap daemons (BasicSwap, Komodo DeFi Framework) are wrapped as helper processes, not reimplemented; swaps take tens of minutes to hours and must stay online until completion or refund, so they are marked slow and the GUI warns before starting. Their automation APIs, maintenance state and licences are checked when that milestone starts.
