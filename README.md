@@ -5,20 +5,20 @@ Moves tokens from one blockchain to another over the best available route, and f
 - **Finds the best route.** Compares every bridge it can reach for a transfer and ranks them cheapest or fastest. If two chains have no direct connection, it finds a route through other chains.
 - **Chains transfers.** A plan can have several legs; each starts by itself once the previous one has arrived.
 - **Permissionless only.** It uses only non-custodial services that need no account and no KYC. Your keys stay on your machine, encrypted.
-- **Private if you want.** All traffic can go through Tor or another proxy.
+- **Works behind a proxy.** All traffic can go through an HTTP or SOCKS5 proxy.
 - **Careful with funds.** Every step is written to a journal first, so a crash or a closed laptop never loses track of a transfer.
 
 ## Status
 
 The command-line tool works today for EVM chains (Ethereum, Arbitrum, Base, Optimism, Polygon and about 55 more) through the [LI.FI](https://li.fi) bridge aggregator. It has been verified with real bridge transfers on test networks.
 
-Still to come, in this order: Solana and Bitcoin, more route sources (NEAR Intents, THORChain, Maya, Chainflip, direct bridges, atomic swaps), whole-wallet bridging, saved routes and scheduling, the graphical app, Monero, Lightning and Cosmos, WalletConnect. The full plan and its progress are in [docs/PLAN.md](docs/PLAN.md).
+Still to come, in this order: Solana and Bitcoin, more route sources (NEAR Intents, THORChain, Maya, Chainflip, direct bridges, atomic swaps), whole-wallet bridging, saved routes and scheduling, the graphical app, Lightning and Cosmos, WalletConnect. The full plan and its progress are in [docs/PLAN.md](docs/PLAN.md).
 
-> This is young software that moves real money. Try a route with `--dry-run` or `--testnet` first, and start with small amounts.
+> This is young software that moves real money. Try a route with `--dry-run` or `--testnet` first, and start with small amounts. It comes with no warranty; see [Disclaimer](#disclaimer).
 
 ## Install
 
-Clone the repository and run the script for your system. It installs every dependency (git, Tor, Node.js 24 or newer, the npm packages), runs the tests and adds the `chainer` command. It is safe to run again.
+Clone the repository and run the script for your system. It installs every dependency (git, Node.js 24 or newer, the npm packages), runs the tests and adds the `chainer` command. It is safe to run again.
 
 ```sh
 git clone https://github.com/daMarxrider/web3_chainer.git
@@ -124,16 +124,14 @@ chainer config avoid add USDT                   # never route through or into th
 chainer config rpc arbitrum https://my-node...  # use your own RPC node ("default" to undo)
 ```
 
-### Tor and proxies
+### Proxy
 
 With a proxy set, every request (route searches and blockchain calls) goes through it. If the proxy is down, chainer fails instead of connecting directly.
 
 ```sh
-chainer config set proxy socks5://127.0.0.1:9050   # Tor's default port
+chainer config set proxy socks5://127.0.0.1:1080   # or an http:// proxy
 chainer config set proxy off
 ```
-
-The install script installs Tor but does not start it; start it with your system's service manager (`sudo systemctl start tor` on most Linux systems, `brew services start tor` on macOS).
 
 ### Scripting
 
@@ -147,7 +145,7 @@ The graphical app is not built yet. It is planned for Windows, Linux, macOS and 
 
 The app will ask for a theme on first launch, and the choice can be changed later in the settings:
 
-- **Windows XP** (the default)
+- **Retro** (the default): an original early-2000s desktop look
 - **Modern**
 
 Step-by-step instructions and one screenshot per theme will be added here when the app exists.
@@ -167,6 +165,16 @@ npm run chainer -- quote 100 USDC arbitrum base
 ```
 
 The code is TypeScript, run directly by Node.js without a build step. `packages/core` holds all logic; `apps/cli` is the command line on top of it.
+
+## Disclaimer
+
+This software is provided "as is", without warranty of any kind. You use it entirely at your own risk.
+
+- **Loss of funds.** The author is not liable for any loss of money or tokens, including losses caused by bugs or errors in this software, by failures or changes in the bridges, exchanges, networks and other third-party services it talks to, or by price movements, fees and slippage.
+- **How you use it.** The author is not liable for losses or other consequences of incorrect or improper use, such as wrong addresses or amounts, lost passwords or seed phrases, or use that breaks the law or a third party's terms. You are responsible for complying with the laws and tax rules that apply to you.
+- **No advice, no service.** This is a tool you run yourself. The author does not hold your funds, does not execute transactions for you and gives no financial, legal or tax advice.
+
+Blockchain transactions cannot be reversed. Check routes with `--dry-run` or `--testnet` first, and never send more than you can afford to lose. The full terms are in sections 15 to 17 of the [license](LICENSE).
 
 ## License
 

@@ -12,7 +12,7 @@ export interface Settings {
   avoidTokens: string[]
   /** RPC endpoint override per chain key. */
   rpc: Record<string, string>
-  /** Proxy for all API and RPC traffic, e.g. "socks5://127.0.0.1:9050" for Tor. */
+  /** Proxy for all API and RPC traffic, e.g. "socks5://127.0.0.1:1080". */
   proxy: string | null
   lifi: { allowBridges: string[]; denyBridges: string[] }
 }

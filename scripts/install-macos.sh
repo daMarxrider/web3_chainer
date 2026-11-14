@@ -30,7 +30,7 @@ done
 # ---- packages -------------------------------------------------------------
 
 say "Installing packages with Homebrew"
-brew install git tor
+brew install git
 if [ "$(node_major)" -lt "$NODE_MAJOR" ]; then
   brew install node
   hash -r
@@ -57,6 +57,3 @@ ln -sf "$repo/apps/cli/bin/chainer.js" "$bin/chainer"
 "$bin/chainer" --help >/dev/null
 
 say "Done. chainer is installed. Try it: chainer --help"
-echo "Tor is installed but not started. To route chainer through it, run:"
-echo "  brew services start tor"
-echo "  chainer config set proxy socks5://127.0.0.1:9050"

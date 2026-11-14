@@ -79,6 +79,9 @@ Plan file:
       from: USDC@base
       to: ETH@optimism
 
+No warranty: this software is provided as is. You alone are responsible for any loss of
+funds, whether from bugs or from how you use it. See the README and LICENSE.
+
 Environment:
   CHAINER_PASSWORD   Wallet password, for unattended use
   CHAINER_HOME       Data folder (default: ${dataDir()})
@@ -500,7 +503,7 @@ async function configCommand(args: string[]): Promise<void> {
       if (!Number.isInteger(n) || n < 1 || n > 5) throw new Error('maxHops must be a whole number from 1 to 5')
       next.maxHops = n
     } else if (a === 'proxy') {
-      if (b !== 'off' && !/^(socks5?|https?):\/\//.test(b)) throw new Error('proxy must be a socks5:// or http:// URL, or "off" (Tor: socks5://127.0.0.1:9050)')
+      if (b !== 'off' && !/^(socks5?|https?):\/\//.test(b)) throw new Error('proxy must be a socks5:// or http:// URL, or "off"')
       next.proxy = b === 'off' ? null : b
     } else throw new Error(`Unknown setting "${a}"`)
   } else if (sub === 'rpc' && a && b) {

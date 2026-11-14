@@ -8,7 +8,7 @@ Decisions made with the user:
 
 - **Trigger:** on-demand with best-route optimisation (cheapest or fastest), plus scheduled and conditional runs.
 - **Tokens:** the destination token may differ from the source token. A saved "tokens to avoid" list is respected everywhere.
-- **Chains:** EVM, Bitcoin-family, Solana, Lightning, Cosmos, Monero, as independent modules. A route only loads the modules it touches.
+- **Chains:** EVM, Bitcoin-family, Solana, Lightning, Cosmos, as independent modules. A route only loads the modules it touches.
 - **Permissionless rule:** only non-custodial services needing no account or KYC. Custodial exchangers are excluded. Services that need a free API key are built in but off by default.
 - **Multi-hop:** if start and end have no direct connection, a route through intermediates is found automatically.
 - **Chaining:** a pipeline of legs, each starting after the previous one completes.
@@ -17,7 +17,7 @@ Decisions made with the user:
 - **Hands-off execution:** after one confirmation at the start, the whole run is automatic with a live status view in CLI and GUI.
 - **Test mode:** a configured route can be tried on testnets where they exist.
 - **Saved routes:** a route (including a whole-wallet sweep) can be worked out now and stored to run at a later time.
-- **Form:** CLI and GUI. GUI defaults to a Windows XP look, with a modern theme selectable on first launch.
+- **Form:** CLI and GUI. GUI defaults to a "Retro" early-2000s look, with a modern theme selectable on first launch.
 - **Platforms:** Windows, Linux, macOS, Android (no iOS).
 - **Install scripts:** one script per desktop system (Linux, macOS, Windows) that installs every dependency; none for Android.
 
@@ -30,7 +30,7 @@ Decisions made with the user:
 
 Verified so far:
 
-- unit tests (`npm test`), live quotes, a live balance scan, and all traffic through Tor;
+- unit tests (`npm test`), live quotes, a live balance scan, and all traffic through a SOCKS5 proxy;
 - real signing and sending against a local test chain;
 - real bridge transfers on testnets (14 Nov 2026): 5 USDC Arc Testnet -> Arbitrum Sepolia, and a two-leg plan Arc Testnet -> Arbitrum Sepolia, then Arc Testnet -> Base Sepolia. Token approval, sending, status tracking and the received amounts were confirmed by reading the destination balances;
 - the multi-hop search against live data (it found Arc Testnet -> Base Sepolia -> Ethereum Sepolia).
@@ -67,7 +67,7 @@ Build caveat: macOS builds need a Mac or a macOS CI runner. Linux, Windows and A
 Three small interfaces carry the design:
 
 - **`ChainAdapter`** (one per chain family): `getBalances`, `send(action)`, `waitForConfirmation`, `validateAddress`. Loaded lazily, so ETH -> Solana never touches Bitcoin code.
-  - `evm` (viem), `solana` (@solana/kit), `bitcoin` (UTXO; also LTC, DOGE, BCH, DASH, ZEC transparent), `cosmos` (cosmjs), `lightning`, `monero` (monero-ts).
+  - `evm` (viem), `solana` (@solana/kit), `bitcoin` (UTXO; also LTC, DOGE, BCH, DASH, ZEC transparent), `cosmos` (cosmjs), `lightning`.
 - **`BridgeProvider`** (one per route source): `getQuotes(request)`, `buildActions(quote)`, `getStatus(transfer)`.
   - Actions are plain data ("sign this EVM tx", "send X to deposit address Y with memo Z"). Providers never touch keys.
   - Each provider declares: non-custodial, needs API key, needs helper daemon, platforms. A registry check enforces the permissionless rule.
@@ -79,14 +79,14 @@ Three small interfaces carry the design:
 |---|---|---|---|
 | 1 | LI.FI (bridge allow-list) | aggregator | EVM, Solana, Bitcoin, Sui, Tron |
 | 2 | NEAR Intents 1Click | intents | BTC, ZEC, LTC, DOGE, XRP, TON, Cardano and more |
-| 3 | THORChain | liquidity network | native BTC, LTC, DOGE, BCH; XMR when its pool goes live |
+| 3 | THORChain | liquidity network | native BTC, LTC, DOGE, BCH (XMR filtered out) |
 | 4 | Maya Protocol | liquidity network | Zcash, Dash, Arbitrum (shares code with THORChain) |
 | 5 | Chainflip | liquidity network | native BTC, ETH, SOL |
 | 6 | Circle CCTP, Across | direct bridges | cheap USDC, fast EVM |
 | 7 | Garden Finance, Atomiq | atomic swaps via API/SDK | BTC <-> EVM, Solana, Starknet; work on Android |
 | 8 | Boltz | atomic swaps via API | Lightning <-> BTC, Liquid, Rootstock, USDT |
 | 9 | Skip Go | aggregator | Cosmos / IBC |
-| 10 | eigenwallet, BasicSwap, Komodo DeFi Framework | atomic swaps via helper daemon | Monero and UTXO coins; desktop only unless a mobile build exists |
+| 10 | BasicSwap, Komodo DeFi Framework | atomic swaps via helper daemon | UTXO coins (no Monero); desktop only unless a mobile build exists |
 | 11 | 1inch Fusion+, Rango, SwapKit | need API key | **off by default**; pasting a key shows a warning that it requires an account with that service |
 
 Pools, assets and pairs are read from each source at runtime, not hard-coded. Excluded after research: AthanorLabs ETH-XMR (archived Sep 2026), Serai (testnet only), Haveno (arbitrated escrow, not atomic).
@@ -115,12 +115,12 @@ Pools, assets and pairs are read from each source at runtime, not hard-coded. Ex
   - Seed-based accounts already have an address on every chain, so they need no transit wallet.
 - **Live status:** the pipeline emits events (quoting, signing, submitted with tx ID, confirmations, bridge in progress, arrived, failed, retrying). The CLI renders them as a live-updating leg list (plain line output with `--json` or when not a terminal); the GUI shows the same in a progress window. After the single upfront confirmation nothing else prompts, except WalletConnect approvals.
 - **Test mode:** each provider and adapter declares its testnet (if any). `--testnet` / a "Test this route" button maps the configured route onto testnets and runs it for real with faucet funds. Legs with no testnet are shown as untestable and run as a dry-run (quote and build, no signing), so the user sees exactly which parts were exercised. Testnet and mainnet wallets, journals and history are kept separate.
-- **`settings`** (persisted): theme, tokens to avoid, address book (labelled addresses, validated against their chain), RPC endpoint per chain, Tor/SOCKS proxy, destination gas top-up, API keys, hop limit, slippage, max amount per transfer.
+- **`settings`** (persisted): theme, tokens to avoid, address book (labelled addresses, validated against their chain), RPC endpoint per chain, HTTP/SOCKS5 proxy, destination gas top-up, API keys, hop limit, slippage, max amount per transfer.
 - **Safety rails:** confirmation showing route, fees and destination before signing (`--yes` to skip), `--dry-run` that stops before signing.
 
 ### Settings options in detail
 
-- **Tor / proxy:** all API and RPC traffic goes through a SOCKS proxy (system Tor, or Orbot on Android). Status polling uses HTTP so nothing bypasses the proxy. Helper daemons get the same proxy passed to their own Tor settings.
+- **Proxy:** all API and RPC traffic goes through the configured HTTP or SOCKS5 proxy. Status polling uses HTTP so nothing bypasses it, and a dead proxy fails instead of falling back to a direct connection.
 - **Own RPC nodes:** per-chain endpoint override; public defaults otherwise.
 - **Destination gas top-up:** if the destination wallet has no native gas token, a small extra amount is routed into it.
 
@@ -130,16 +130,20 @@ Technically possible: the app acts as the dApp side, shows a QR code (GUI, and i
 
 - It is optional: the user can always provide a private key or seed instead.
 - Every transaction from the connected wallet is approved by hand. Transit wallets take over after the first leg, so a multi-hop run needs one approval per source token; scheduled runs cannot be unattended.
-- Coverage is good for EVM and Solana, patchy for Bitcoin, none for Monero or Lightning.
+- Coverage is good for EVM and Solana, patchy for Bitcoin, none for Lightning.
 - It depends on the Reown relay and needs a project ID, which requires a free registration. The ID is a setting, with the same "needs an account" warning as API keys.
 
-## Monero
+## Left out on purpose
 
-Working permissionless routes today are atomic swaps: **eigenwallet** (BTC <-> XMR) and **BasicSwap** (XMR against BTC, LTC, BCH, DASH, DOGE, FIRO, PIVX, DCR). Both are wrapped as helper daemons; their cryptography is not reimplemented. From an EVM token the optimizer builds a multi-hop such as token -> BTC -> XMR.
+Decided on 14 Nov 2026 to keep the legal risk for the author low:
 
-Constraints: swaps take tens of minutes to hours and must stay online until completion or refund, so they are marked slow and the GUI warns before starting. BasicSwap uses core wallets and is desktop-only. THORChain's XMR pool is code-complete but not live as of Nov 2026; it will appear automatically once it is.
+- **Monero is not supported**, as source, destination or stop-over. Route sources that list it (THORChain once its pool is live, BasicSwap) must have XMR filtered out by a built-in rule the user cannot switch off; eigenwallet (BTC <-> XMR only) is not integrated.
+- **No Tor integration.** The app has a plain HTTP/SOCKS5 proxy setting and nothing more: it does not install, bundle, start or mention Tor.
+- **The default theme is "Retro"**, an original early-2000s desktop look written for this project. It uses no Microsoft names, logos, wallpapers, icons, sounds or fonts, does not copy the Windows XP visual style pixel for pixel, and does not use the XP.css library.
+- **Disclaimer.** The README and `chainer --help` state that the author is not liable for losses from bugs or misuse; the GUI must show the same text on first launch and in its About screen.
+- Wording everywhere stays functional (cost, speed, self-custody); never "anonymous" or "untraceable".
 
-To verify when the milestone starts: the automation APIs of eigenwallet (`swap-controller-api`) and BasicSwap, and Komodo's maintenance state.
+Atomic-swap daemons (BasicSwap, Komodo DeFi Framework) are wrapped as helper processes, not reimplemented; swaps take tens of minutes to hours and must stay online until completion or refund, so they are marked slow and the GUI warns before starting. Their automation APIs, maintenance state and licences are checked when that milestone starts.
 
 ## Interfaces
 
@@ -157,10 +161,10 @@ To verify when the milestone starts: the automation APIs of eigenwallet (`swap-c
 
 **GUI:**
 
-- First launch: theme picker (XP default, Modern), then wallet setup.
+- First launch: theme picker (Retro default, Modern), then wallet setup.
 - Screens: Balances, Transfer (form -> ranked routes -> confirm -> live progress), Bridge Wallet (token table with checkboxes and "select all"), Pipeline builder, Saved routes, Schedules, Address book, History, Settings.
 - The README carries step-by-step usage for CLI and GUI plus one screenshot per theme (`docs/screenshots/`); the screenshots are retaken whenever a change alters how the GUI looks.
-- Themes are CSS only: `XP.css` for the XP look and a plain modern stylesheet; the choice is stored and changeable later.
+- Themes are CSS only: an original "Retro" stylesheet written for this project and a plain modern one; the choice is stored and changeable later.
 - Responsive layout so the same UI works on a phone.
 
 ## Install scripts
@@ -176,7 +180,7 @@ One script per desktop system sets up everything needed to build and run the pro
 Each script:
 
 - installs what is missing and skips what is already there, so it is safe to run again;
-- covers every dependency the project has at that point: Node.js and the npm packages now; later the Rust toolchain and the system libraries Tauri needs for the GUI, Tor for the proxy option, and the atomic-swap helper daemons;
+- covers every dependency the project has at that point: Node.js and the npm packages now; later the Rust toolchain and the system libraries Tauri needs for the GUI, and the atomic-swap helper daemons;
 - finishes by running the tests and `chainer --help` to confirm the setup works;
 - is updated in the same commit as any change that adds a dependency.
 
@@ -188,7 +192,7 @@ Each script:
 4. **Direct bridges and API atomic swaps:** CCTP, Across, Garden, Atomiq.
 5. **Sweep, saved routes, address book, gas top-up, transit wallets, scheduler.**
 6. **GUI:** Tauri app, both themes, all screens; desktop builds, then Android. README gets the GUI steps and a screenshot per theme.
-7. **Monero:** Monero adapter, eigenwallet and BasicSwap wrappers, Komodo if maintained.
+7. **Daemon-based atomic swaps:** BasicSwap and Komodo wrappers (if maintained), with Monero filtered out.
 8. **Lightning and Cosmos:** Lightning adapter + Boltz; Cosmos adapter + Skip Go.
 9. **WalletConnect and API-key providers:** WalletConnect signer; 1inch Fusion+, Rango, SwapKit.
 
@@ -200,9 +204,9 @@ Each milestone is usable by itself. The initial commit goes on a `main` branch (
 
 - **Unit tests (`npm test`):** optimizer ranking, graph search and avoid list; pipeline state machine and resume-after-crash; sweep ordering and skip rules; saved routes (re-quote at run time, stop when the path is gone or below the minimum); scheduler conditions; provider responses mocked from recorded fixtures.
 - **Live read-only tests:** real quotes from each provider for a few pairs; no funds needed.
-- **Testnet end-to-end:** Sepolia -> Base Sepolia through CCTP and Across, including a two-leg pipeline and a sweep; Bitcoin testnet and Monero stagenet for the atomic-swap daemons where they support it.
+- **Testnet end-to-end:** Sepolia -> Base Sepolia through CCTP and Across, including a two-leg pipeline and a sweep; Bitcoin testnet for the atomic-swap daemons where they support it.
 - **Mainnet:** most sources have no usable testnet, so the final check per provider is a few dollars sent on mainnet by the user, first with `--dry-run`, then for real. This needs the user's funded wallet.
 - **Transit wallet crash test:** kill the process right after a transit wallet is created and again after funds reach it; confirm the key is in the keystore and `pipeline resume` moves the funds on.
-- **Proxy check:** with Tor enabled, confirm no request leaves outside the proxy (run with direct network access blocked).
+- **Proxy check:** with a proxy set, confirm no request leaves outside the proxy (run with direct network access blocked).
 - **Install scripts:** `scripts/test-install-linux.sh` runs the Linux script on clean Arch, Debian, Ubuntu and Fedora systems. It needs no Docker or root: official base images are unpacked into folders and entered with `unshare` (util-linux, present on every distribution). Docker and Podman were not installed here, and `systemd-nspawn` needs root and is a separate package on Debian/Ubuntu. macOS and Windows need those systems or CI runners.
 - **GUI:** `tauri dev` on Linux, walk the first-launch flow in both themes, run a testnet transfer and a sweep; then an Android build on an emulator or device.

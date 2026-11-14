@@ -62,6 +62,3 @@ Set-Content -Path $Shim -Encoding ASCII -Value "@echo off`r`nnode `"$Repo\apps\c
 Invoke-Checked 'chainer --help' { & $Shim --help | Out-Null }
 
 Say 'Done. chainer is installed. Try it: chainer --help'
-Write-Host 'Tor is not installed by this script: winget has no standalone Tor package.'
-Write-Host 'To route chainer through Tor, start Tor Browser (or the Tor expert bundle) and run:'
-Write-Host '  chainer config set proxy socks5://127.0.0.1:9150'

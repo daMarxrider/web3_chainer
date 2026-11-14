@@ -40,7 +40,7 @@ export function fileStore(dir: string): Store {
   }
 }
 
-/** fetch with a timeout; when a proxy is set, every request goes through it (SOCKS5 for Tor, or HTTP). */
+/** fetch with a timeout; when a proxy is set, every request goes through it (SOCKS5 or HTTP). */
 export function makeFetch(proxy: string | null): FetchFn {
   const timeout = (init?: RequestInit) => ({ ...init, signal: init?.signal ?? AbortSignal.timeout(30_000) })
   if (!proxy) return (input, init) => fetch(input, timeout(init))

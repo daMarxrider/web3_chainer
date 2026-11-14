@@ -18,7 +18,7 @@ major_of() { local v="${1#*:}"; v="${v%%.*}"; [[ "$v" =~ ^[0-9]+$ ]] && echo "$v
 
 if command -v pacman >/dev/null 2>&1; then
   say "Installing packages with pacman"
-  packages=(git curl tar xz tor nodejs npm)
+  packages=(git curl tar xz nodejs npm)
   if compgen -G '/var/lib/pacman/sync/*.db' >/dev/null; then
     # An existing system is not upgraded behind the user's back: Arch does not support
     # installing new packages on top of outdated ones, so that decision stays with them.
@@ -35,19 +35,19 @@ elif command -v apt-get >/dev/null 2>&1; then
   say "Installing packages with apt"
   export DEBIAN_FRONTEND=noninteractive
   as_root apt-get update
-  as_root apt-get install -y git curl ca-certificates tar xz-utils tor
+  as_root apt-get install -y git curl ca-certificates tar xz-utils
   if [ "$(node_major)" -lt "$NODE_MAJOR" ] && [ "$(major_of "$(apt-cache policy nodejs | awk '/Candidate:/ {print $2}')")" -ge "$NODE_MAJOR" ]; then
     as_root apt-get install -y nodejs npm
   fi
 elif command -v dnf >/dev/null 2>&1; then
   say "Installing packages with dnf"
-  as_root dnf install -y git curl tar xz tor
+  as_root dnf install -y git curl tar xz
   if [ "$(node_major)" -lt "$NODE_MAJOR" ] && [ "$(major_of "$(dnf -q repoquery --latest-limit=1 --qf '%{version}' nodejs 2>/dev/null | tail -n 1)")" -ge "$NODE_MAJOR" ]; then
     as_root dnf install -y nodejs npm
   fi
 else
   echo "No supported package manager found (pacman, apt or dnf)." >&2
-  echo "Install git, curl, tor and Node.js $NODE_MAJOR or newer by hand, then run this script again." >&2
+  echo "Install git, curl and Node.js $NODE_MAJOR or newer by hand, then run this script again." >&2
   exit 1
 fi
 
@@ -102,5 +102,3 @@ case ":$PATH:" in
   *":$HOME/.local/bin:"*) echo "Try it: chainer --help" ;;
   *) echo "$HOME/.local/bin is not on your PATH. Add it, or run: $HOME/.local/bin/chainer --help" ;;
 esac
-echo "Tor is installed but not started. To route chainer through it, start Tor and run:"
-echo "  chainer config set proxy socks5://127.0.0.1:9050"
