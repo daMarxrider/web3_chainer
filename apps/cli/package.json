@@ -1,0 +1,11 @@
+{
+  "name": "@chainer/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "chainer": "./bin/chainer.js" },
+  "dependencies": {
+    "@chainer/core": "*",
+    "undici": "^8.12.4"
+  }
+}
