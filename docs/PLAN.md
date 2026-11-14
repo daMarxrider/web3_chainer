@@ -26,7 +26,16 @@ Decisions made with the user:
 - **Milestone 2: done** (chained transfers with resume, automatic multi-hop routing, live status, plan files, testnet mode).
 - Milestones 3-9: not started.
 
-Verified so far: unit tests (`npm test`), live quotes, a live balance scan, all traffic through Tor, and real signing and sending against a local test chain. Not yet done: a transfer over a real bridge, on a testnet or mainnet; that needs a funded wallet.
+Verified so far:
+
+- unit tests (`npm test`), live quotes, a live balance scan, and all traffic through Tor;
+- real signing and sending against a local test chain;
+- real bridge transfers on testnets (14 Nov 2026): 5 USDC Arc Testnet -> Arbitrum Sepolia, and a two-leg plan Arc Testnet -> Arbitrum Sepolia, then Arc Testnet -> Base Sepolia. Token approval, sending, status tracking and the received amounts were confirmed by reading the destination balances;
+- the multi-hop search against live data (it found Arc Testnet -> Base Sepolia -> Ethereum Sepolia).
+
+Not yet done: any mainnet transfer (the user does these), and a live run where a leg forwards what the previous leg delivered, which needs gas ETH on a second testnet; the faucets for that require a mainnet balance or an account. That behaviour is covered by unit tests only.
+
+Testing notes: Circle's faucet (faucet.circle.com) gives 20 test USDC per address every two hours without an account, and on Arc Testnet USDC is also the gas token, so one faucet request is enough to test from there. LI.FI allows 75 route searches and 50 transaction builds per two hours without an API key.
 
 Deviations from the original plan, decided while building:
 
@@ -34,6 +43,7 @@ Deviations from the original plan, decided while building:
 - Node's built-in test runner instead of vitest, and Node runs the TypeScript directly, so there is no build step for the CLI.
 - Test mode maps a route onto testnets only when every chain in it has one (currently Ethereum, Optimism, Arbitrum and Base, via their Sepolia networks); otherwise it says so and points to `--dry-run`, because a dry leg in the middle would leave later legs without funds. Test runs are journalled separately; the wallet is shared with mainnet.
 - CLI names: `chainer pipeline run <plan.yaml>`, `chainer status [id]`, `chainer resume <id>`.
+- LI.FI is queried through its multi-route endpoint (every bridge in one request); the transaction is only built for the route that is executed.
 - LI.FI's bridge allow-list defaults to all of its bridges, since every one is non-custodial and needs no account; `lifi.allowBridges` / `lifi.denyBridges` in the settings narrow it.
 
 ## Stack
