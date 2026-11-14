@@ -25,6 +25,7 @@ Decisions made with the user:
 
 - **Milestone 1: done** (core library and CLI for EVM chains through LI.FI).
 - **Milestone 2: done** (chained transfers with resume, automatic multi-hop routing, live status, plan files, testnet mode).
+- **Install scripts: written** for Linux, macOS and Windows. The Linux script passes in clean Arch, Debian, Ubuntu and Fedora containers (`scripts/test-install-linux.sh`). The macOS and Windows scripts have not been run: there is no Mac or Windows machine here.
 - Milestones 3-9: not started.
 
 Verified so far:
@@ -202,5 +203,5 @@ Each milestone is usable by itself. The initial commit goes on a `main` branch (
 - **Mainnet:** most sources have no usable testnet, so the final check per provider is a few dollars sent on mainnet by the user, first with `--dry-run`, then for real. This needs the user's funded wallet.
 - **Transit wallet crash test:** kill the process right after a transit wallet is created and again after funds reach it; confirm the key is in the keystore and `pipeline resume` moves the funds on.
 - **Proxy check:** with Tor enabled, confirm no request leaves outside the proxy (run with direct network access blocked).
-- **Install scripts:** run each on a clean machine or container of its system (Linux can be checked here in containers for Arch, Debian/Ubuntu and Fedora; macOS and Windows need those systems or CI runners).
+- **Install scripts:** `scripts/test-install-linux.sh` runs the Linux script on clean Arch, Debian, Ubuntu and Fedora systems. It needs no Docker or root: official base images are unpacked into folders and entered with `unshare` (util-linux, present on every distribution). Docker and Podman were not installed here, and `systemd-nspawn` needs root and is a separate package on Debian/Ubuntu. macOS and Windows need those systems or CI runners.
 - **GUI:** `tauri dev` on Linux, walk the first-launch flow in both themes, run a testnet transfer and a sweep; then an Android build on an emulator or device.
