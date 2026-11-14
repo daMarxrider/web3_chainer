@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@chainer/core": "*",
-    "undici": "^8.12.4",
     "yaml": "^2.9.1"
   }
 }

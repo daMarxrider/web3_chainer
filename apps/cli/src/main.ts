@@ -35,7 +35,7 @@ import {
   type Store,
   type Token,
 } from '@chainer/core'
-import { dataDir, fileStore, makeFetch } from './env.ts'
+import { dataDir, fetchWithTimeout as fetchFn, fileStore } from './env.ts'
 import { askHidden, askPassword, confirm } from './prompt.ts'
 
 const HELP = `chainer - move tokens between blockchains over the best route
@@ -55,7 +55,7 @@ Usage:
   chainer status [<id>]                       List runs, or show one in detail
   chainer resume <id>                         Continue a run that stopped or failed
   chainer config show
-  chainer config set <prefer|slippage|maxUsdPerTransfer|maxHops|proxy> <value>
+  chainer config set <prefer|slippage|maxUsdPerTransfer|maxHops> <value>
   chainer config rpc <chain> <url|default>    Use your own RPC node for a chain
   chainer config avoid <add|remove> <token>   Tokens never to route through or into
 
@@ -106,7 +106,6 @@ const { values: opts, positionals } = parseArgs({
 
 const store = fileStore(dataDir())
 const settings = await loadSettings(store)
-const fetchFn = makeFetch(settings.proxy)
 
 /** Runs on test networks are journalled apart from real ones; the wallet is shared. */
 const runStore: Store = opts.testnet
@@ -502,9 +501,6 @@ async function configCommand(args: string[]): Promise<void> {
       const n = Number(b)
       if (!Number.isInteger(n) || n < 1 || n > 5) throw new Error('maxHops must be a whole number from 1 to 5')
       next.maxHops = n
-    } else if (a === 'proxy') {
-      if (b !== 'off' && !/^(socks5?|https?):\/\//.test(b)) throw new Error('proxy must be a socks5:// or http:// URL, or "off"')
-      next.proxy = b === 'off' ? null : b
     } else throw new Error(`Unknown setting "${a}"`)
   } else if (sub === 'rpc' && a && b) {
     const chain = findChain(await allChains(), a)

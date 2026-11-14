@@ -12,8 +12,6 @@ export interface Settings {
   avoidTokens: string[]
   /** RPC endpoint override per chain key. */
   rpc: Record<string, string>
-  /** Proxy for all API and RPC traffic, e.g. "socks5://127.0.0.1:1080". */
-  proxy: string | null
   lifi: { allowBridges: string[]; denyBridges: string[] }
 }
 
@@ -24,7 +22,6 @@ export const defaultSettings: Settings = {
   maxHops: 3,
   avoidTokens: [],
   rpc: {},
-  proxy: null,
   lifi: { allowBridges: [], denyBridges: [] },
 }
 

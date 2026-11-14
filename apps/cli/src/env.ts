@@ -1,7 +1,6 @@
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { ProxyAgent, fetch as undiciFetch } from 'undici'
 import type { FetchFn, Store } from '@chainer/core'
 
 /** Where settings, the encrypted keystore and the transfer journal live. */
@@ -40,14 +39,5 @@ export function fileStore(dir: string): Store {
   }
 }
 
-/** fetch with a timeout; when a proxy is set, every request goes through it (SOCKS5 or HTTP). */
-export function makeFetch(proxy: string | null): FetchFn {
-  const timeout = (init?: RequestInit) => ({ ...init, signal: init?.signal ?? AbortSignal.timeout(30_000) })
-  if (!proxy) return (input, init) => fetch(input, timeout(init))
-  // undici prints an "experimental" warning for SOCKS5 on every start; it is not useful to the user.
-  const emitWarning = process.emitWarning
-  process.emitWarning = () => {}
-  const dispatcher = new ProxyAgent(proxy)
-  process.emitWarning = emitWarning
-  return ((input: string | URL, init?: RequestInit) => undiciFetch(input, { ...timeout(init), dispatcher } as never)) as unknown as FetchFn
-}
+/** fetch with a timeout, so a hanging server cannot stall a run forever. */
+export const fetchWithTimeout: FetchFn = (input, init) => fetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(30_000) })

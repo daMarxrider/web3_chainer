@@ -5,7 +5,6 @@ Moves tokens from one blockchain to another over the best available route, and f
 - **Finds the best route.** Compares every bridge it can reach for a transfer and ranks them cheapest or fastest. If two chains have no direct connection, it finds a route through other chains.
 - **Chains transfers.** A plan can have several legs; each starts by itself once the previous one has arrived.
 - **Permissionless only.** It uses only non-custodial services that need no account and no KYC. Your keys stay on your machine, encrypted.
-- **Works behind a proxy.** All traffic can go through an HTTP or SOCKS5 proxy.
 - **Careful with funds.** Every step is written to a journal first, so a crash or a closed laptop never loses track of a transfer.
 
 ## Status
@@ -122,15 +121,6 @@ chainer config set maxUsdPerTransfer 500        # refuse larger transfers ("off"
 chainer config set maxHops 3                    # most legs an automatic route may have
 chainer config avoid add USDT                   # never route through or into this token
 chainer config rpc arbitrum https://my-node...  # use your own RPC node ("default" to undo)
-```
-
-### Proxy
-
-With a proxy set, every request (route searches and blockchain calls) goes through it. If the proxy is down, chainer fails instead of connecting directly.
-
-```sh
-chainer config set proxy socks5://127.0.0.1:1080   # or an http:// proxy
-chainer config set proxy off
 ```
 
 ### Scripting

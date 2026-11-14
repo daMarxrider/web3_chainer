@@ -30,7 +30,7 @@ Decisions made with the user:
 
 Verified so far:
 
-- unit tests (`npm test`), live quotes, a live balance scan, and all traffic through a SOCKS5 proxy;
+- unit tests (`npm test`), live quotes, a live balance scan;
 - real signing and sending against a local test chain;
 - real bridge transfers on testnets (14 Nov 2026): 5 USDC Arc Testnet -> Arbitrum Sepolia, and a two-leg plan Arc Testnet -> Arbitrum Sepolia, then Arc Testnet -> Base Sepolia. Token approval, sending, status tracking and the received amounts were confirmed by reading the destination balances;
 - the multi-hop search against live data (it found Arc Testnet -> Base Sepolia -> Ethereum Sepolia).
@@ -115,12 +115,11 @@ Pools, assets and pairs are read from each source at runtime, not hard-coded. Ex
   - Seed-based accounts already have an address on every chain, so they need no transit wallet.
 - **Live status:** the pipeline emits events (quoting, signing, submitted with tx ID, confirmations, bridge in progress, arrived, failed, retrying). The CLI renders them as a live-updating leg list (plain line output with `--json` or when not a terminal); the GUI shows the same in a progress window. After the single upfront confirmation nothing else prompts, except WalletConnect approvals.
 - **Test mode:** each provider and adapter declares its testnet (if any). `--testnet` / a "Test this route" button maps the configured route onto testnets and runs it for real with faucet funds. Legs with no testnet are shown as untestable and run as a dry-run (quote and build, no signing), so the user sees exactly which parts were exercised. Testnet and mainnet wallets, journals and history are kept separate.
-- **`settings`** (persisted): theme, tokens to avoid, address book (labelled addresses, validated against their chain), RPC endpoint per chain, HTTP/SOCKS5 proxy, destination gas top-up, API keys, hop limit, slippage, max amount per transfer.
+- **`settings`** (persisted): theme, tokens to avoid, address book (labelled addresses, validated against their chain), RPC endpoint per chain, destination gas top-up, API keys, hop limit, slippage, max amount per transfer.
 - **Safety rails:** confirmation showing route, fees and destination before signing (`--yes` to skip), `--dry-run` that stops before signing.
 
 ### Settings options in detail
 
-- **Proxy:** all API and RPC traffic goes through the configured HTTP or SOCKS5 proxy. Status polling uses HTTP so nothing bypasses it, and a dead proxy fails instead of falling back to a direct connection.
 - **Own RPC nodes:** per-chain endpoint override; public defaults otherwise.
 - **Destination gas top-up:** if the destination wallet has no native gas token, a small extra amount is routed into it.
 
@@ -138,7 +137,7 @@ Technically possible: the app acts as the dApp side, shows a QR code (GUI, and i
 Decided on 14 Nov 2026 to keep the legal risk for the author low:
 
 - **Monero is not supported**, as source, destination or stop-over. Route sources that list it (THORChain once its pool is live, BasicSwap) must have XMR filtered out by a built-in rule the user cannot switch off; eigenwallet (BTC <-> XMR only) is not integrated.
-- **No Tor integration.** The app has a plain HTTP/SOCKS5 proxy setting and nothing more: it does not install, bundle, start or mention Tor.
+- **No proxy, VPN or Tor support.** The app has no proxy setting and does not install, bundle, start or mention any of them. The proxy setting built in milestone 1 was removed. Anyone who wants one sets it up on their own system, outside the app.
 - **The default theme is "Retro"**, an original early-2000s desktop look written for this project. It uses no Microsoft names, logos, wallpapers, icons, sounds or fonts, does not copy the Windows XP visual style pixel for pixel, and does not use the XP.css library.
 - **Disclaimer.** The README and `chainer --help` state that the author is not liable for losses from bugs or misuse; the GUI must show the same text on first launch and in its About screen.
 - Wording everywhere stays functional (cost, speed, self-custody); never "anonymous" or "untraceable".
@@ -186,7 +185,7 @@ Each script:
 
 ## Milestones
 
-1. **Core + CLI, EVM only:** workspace, multi-account wallet, settings store (incl. avoid list, RPC overrides, proxy), EVM adapter, LI.FI, optimizer for direct routes, `quote` and `send`, journal.
+1. **Core + CLI, EVM only:** workspace, multi-account wallet, settings store (incl. avoid list, RPC overrides), EVM adapter, LI.FI, optimizer for direct routes, `quote` and `send`, journal.
 2. **Chaining and multi-hop:** pipeline engine, YAML plans, resume, graph search, live status view, test mode.
 3. **More chains:** Solana and Bitcoin-family adapters; NEAR Intents, THORChain, Maya, Chainflip.
 4. **Direct bridges and API atomic swaps:** CCTP, Across, Garden, Atomiq.
@@ -207,6 +206,5 @@ Each milestone is usable by itself. The initial commit goes on a `main` branch (
 - **Testnet end-to-end:** Sepolia -> Base Sepolia through CCTP and Across, including a two-leg pipeline and a sweep; Bitcoin testnet for the atomic-swap daemons where they support it.
 - **Mainnet:** most sources have no usable testnet, so the final check per provider is a few dollars sent on mainnet by the user, first with `--dry-run`, then for real. This needs the user's funded wallet.
 - **Transit wallet crash test:** kill the process right after a transit wallet is created and again after funds reach it; confirm the key is in the keystore and `pipeline resume` moves the funds on.
-- **Proxy check:** with a proxy set, confirm no request leaves outside the proxy (run with direct network access blocked).
 - **Install scripts:** `scripts/test-install-linux.sh` runs the Linux script on clean Arch, Debian, Ubuntu and Fedora systems. It needs no Docker or root: official base images are unpacked into folders and entered with `unshare` (util-linux, present on every distribution). Docker and Podman were not installed here, and `systemd-nspawn` needs root and is a separate package on Debian/Ubuntu. macOS and Windows need those systems or CI runners.
 - **GUI:** `tauri dev` on Linux, walk the first-launch flow in both themes, run a testnet transfer and a sweep; then an Android build on an emulator or device.
