@@ -19,6 +19,7 @@ Decisions made with the user:
 - **Saved routes:** a route (including a whole-wallet sweep) can be worked out now and stored to run at a later time.
 - **Form:** CLI and GUI. GUI defaults to a Windows XP look, with a modern theme selectable on first launch.
 - **Platforms:** Windows, Linux, macOS, Android (no iOS).
+- **Install scripts:** one script per desktop system (Linux, macOS, Windows) that installs every dependency; none for Android.
 
 ## Status
 
@@ -160,6 +161,23 @@ To verify when the milestone starts: the automation APIs of eigenwallet (`swap-c
 - Themes are CSS only: `XP.css` for the XP look and a plain modern stylesheet; the choice is stored and changeable later.
 - Responsive layout so the same UI works on a phone.
 
+## Install scripts
+
+One script per desktop system sets up everything needed to build and run the project, so a fresh machine needs a single command. There is no script for Android.
+
+| System | Script |
+|---|---|
+| Linux | `scripts/install-linux.sh` (detects pacman, apt or dnf) |
+| macOS | `scripts/install-macos.sh` (uses Homebrew, installing it if missing) |
+| Windows | `scripts/install-windows.ps1` (uses winget) |
+
+Each script:
+
+- installs what is missing and skips what is already there, so it is safe to run again;
+- covers every dependency the project has at that point: Node.js and the npm packages now; later the Rust toolchain and the system libraries Tauri needs for the GUI, Tor for the proxy option, and the atomic-swap helper daemons;
+- finishes by running the tests and `chainer --help` to confirm the setup works;
+- is updated in the same commit as any change that adds a dependency.
+
 ## Milestones
 
 1. **Core + CLI, EVM only:** workspace, multi-account wallet, settings store (incl. avoid list, RPC overrides, proxy), EVM adapter, LI.FI, optimizer for direct routes, `quote` and `send`, journal.
@@ -172,6 +190,8 @@ To verify when the milestone starts: the automation APIs of eigenwallet (`swap-c
 8. **Lightning and Cosmos:** Lightning adapter + Boltz; Cosmos adapter + Skip Go.
 9. **WalletConnect and API-key providers:** WalletConnect signer; 1inch Fusion+, Rango, SwapKit.
 
+The install scripts are written right after milestone 2 for the current dependencies and extended in every later milestone that adds one.
+
 Each milestone is usable by itself. The initial commit goes on a `main` branch (the repo currently sits on an empty `master`).
 
 ## Verification
@@ -182,4 +202,5 @@ Each milestone is usable by itself. The initial commit goes on a `main` branch (
 - **Mainnet:** most sources have no usable testnet, so the final check per provider is a few dollars sent on mainnet by the user, first with `--dry-run`, then for real. This needs the user's funded wallet.
 - **Transit wallet crash test:** kill the process right after a transit wallet is created and again after funds reach it; confirm the key is in the keystore and `pipeline resume` moves the funds on.
 - **Proxy check:** with Tor enabled, confirm no request leaves outside the proxy (run with direct network access blocked).
+- **Install scripts:** run each on a clean machine or container of its system (Linux can be checked here in containers for Arch, Debian/Ubuntu and Fedora; macOS and Windows need those systems or CI runners).
 - **GUI:** `tauri dev` on Linux, walk the first-launch flow in both themes, run a testnet transfer and a sweep; then an Android build on an emulator or device.
