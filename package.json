@@ -1,9 +1,15 @@
 {
   "name": "web3-chainer",
   "private": true,
+  "license": "GPL-3.0-only",
   "type": "module",
-  "engines": { "node": ">=24" },
-  "workspaces": ["packages/*", "apps/*"],
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
     "chainer": "node apps/cli/src/main.ts",
     "test": "node --test \"packages/*/test/*.test.ts\"",
