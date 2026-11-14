@@ -33,6 +33,11 @@ export type TransferEvent = (record: TransferRecord, message: string) => void
 const PREFIX = 'journal/'
 const save = (store: Store, record: TransferRecord) => store.set(`${PREFIX}${record.id}.json`, JSON.stringify(record, null, 2))
 
+export async function getTransfer(store: Store, id: string): Promise<TransferRecord | null> {
+  const raw = await store.get(`${PREFIX}${id}.json`)
+  return raw ? (JSON.parse(raw) as TransferRecord) : null
+}
+
 export async function listTransfers(store: Store): Promise<TransferRecord[]> {
   const keys = await store.keys(PREFIX)
   const records = await Promise.all(keys.map(async (k) => JSON.parse((await store.get(k))!) as TransferRecord))
@@ -46,13 +51,15 @@ export interface TransferDeps {
   onEvent: TransferEvent
   /** Milliseconds between bridge status checks. */
   pollMs?: number
+  /** Journal id chosen by the caller, so it can be recorded before the transfer starts. */
+  id?: string
 }
 
 /** Signs and sends a quote's transaction, then follows it until the funds arrive. */
 export async function executeQuote(quote: Quote, wallet: string, signer: Signer, deps: TransferDeps): Promise<TransferRecord> {
   const { store, adapter, onEvent } = deps
   const record: TransferRecord = {
-    id: crypto.randomUUID(),
+    id: deps.id ?? crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     wallet,
     provider: quote.provider,

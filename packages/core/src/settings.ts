@@ -6,6 +6,8 @@ export interface Settings {
   slippage: number
   /** Refuse single transfers worth more than this; null disables the limit. */
   maxUsdPerTransfer: number | null
+  /** Most legs an automatically found route may have. */
+  maxHops: number
   /** Token symbols ("USDT") or "chainKey:address" entries never to route through or into. */
   avoidTokens: string[]
   /** RPC endpoint override per chain key. */
@@ -19,6 +21,7 @@ export const defaultSettings: Settings = {
   prefer: 'cheapest',
   slippage: 0.005,
   maxUsdPerTransfer: null,
+  maxHops: 3,
   avoidTokens: [],
   rpc: {},
   proxy: null,
