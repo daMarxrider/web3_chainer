@@ -114,6 +114,8 @@ const out = (line = '') => console.log(line)
 const printJson = (value: unknown) => out(JSON.stringify(value, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2))
 const usd = (n: number | undefined) => (n === undefined ? '?' : `$${n.toFixed(2)}`)
 const stamp = () => new Date().toTimeString().slice(0, 8)
+/** Journal times are stored in UTC; show them in the user's time zone. */
+const localTime = (iso: string) => new Date(iso).toLocaleString('sv').slice(0, 16)
 
 function fmt(amount: bigint | string, token: Token): string {
   const [whole, frac = ''] = formatUnits(BigInt(amount), token.decimals).split('.')
@@ -368,7 +370,7 @@ function liveView(): (record: PipelineRecord, legIndex: number, message: string)
 
 function printPipeline(record: PipelineRecord): void {
   if (opts.json) return printJson(record)
-  out(`Run ${record.id.slice(0, 8)}  ${record.state}  started ${record.createdAt.slice(0, 16).replace('T', ' ')}  wallet ${record.wallet}`)
+  out(`Run ${record.id.slice(0, 8)}  ${record.state}  started ${localTime(record.createdAt)}  wallet ${record.wallet}`)
   record.legs.forEach((leg, i) => out(`${MARK[leg.state]} ${i + 1}. ${legText(leg)}`))
 }
 
@@ -463,7 +465,7 @@ async function statusCommand(id: string | undefined): Promise<void> {
       const [first, last] = [r.legs[0]!, r.legs.at(-1)!]
       const done = r.legs.filter((l) => l.state === 'done').length
       const amount = first.amount === 'all' ? `all ${first.from.symbol}` : fmt(first.amount, first.from)
-      return [r.id.slice(0, 8), r.createdAt.slice(0, 16).replace('T', ' '), r.state, `${done}/${r.legs.length}`, `${amount} ${first.from.chainKey} -> ${last.to.symbol} ${last.to.chainKey}`]
+      return [r.id.slice(0, 8), localTime(r.createdAt), r.state, `${done}/${r.legs.length}`, `${amount} ${first.from.chainKey} -> ${last.to.symbol} ${last.to.chainKey}`]
     }),
   ])
 }
