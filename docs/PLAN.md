@@ -159,6 +159,7 @@ To verify when the milestone starts: the automation APIs of eigenwallet (`swap-c
 
 - First launch: theme picker (XP default, Modern), then wallet setup.
 - Screens: Balances, Transfer (form -> ranked routes -> confirm -> live progress), Bridge Wallet (token table with checkboxes and "select all"), Pipeline builder, Saved routes, Schedules, Address book, History, Settings.
+- The README carries step-by-step usage for CLI and GUI plus one screenshot per theme (`docs/screenshots/`); the screenshots are retaken whenever a change alters how the GUI looks.
 - Themes are CSS only: `XP.css` for the XP look and a plain modern stylesheet; the choice is stored and changeable later.
 - Responsive layout so the same UI works on a phone.
 
@@ -186,7 +187,7 @@ Each script:
 3. **More chains:** Solana and Bitcoin-family adapters; NEAR Intents, THORChain, Maya, Chainflip.
 4. **Direct bridges and API atomic swaps:** CCTP, Across, Garden, Atomiq.
 5. **Sweep, saved routes, address book, gas top-up, transit wallets, scheduler.**
-6. **GUI:** Tauri app, both themes, all screens; desktop builds, then Android.
+6. **GUI:** Tauri app, both themes, all screens; desktop builds, then Android. README gets the GUI steps and a screenshot per theme.
 7. **Monero:** Monero adapter, eigenwallet and BasicSwap wrappers, Komodo if maintained.
 8. **Lightning and Cosmos:** Lightning adapter + Boltz; Cosmos adapter + Skip Go.
 9. **WalletConnect and API-key providers:** WalletConnect signer; 1inch Fusion+, Rango, SwapKit.
