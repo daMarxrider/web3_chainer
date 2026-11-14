@@ -156,6 +156,15 @@ npm run chainer -- quote 100 USDC arbitrum base
 
 The code is TypeScript, run directly by Node.js without a build step. `packages/core` holds all logic; `apps/cli` is the command line on top of it.
 
+## Third-party services
+
+chainer is independent software. It is not affiliated with, endorsed by or operated by any of the services it talks to, and it talks to them directly from your machine:
+
+- **[LI.FI](https://li.fi)** for route searches and bridge transactions, through its public API without an account. Their [terms and conditions](https://li.fi/legal/terms-and-conditions) apply to you when you use it. Among other things they require that you are not a US citizen or resident, not under sanctions and not in a comprehensively sanctioned country, and that you do not use it for anything illegal. LI.FI's contracts are non-custodial, and LI.FI gives no warranty for the third-party bridges and exchanges it routes through. The public API allows 75 route searches and 50 transactions per two hours.
+- **Public RPC nodes** of each blockchain (for example PublicNode and the chains' own endpoints) for balances and for sending transactions. They are rate-limited and come with no guarantee; you can use your own with `chainer config rpc`.
+
+You are responsible for meeting the terms of these services.
+
 ## Disclaimer
 
 This software is provided "as is", without warranty of any kind. You use it entirely at your own risk.

@@ -144,6 +144,17 @@ Decided on 14 Nov 2026 to keep the legal risk for the author low:
 
 Atomic-swap daemons (BasicSwap, Komodo DeFi Framework) are wrapped as helper processes, not reimplemented; swaps take tens of minutes to hours and must stay online until completion or refund, so they are marked slow and the GUI warns before starting. Their automation APIs, maintenance state and licences are checked when that milestone starts.
 
+## Third-party terms
+
+Checked on 14 Nov 2026 for everything the app uses at that point:
+
+- **npm packages** (viem, @scure/bip39, yaml, TypeScript and their dependencies): all MIT, ISC or Apache-2.0, which are compatible with GPLv3.
+- **LI.FI** (terms dated 4 Sep 2025): keyless use of the public API is allowed within its limits. Users must not be US persons or sanctioned (sections 2.5, 2.6). Whoever integrates it must tell users that the integration is independent of LI.FI, that the contracts are non-custodial and that LI.FI does not warrant third-party contracts (2.2), is responsible for legal compliance (2.4), must remove the integration on reasonable request (2.8), and indemnifies LI.FI against claims from its use (4.1). The README carries the required notice; the GUI must show it too. LI.FI's commercial API (with a key) is for companies only, not private individuals.
+- **PublicNode** (default RPC for several chains): automated access and use inside applications are allowed; reselling access and evading rate limits are not.
+- **Install and test tooling** (Node.js, Homebrew, winget, distribution packages, Docker Hub base images): installed or downloaded on the user's machine, never redistributed by this project.
+
+Rule for later milestones: before a route source, daemon or library is integrated, its terms and licence are read and the result is added here; the README's third-party section lists every service the app contacts. Known in advance: the API-key services (1inch, Rango, SwapKit) have commercial terms that may exclude private individuals.
+
 ## Interfaces
 
 **CLI** (`chainer`):
