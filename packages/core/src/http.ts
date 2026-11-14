@@ -6,11 +6,17 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 export async function fetchJson<T>(fetchFn: FetchFn, url: string, init?: RequestInit): Promise<T> {
   for (let attempt = 0; ; attempt++) {
     const res = await fetchFn(url, init)
-    if (res.status === 429 && attempt < 3) {
-      await sleep(1000 * 2 ** attempt)
+    const retryAfter = Number(res.headers.get('retry-after') ?? 0)
+    // Short rate limits are worth waiting out; a long one is reported straight away.
+    if (res.status === 429 && attempt < 2 && retryAfter <= 5) {
+      await sleep(1000 * (retryAfter || 2 ** attempt))
       continue
     }
     const text = await res.text()
+    if (res.status === 429) {
+      const wait = retryAfter > 90 ? `${Math.ceil(retryAfter / 60)} minutes` : `${retryAfter} seconds`
+      throw new Error(`${new URL(url).host} is rate-limiting this connection; try again in ${wait}`)
+    }
     if (!res.ok) {
       let message = text.slice(0, 300)
       try {

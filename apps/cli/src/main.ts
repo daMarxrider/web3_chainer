@@ -284,7 +284,7 @@ async function buildPlan(args: string[]): Promise<Plan> {
 async function search(plan: Plan): Promise<Route[]> {
   const { providers } = await runDeps()
   const { routes, errors } = await findPipelineRoutes(plan.request, providers, settings, { prefer: preference(), hubs: hubTokens, maxHops: maxHops() })
-  if (routes.length === 0) throw new Error(errors.length ? `No route found, also not through other chains. ${errors.join('; ')}` : 'No route found that respects your avoid list.')
+  if (routes.length === 0) throw new Error(errors.length ? `No route found. ${errors.join('; ')}` : 'No route found, also not through other chains.')
   for (const e of errors) console.error(`Note: ${e}`)
   return routes
 }
@@ -297,7 +297,7 @@ function printRoutes(plan: Plan, routes: Route[]): void {
   out()
   table([
     ['#', 'VIA', 'YOU RECEIVE', 'AT WORST', 'GAS + FEES', 'NET VALUE', 'TIME'],
-    ...routes.map((r, i) => {
+    ...routes.slice(0, 8).map((r, i) => {
       const last = r.legs.at(-1)!
       return [String(i + 1), routeVia(r), fmt(last.toAmount, to), fmt(last.toAmountMin, to), usd(r.legs.reduce((s, q) => s + q.costUsd, 0)), usd(routeNetUsd(r)), duration(routeEta(r))]
     }),
@@ -313,7 +313,7 @@ function printRoutes(plan: Plan, routes: Route[]): void {
 async function quoteCommand(args: string[]): Promise<void> {
   const plan = await buildPlan(args)
   const routes = await search(plan)
-  if (opts.json) return printJson(routes.map((r) => ({ netUsd: routeNetUsd(r), etaSeconds: routeEta(r), legs: r.legs.map(({ actions: _, ...q }) => q) })))
+  if (opts.json) return printJson(routes.map((r) => ({ netUsd: routeNetUsd(r), etaSeconds: routeEta(r), legs: r.legs.map(({ raw: _, ...q }) => q) })))
   printRoutes(plan, routes)
 }
 

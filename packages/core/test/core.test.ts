@@ -8,14 +8,15 @@ import {
   findRoutes,
   listTransfers,
   loadKeystore,
-  normalizeLifiQuote,
+  lifiAction,
+  normalizeLifiStep,
   rankQuotes,
   trackTransfer,
   unlock,
   type BridgeProvider,
   type Chain,
   type ChainAdapter,
-  type LifiQuote,
+  type LifiStep,
   type Quote,
   type QuoteRequest,
   type Signer,
@@ -48,7 +49,7 @@ const quote = (over: Partial<Quote>): Quote => ({
   costUsd: 0,
   etaSeconds: 60,
   viaSymbols: ['USDC'],
-  actions: [{ kind: 'evm-tx', chainKey: 'arb', to: '0x1', data: '0x', value: 0n }],
+  raw: null,
   statusRef: {},
   ...over,
 })
@@ -60,6 +61,7 @@ const provider = (quotes: Quote[] | Error, statuses: TransferStatus[] = [], trai
     if (quotes instanceof Error) throw quotes
     return quotes
   },
+  buildActions: async () => [{ kind: 'evm-tx', chainKey: 'arb', to: '0x1', data: '0x', value: 0n }],
   getStatus: async () => statuses.shift() ?? { state: 'pending' },
 })
 
@@ -108,7 +110,7 @@ test('findChain accepts key, id, name, alias and unique partial name', () => {
 })
 
 test('LI.FI quote: gas is extra cost, included fees are not counted twice, ERC-20 needs approval', () => {
-  const lifi: LifiQuote = {
+  const lifi: LifiStep = {
     tool: 'across',
     action: { fromToken: { ...usdcArb, chainId: 42161 }, toToken: { ...usdcBase, chainId: 8453 }, fromChainId: 42161, toChainId: 8453 },
     estimate: {
@@ -123,11 +125,11 @@ test('LI.FI quote: gas is extra cost, included fees are not counted twice, ERC-2
     includedSteps: [{ action: { fromToken: { ...usdcArb, chainId: 42161 }, toToken: { ...usdcBase, chainId: 8453, symbol: 'USDbC' } } }],
     transactionRequest: { to: '0xdiamond', data: '0xdead', value: '0x0', gasLimit: '0x5208' },
   }
-  const q = normalizeLifiQuote(lifi, request)
+  const q = normalizeLifiStep(lifi, request)
   assert.equal(q.toAmount, 99_750_000n)
   assert.ok(Math.abs(q.costUsd - 0.41) < 1e-9)
   assert.deepEqual(q.viaSymbols, ['USDC', 'USDbC'])
-  assert.deepEqual(q.actions[0], {
+  assert.deepEqual(lifiAction(lifi, request), {
     kind: 'evm-tx',
     chainKey: 'arb',
     to: '0xdiamond',
@@ -137,6 +139,7 @@ test('LI.FI quote: gas is extra cost, included fees are not counted twice, ERC-2
     approval: { token: usdcArb.address, spender: '0xspender', amount: 100_000_000n },
   })
   assert.deepEqual(q.statusRef, { tool: 'across', fromChain: 42161, toChain: 8453 })
+  assert.throws(() => lifiAction({ ...lifi, transactionRequest: undefined }, request), /no transaction/)
 })
 
 test('keystore round-trips seeds and keys, rejects wrong passwords, stores no plaintext', async () => {

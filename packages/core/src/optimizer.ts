@@ -34,7 +34,7 @@ export interface RouteSearch {
 export async function findRoutes(request: QuoteRequest, providers: BridgeProvider[], settings: Settings, prefer: Prefer = settings.prefer): Promise<RouteSearch> {
   if (isAvoided(settings, request.to)) throw new Error(`${request.to.symbol} is on your list of tokens to avoid`)
   const active = usableProviders(providers)
-  const results = await Promise.allSettled(active.map((p) => p.getQuotes(request)))
+  const results = await Promise.allSettled(active.map((p) => p.getQuotes(request, prefer)))
   const quotes: Quote[] = []
   const errors: string[] = []
   results.forEach((r, i) => {

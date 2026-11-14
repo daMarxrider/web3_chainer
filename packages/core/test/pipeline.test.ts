@@ -61,11 +61,12 @@ function world(links: [Token, Token, number][], start: [Token, bigint][]) {
           costUsd: 0.1,
           etaSeconds: 30,
           viaSymbols: [request.from.symbol, request.to.symbol],
-          actions: [{ kind: 'evm-tx', chainKey: request.from.chainKey, to: '0x1', data: '0x', value: 0n }],
+          raw: null,
           statusRef: { n: sent.length },
         },
       ]
     },
+    buildActions: async (q) => [{ kind: 'evm-tx', chainKey: q.request.from.chainKey, to: '0x1', data: '0x', value: 0n }],
     async getStatus(_, ref) {
       const q = sent[Number(ref.n)]!
       return { state: 'done', receivedAmount: q.toAmount }
@@ -95,8 +96,8 @@ function world(links: [Token, Token, number][], start: [Token, bigint][]) {
 
   // Remember the quote the pipeline is about to execute, as a real provider's transaction would.
   const getQuotes = provider.getQuotes
-  provider.getQuotes = async (request) => {
-    const quotes = await getQuotes(request)
+  provider.getQuotes = async (request, prefer) => {
+    const quotes = await getQuotes(request, prefer)
     if (quotes[0]) {
       quotes[0].statusRef = { n: sent.length }
       pending = quotes[0]

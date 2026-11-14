@@ -76,7 +76,7 @@ export async function executeQuote(quote: Quote, wallet: string, signer: Signer,
   await save(store, record)
 
   try {
-    for (const action of quote.actions) {
+    for (const action of await deps.provider.buildActions(quote)) {
       await adapter.prepare(action, signer, (message) => onEvent(record, message))
       record.state = 'signing'
       await save(store, record)

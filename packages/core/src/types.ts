@@ -67,7 +67,8 @@ export interface Quote {
   etaSeconds: number
   /** Symbols of every token the route passes through, for the avoid list. */
   viaSymbols: string[]
-  actions: Action[]
+  /** Provider-specific data needed to build the transaction when the quote is executed. */
+  raw: unknown
   /** Opaque data the provider needs later to look up the transfer status. */
   statusRef: Record<string, string | number>
 }
@@ -90,7 +91,9 @@ export interface ProviderTraits {
 export interface BridgeProvider {
   name: string
   traits: ProviderTraits
-  getQuotes(request: QuoteRequest): Promise<Quote[]>
+  getQuotes(request: QuoteRequest, prefer: Prefer): Promise<Quote[]>
+  /** Turns a quote into the transactions to sign. Called only when the quote is executed. */
+  buildActions(quote: Quote): Promise<Action[]>
   getStatus(txId: string, statusRef: Quote['statusRef']): Promise<TransferStatus>
 }
 

@@ -1,7 +1,7 @@
 import { zeroAddress } from 'viem'
 import { fetchJson } from '../http.ts'
 import type { Settings } from '../settings.ts'
-import type { BridgeProvider, Chain, FetchFn, Quote, QuoteRequest, Token, TransferStatus } from '../types.ts'
+import type { Action, BridgeProvider, Chain, FetchFn, Quote, QuoteRequest, Token, TransferStatus } from '../types.ts'
 
 const API = 'https://li.quest/v1'
 
@@ -25,7 +25,8 @@ interface LifiCost {
   amountUSD?: string
   included?: boolean
 }
-export interface LifiQuote {
+/** One step of a LI.FI route: a single transaction on the source chain. */
+export interface LifiStep {
   tool: string
   action: { fromToken: LifiToken; toToken: LifiToken; fromChainId: number; toChainId: number }
   estimate: {
@@ -79,39 +80,42 @@ export async function lifiTokens(fetchFn: FetchFn, chain: Chain): Promise<Token[
 const sumUsd = (costs: LifiCost[] | undefined, filter: (c: LifiCost) => boolean) =>
   (costs ?? []).filter(filter).reduce((sum, c) => sum + Number(c.amountUSD ?? 0), 0)
 
-/** Converts a LI.FI quote into the common Quote shape. Exported for tests. */
-export function normalizeLifiQuote(q: LifiQuote, request: QuoteRequest): Quote {
-  if (!q.transactionRequest) throw new Error('LI.FI quote has no transaction')
-  const tx = q.transactionRequest
-  const isNative = request.from.address.toLowerCase() === zeroAddress
+/** Converts a LI.FI step into the common Quote shape. Exported for tests. */
+export function normalizeLifiStep(step: LifiStep, request: QuoteRequest): Quote {
   const via = new Set<string>()
-  for (const step of q.includedSteps ?? []) {
-    via.add(step.action.fromToken.symbol)
-    via.add(step.action.toToken.symbol)
+  for (const part of step.includedSteps ?? []) {
+    via.add(part.action.fromToken.symbol)
+    via.add(part.action.toToken.symbol)
   }
   return {
     provider: 'lifi',
-    tool: q.tool,
+    tool: step.tool,
     request,
-    toAmount: BigInt(q.estimate.toAmount),
-    toAmountMin: BigInt(q.estimate.toAmountMin),
-    toAmountUsd: q.estimate.toAmountUSD ? Number(q.estimate.toAmountUSD) : undefined,
+    toAmount: BigInt(step.estimate.toAmount),
+    toAmountMin: BigInt(step.estimate.toAmountMin),
+    toAmountUsd: step.estimate.toAmountUSD ? Number(step.estimate.toAmountUSD) : undefined,
     // Gas is always extra; fees marked "included" are already taken out of toAmount.
-    costUsd: sumUsd(q.estimate.gasCosts, () => true) + sumUsd(q.estimate.feeCosts, (c) => c.included === false),
-    etaSeconds: q.estimate.executionDuration,
+    costUsd: sumUsd(step.estimate.gasCosts, () => true) + sumUsd(step.estimate.feeCosts, (c) => c.included === false),
+    etaSeconds: step.estimate.executionDuration,
     viaSymbols: [...via],
-    actions: [
-      {
-        kind: 'evm-tx',
-        chainKey: request.from.chainKey,
-        to: tx.to,
-        data: tx.data,
-        value: BigInt(tx.value ?? 0),
-        gasLimit: tx.gasLimit ? BigInt(tx.gasLimit) : undefined,
-        approval: isNative ? undefined : { token: request.from.address, spender: q.estimate.approvalAddress, amount: request.amount },
-      },
-    ],
-    statusRef: { tool: q.tool, fromChain: q.action.fromChainId, toChain: q.action.toChainId },
+    raw: step,
+    statusRef: { tool: step.tool, fromChain: step.action.fromChainId, toChain: step.action.toChainId },
+  }
+}
+
+/** Builds the transaction to sign from a step that LI.FI has filled in with transaction data. Exported for tests. */
+export function lifiAction(step: LifiStep, request: QuoteRequest): Action {
+  const tx = step.transactionRequest
+  if (!tx) throw new Error('LI.FI returned no transaction for this route')
+  const isNative = request.from.address.toLowerCase() === zeroAddress
+  return {
+    kind: 'evm-tx',
+    chainKey: request.from.chainKey,
+    to: tx.to,
+    data: tx.data,
+    value: BigInt(tx.value ?? 0),
+    gasLimit: tx.gasLimit ? BigInt(tx.gasLimit) : undefined,
+    approval: isNative ? undefined : { token: request.from.address, spender: step.estimate.approvalAddress, amount: request.amount },
   }
 }
 
@@ -121,6 +125,8 @@ interface LifiStatus {
   substatusMessage?: string
   receiving?: { amount?: string; txHash?: string }
 }
+
+const postJson = (body: unknown): RequestInit => ({ method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
 
 export function lifiProvider(fetchFn: FetchFn, chains: Chain[], settings: Pick<Settings, 'lifi'>): BridgeProvider {
   const chainId = (key: string) => {
@@ -133,36 +139,36 @@ export function lifiProvider(fetchFn: FetchFn, chains: Chain[], settings: Pick<S
     name: 'lifi',
     traits: { nonCustodial: true, needsApiKey: false },
 
-    async getQuotes(request) {
-      const params = new URLSearchParams({
-        fromChain: String(chainId(request.from.chainKey)),
-        toChain: String(chainId(request.to.chainKey)),
-        fromToken: request.from.address,
-        toToken: request.to.address,
-        fromAmount: request.amount.toString(),
-        fromAddress: request.fromAddress,
-        toAddress: request.toAddress,
-        slippage: String(request.slippage),
-      })
-      for (const b of settings.lifi.allowBridges) params.append('allowBridges', b)
-      for (const b of settings.lifi.denyBridges) params.append('denyBridges', b)
-
-      // LI.FI returns one quote per call; ask for its cheapest and its fastest.
-      const results = await Promise.allSettled(
-        ['CHEAPEST', 'FASTEST'].map((order) => fetchJson<LifiQuote>(fetchFn, `${API}/quote?${params}&order=${order}`)),
+    // One request returns every bridge LI.FI can use for the pair, which keeps well inside its
+    // limit of 75 route searches per two hours.
+    async getQuotes(request, prefer) {
+      const { allowBridges, denyBridges } = settings.lifi
+      const { routes } = await fetchJson<{ routes: { steps: LifiStep[] }[] }>(
+        fetchFn,
+        `${API}/advanced/routes`,
+        postJson({
+          fromChainId: chainId(request.from.chainKey),
+          toChainId: chainId(request.to.chainKey),
+          fromTokenAddress: request.from.address,
+          toTokenAddress: request.to.address,
+          fromAmount: request.amount.toString(),
+          fromAddress: request.fromAddress,
+          toAddress: request.toAddress,
+          options: {
+            slippage: request.slippage,
+            order: prefer === 'fastest' ? 'FASTEST' : 'CHEAPEST',
+            // Only routes that are a single transaction on the source chain.
+            allowSwitchChain: false,
+            bridges: { allow: allowBridges.length ? allowBridges : undefined, deny: denyBridges.length ? denyBridges : undefined },
+          },
+        }),
       )
-      const quotes: Quote[] = []
-      const seen = new Set<string>()
-      for (const r of results) {
-        if (r.status !== 'fulfilled') continue
-        // Both orders often pick the same bridge; keep it once.
-        const quote = normalizeLifiQuote(r.value, request)
-        if (!seen.has(quote.tool)) quotes.push(quote)
-        seen.add(quote.tool)
-      }
-      const failure = results.find((r) => r.status === 'rejected')
-      if (quotes.length === 0 && failure) throw failure.reason
-      return quotes
+      return routes.filter((r) => r.steps.length === 1).map((r) => normalizeLifiStep(r.steps[0]!, request))
+    },
+
+    async buildActions(quote) {
+      const step = await fetchJson<LifiStep>(fetchFn, `${API}/advanced/stepTransaction`, postJson(quote.raw))
+      return [lifiAction(step, quote.request)]
     },
 
     async getStatus(txId, ref): Promise<TransferStatus> {

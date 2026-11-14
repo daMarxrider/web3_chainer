@@ -56,7 +56,13 @@ export async function findPipelineRoutes(
   if (direct.quotes.length > 0 || options.maxHops < 2) return { routes: direct.quotes.map((q) => ({ legs: [q] })), errors: direct.errors }
 
   const hubs = (await options.hubs()).filter((h) => !isAvoided(settings, h) && !sameToken(h, request.from) && !sameToken(h, request.to))
-  const best = async (r: QuoteRequest) => (await findRoutes(r, providers, settings, options.prefer).catch(() => ({ quotes: [] as Quote[] }))).quotes[0]
+  // Problems talking to a route source (rate limits, outages) are kept, so "no route" is not blamed on the chains.
+  const errors = new Set(direct.errors)
+  const best = async (r: QuoteRequest): Promise<Quote | undefined> => {
+    const found = await findRoutes(r, providers, settings, options.prefer)
+    for (const e of found.errors) if (!/No available quotes|404/.test(e)) errors.add(e)
+    return found.quotes[0]
+  }
   // Stop-over funds sit in the user's own wallet; the next leg spends the worst-case amount.
   const hop = (from: Token, to: Token, amount: bigint, final: boolean): QuoteRequest => ({
     ...request,
@@ -97,7 +103,7 @@ export async function findPipelineRoutes(
     )
     frontier = [...next.values()]
   }
-  return { routes: [], errors: direct.errors }
+  return { routes: [], errors: [...errors] }
 }
 
 // ---- pipelines ----------------------------------------------------------
