@@ -79,6 +79,9 @@ Plan file:
       from: USDC@base
       to: ETH@optimism
 
+Routes and bridge transactions come from LI.FI (li.fi). chainer is independent of LI.FI;
+its terms apply to your use of its contracts. See "Third-party services" in the README.
+
 No warranty: this software is provided as is. You alone are responsible for any loss of
 funds, whether from bugs or from how you use it. See the README and LICENSE.
 

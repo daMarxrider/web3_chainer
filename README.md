@@ -170,7 +170,13 @@ These are deliberate decisions, not missing work, and requests to add them will 
 
 chainer is independent software. It is not affiliated with, endorsed by or operated by any of the services it talks to, and it talks to them directly from your machine:
 
-- **[LI.FI](https://li.fi)** for route searches and bridge transactions, through its public API without an account. Their [terms and conditions](https://li.fi/legal/terms-and-conditions) apply to you when you use it. Among other things they require that you are not a US citizen or resident, not under sanctions and not in a comprehensively sanctioned country, and that you do not use it for anything illegal. LI.FI's contracts are non-custodial, and LI.FI gives no warranty for the third-party bridges and exchanges it routes through. The public API allows 75 route searches and 50 transactions per two hours.
+- **[LI.FI](https://li.fi)** for route searches and bridge transactions, through its public API without an account.
+  - chainer provides this integration independently of LI.FI and without any association to it.
+  - The LI.FI smart contracts are non-custodial: neither LI.FI nor chainer holds your funds at any time.
+  - Those contracts forward to third-party contracts (bridges and exchanges), which carry out the transfers you start.
+  - LI.FI does not warrant the availability, reliability or operability of those third-party contracts at any time.
+  - LI.FI's [terms and conditions](https://li.fi/legal/terms-and-conditions) apply to your use of its contracts. Under them you confirm that you are not a US citizen or resident, are not under sanctions or in a comprehensively sanctioned country, and that your use is lawful. chainer does not check any of this; it is for you to know whether you may use LI.FI.
+  - The public API allows 75 route searches and 50 transactions per two hours.
 - **Public RPC nodes** of each blockchain (for example PublicNode and the chains' own endpoints) for balances and for sending transactions. They are rate-limited and come with no guarantee; you can use your own with `chainer config rpc`.
 
 You are responsible for meeting the terms of these services.
