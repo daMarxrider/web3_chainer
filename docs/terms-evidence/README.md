@@ -18,4 +18,6 @@ Captured 15 Nov 2026 (UTC) with plain `curl` and the user agent `chainer-terms-r
 | Omni Bridge | `omni.bridge`, `app.omni.bridge` | no connection | The host names do not resolve (see the `.curl-error.txt` files). |
 | Chainflip | `chainflip.io/legal-notice` | HTTP 200 | An imprint (Chainflip Labs GmbH), not terms of use. |
 | Chainflip | `swap.chainflip.io/` | HTTP 200 | Application shell, no terms. |
+| NEAR Intents | `near-intents.org/terms-of-service` | HTTP 200 | Application shell without text; the terms were read from `docs.near-intents.org` (also saved). |
+| M0 | `docs.m0.org/home/resources/disclosures`, `.../portal/overview/disclosures` | see `INDEX.txt` | The disclosures pages the US-person statement was taken from. |
 | Polymer | `polymerlabs.org/`, `docs.polymerlabs.org/` | HTTP 200 | No terms, legal or privacy link in either page. |

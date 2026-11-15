@@ -1,0 +1,26 @@
+HTTP/2 200 
+age: 60149
+cache-control: no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0
+cf-cache-status: HIT
+cf-ray: a5ae2f10190f19af-FRA
+content-security-policy: worker-src 'self' blob:; object-src 'none'; base-uri 'self'; upgrade-insecure-requests; frame-ancestors 'self' https://dashboard.mintlify.com https://app.mintlify.com; form-action 'self'; default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; media-src 'self' data: blob: https:; frame-src 'self' blob: https:; connect-src 'self' data: https: wss:;
+content-type: text/html; charset=utf-8
+date: Sun, 15 Nov 2026 12:15:52 GMT
+expires: 0
+last-modified: Sat, 14 Nov 2026 20:36:24 GMT
+link: </_mintlify/assets/index-ClADVa_l.css?dpl=dpl_Fyv1NbzwP68g2bEH2Roy98uY1zmE>; rel=preload; as=style; crossorigin, </_mintlify/assets/index--pjADOhn.js?dpl=dpl_Fyv1NbzwP68g2bEH2Roy98uY1zmE>; rel=modulepreload; crossorigin; fetchpriority=low, </_mintlify/assets/fonts/inter/Inter-latin.woff2>; rel=preload; as=font; type=font/woff2; crossorigin, </llms.txt>; rel="llms-txt", </llms-full.txt>; rel="llms-full-txt", </.well-known/api-catalog>; rel="api-catalog", </.well-known/mcp/server-card.json>; rel="mcp-server-card", </.well-known/agent-card.json>; rel="agent-card", </.well-known/agent-skills/index.json>; rel="agent-skills", </security-compliance/terms-of-service.md>; rel="alternate"; type="text/markdown"
+pragma: no-cache
+server: Vercel
+server-timing: data;dur=880, mdx;dur=125, render;dur=18, total;dur=1111
+strict-transport-security: max-age=63072000
+vary: accept, accept-encoding, User-Agent
+x-frame-options: DENY
+x-llms-txt: /llms.txt
+x-mint-proxy-version: 1.0.0-prod
+x-mintlify-client-version: 0.0.4143
+x-served-version: dpl_Fyv1NbzwP68g2bEH2Roy98uY1zmE
+x-vercel-cache: BYPASS
+x-vercel-id: fra1:iad1::iad1::rg7sd-1794744952303-829c5796d5be
+x-vercel-project-id: prj_yXOeaGKuDidfrNqkveqTlVxPRlX9
+x-version: dpl_Fyv1NbzwP68g2bEH2Roy98uY1zmE
+

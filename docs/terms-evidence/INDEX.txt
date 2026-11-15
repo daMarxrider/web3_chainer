@@ -16,3 +16,7 @@
 2026-11-15T12:06:57Z | https://www.polymerlabs.org/ | HTTP 200 | 534467 bytes | wayback: http://web.archive.org/web/20261028045344/https://polymerlabs.org/
 2026-11-15T12:07:01Z | https://docs.polymerlabs.org/ | HTTP 200 | 4291 bytes | wayback: http://web.archive.org/web/20260831153310/https://docs.polymerlabs.org/
 2026-11-15T12:07:13Z | https://centrifuge.io/terms | HTTP 200 | 113091 bytes | wayback: http://web.archive.org/web/20261014120734/https://centrifuge.io/terms
+2026-11-15T12:15:52Z | https://near-intents.org/terms-of-service | HTTP 200 | 84807 bytes | wayback: http://web.archive.org/web/20260807111707/https://near-intents.org/terms-of-service
+2026-11-15T12:15:53Z | https://docs.near-intents.org/security-compliance/terms-of-service | HTTP 200 | 419793 bytes | wayback: http://web.archive.org/web/20261019045900/https://docs.near-intents.org/security-compliance/terms-of-service
+2026-11-15T12:15:54Z | https://docs.m0.org/home/resources/disclosures | HTTP 404 | 43261 bytes | wayback: http://web.archive.org/web/20250723153245/https://docs.m0.org/home/resources/disclosures/
+2026-11-15T12:15:56Z | https://docs.m0.org/portal/overview/disclosures | HTTP 404 | 43262 bytes | wayback: http://web.archive.org/web/20250212130333/https://docs.m0.org/portal/overview/disclosures

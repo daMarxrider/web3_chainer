@@ -1,0 +1,16 @@
+HTTP/2 404 
+cache-control: no-cache
+content-type: text/html;charset=utf-8
+date: Sun, 15 Nov 2026 12:15:53 GMT
+referrer-policy: no-referrer
+server: railway-hikari
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-powered-by: Nuxt
+x-railway-request-id: 9_aL9vSYSVa-2ghLjVra_w
+x-robots-tag: index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1
+content-length: 43261
+x-hikari-trace: ber1.bpxb
+x-railway-edge: ber1
+vary: accept-encoding
+

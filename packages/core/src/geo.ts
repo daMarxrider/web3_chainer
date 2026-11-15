@@ -65,6 +65,18 @@ export const GEO_RESTRICTIONS: Record<string, GeoRestriction> = {
     terms: 'Garden Finance Terms of Service, 19 Nov 2025',
   },
   layerswap: { name: 'Layerswap', regions: ['Iran', 'Cuba', 'North Korea', 'Syria', 'other states and territories listed in the terms'], note: 'The terms also forbid VPNs to get around this.', terms: 'Layerswap Labs Terms of Service, 5 May 2025' },
+  m0: {
+    name: 'M0',
+    regions: ['Belarus', 'Burundi', 'Central African Republic', 'Congo', 'Crimea', 'Donetsk', 'Luhansk', 'North Korea', 'Guinea', 'Guinea-Bissau', 'Iran', 'Iraq', 'Lebanon', 'Libya', 'Mali', 'Myanmar', 'South Sudan', 'Russia', 'Somalia', 'Sudan', 'Syria', 'Venezuela', 'Yemen', 'Zimbabwe'],
+    note: 'Website terms. M0 docs also say $M is not offered to US persons without an exemption.',
+    terms: 'M0 Foundation Website Terms of Use, May 2024',
+  },
+  near: {
+    name: 'NEAR Intents',
+    regions: SANCTIONED,
+    note: 'The 1Click API terms bar "Restricted Jurisdictions" and persons, defined in an access policy that is not published and can change without notice; every quote is screened against AML lists. Persons on sanctions lists are barred everywhere.',
+    terms: 'Intents Technology Limited 1Click API Terms of Use, 7 Oct 2026',
+  },
   paxos: { name: 'Paxos Labs Transit', regions: ['Cuba', 'Iran', 'North Korea', 'Syria', 'Russia', 'Crimea', 'jurisdictions that restrict crypto'], note: 'The terms also forbid VPNs.', terms: 'Paxos Labs Terms of Use, 2025' },
 }
 
