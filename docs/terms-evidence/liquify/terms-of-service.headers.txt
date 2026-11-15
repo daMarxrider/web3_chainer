@@ -1,0 +1,28 @@
+HTTP/2 301 
+server: nginx
+date: Sun, 15 Nov 2026 14:12:27 GMT
+content-type: text/html
+content-length: 162
+location: https://www.liquify.io/terms-of-service
+
+HTTP/2 301 
+date: Sun, 15 Nov 2026 14:12:27 GMT
+content-type: text/html; charset=UTF-8
+location: https://www.liquify.com/terms-of-service
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=yI4WtFp2Zye9d6Dox%2FsrZPIOazl9ifb95b0I4xwuyUetQNo21M%2BC0GNXYm9AQxoJtUAcMvXcSk%2BUqvHdFLjWgARLHtadiDH%2Bv8806TO4OZ1Wob5ZG5wLXNRl7%2B2m0Yar"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+server: cloudflare
+cf-ray: a5aed9d7ff7f1b4d-DUS
+
+HTTP/2 404 
+server: nginx
+date: Sun, 15 Nov 2026 14:12:27 GMT
+content-type: text/html; charset=utf-8
+content-length: 25814
+cache-control: private, no-cache, no-store, max-age=0, must-revalidate
+x-powered-by: Next.js
+etag: "b3ddlzhtgajx1"
+vary: Accept-Encoding
+x-frame-options: DENY
+content-security-policy: frame-ancestors 'self';
+

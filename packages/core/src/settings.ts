@@ -14,6 +14,8 @@ export interface Settings {
   /** RPC endpoint override per chain key. */
   rpc: Record<string, string>
   lifi: { allowBridges: string[]; denyBridges: string[] }
+  /** Route sources switched off by name ("thorchain", "maya"). LI.FI is always on. */
+  disabledProviders: string[]
 }
 
 export const defaultSettings: Settings = {
@@ -24,6 +26,7 @@ export const defaultSettings: Settings = {
   avoidTokens: [],
   rpc: {},
   lifi: { allowBridges: [], denyBridges: [...DEFAULT_DENIED_BRIDGES] },
+  disabledProviders: [],
 }
 
 const KEY = 'settings.json'

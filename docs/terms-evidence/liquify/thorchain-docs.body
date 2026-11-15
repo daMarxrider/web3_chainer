@@ -1,0 +1,390 @@
+<!DOCTYPE HTML>
+<html lang="en" class="latte sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Using THORChain - THORChain Developer Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Developer Documentation for THORChain. Integrate with THORChain; Cross-Chain Swapping.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href=".././theme/catppuccin.css">
+        <link rel="stylesheet" href=".././theme/mdbook-admonish.css">
+        <link rel="stylesheet" href=".././theme/catppuccin-admonish.css">
+
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "latte";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('latte')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="latte">Latte</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="frappe">Frappé</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="macchiato">Macchiato</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mocha">Mocha</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">THORChain Developer Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://gitlab.com/thorchain/thornode/" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-gitlab"></i>
+                        </a>
+                        <a href="https://gitlab.com/thorchain/thornode/-/edit/develop/docs//concepts/connecting-to-thorchain.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="connecting-to-thorchain"><a class="header" href="#connecting-to-thorchain">Connecting to THORChain</a></h1>
+<p>This guide helps developers connect to THORChain's network for querying data, building wallets, dashboards, or debugging network issues. THORChain provides five primary data sources:</p>
+<ul>
+<li><strong>Midgard</strong>: Consumer data for swaps, pools, and volume, ideal for dashboards.</li>
+<li><strong>THORNode</strong>: Raw blockchain data for THORChain-specific queries, used by wallets and explorers.</li>
+<li><strong>Cosmos RPC</strong>: Generic Cosmos SDK data, such as balances and transactions.</li>
+<li><strong>Tendermint RPC</strong>: Consensus and node status data for monitoring.</li>
+<li><strong>gRPC</strong>: Full Cosmos SDK interface via protocol buffers.</li>
+</ul>
+<div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
+<div class="admonition-title">
+<div id="admonition-info-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-info"></a>
+</div>
+<div>
+<p>The below endpoints are run by specific organisations for public use. There is a cost to running these services. If you want to run your own full node, please see <a href="https://docs.thorchain.org/thornodes/overview">https://docs.thorchain.org/thornodes/overview.</a></p>
+</div>
+</div>
+<h2 id="quick-reference"><a class="header" href="#quick-reference">Quick Reference</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Source</th><th>Purpose</th><th>Mainnet URLs</th><th>Stagenet URLs</th></tr></thead><tbody>
+<tr><td><strong>Midgard</strong></td><td>Swap, pool, volume, and user data</td><td>- gateway.liquify.com/chain/thorchain_midgard<br>- midgard.thorchain.network</td><td>TBD</td></tr>
+<tr><td><strong>THORNode</strong></td><td>THORChain-specific blockchain data</td><td>- gateway.liquify.com/chain/thorchain_api<br>- thornode.thorchain.network<br>- Pre-hard-fork (blocks ≤4786559): gateway.liquify.com/chain/thorchain_v1_api</td><td>TBD</td></tr>
+<tr><td><strong>Cosmos RPC</strong></td><td>Cosmos SDK data (e.g., balances)</td><td>- gateway.liquify.com/chain/thorchain_api<br>- thornode.thorchain.network</td><td>TBD</td></tr>
+<tr><td><strong>Tendermint RPC</strong></td><td>Consensus and node status data</td><td>- gateway.liquify.com/chain/thorchain_rpc<br>- rpc.thorchain.network<br>- Pre-hard-fork (blocks ≤4786559): gateway.liquify.com/chain/thorchain_v1_rpc</td><td>TBD</td></tr>
+<tr><td><strong>gRPC</strong></td><td>Cosmos SDK via protocol buffers</td><td>- grpc.thorchain.network</td><td>TBD</td></tr>
+</tbody></table>
+</div><div id="admonition-info-1" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-1-title">
+<div class="admonition-title">
+<div id="admonition-info-1-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-info-1"></a>
+</div>
+<div>
+<p>Stagenet endpoints are being transitioned. New URLs will be published when available.</p>
+</div>
+</div>
+<div id="admonition-info-2" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-2-title">
+<div class="admonition-title">
+<div id="admonition-info-2-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-info-2"></a>
+</div>
+<div>
+<p>THORSwap (<code>*.thorswap.net</code>) provides private endpoints for THORSwap application users. Contact THORSwap for access.</p>
+</div>
+</div>
+<h2 id="usage-guidelines"><a class="header" href="#usage-guidelines">Usage Guidelines</a></h2>
+<ul>
+<li><strong>Rate Limits</strong>: Liquify enforces a rate limit of 50,000 requests per day per IP. Include an <code>x-client-id</code> header to identify your application — Liquify can increase limits for applications that include this header.</li>
+<li><strong>Run Your Own Node</strong>: For production apps, run a THORNode to avoid rate limits and ensure uptime. See THORNode Setup Guide.</li>
+<li><strong>Hard-Fork Note</strong>: Mainnet hard-fork at block 4786560 requires post-hard-fork endpoints for newer data. Liquify provides full archive support and smart-routes archive requests, so both pre and post hard-fork data is accessible via the same endpoints. Dedicated pre-hard-fork endpoints are also available (see below).</li>
+<li><strong>Error Handling</strong>: Handle HTTP 429 (rate limit) or 503 (node overload) with exponential backoff for retries.</li>
+</ul>
+<h2 id="midgard"><a class="header" href="#midgard">Midgard</a></h2>
+<p>Midgard provides time-series data for swaps, pools, volume, and liquidity providers, ideal for dashboards and analytics. It proxies THORNode queries to reduce network load and runs on every node.</p>
+<ul>
+<li><strong>Mainnet:</strong>
+<ul>
+<li><a href="https://gateway.liquify.com/chain/thorchain_midgard/v2/doc">https://gateway.liquify.com/chain/thorchain_midgard/v2/doc</a></li>
+<li><a href="https://midgard.thorchain.network/v2/doc">https://midgard.thorchain.network/v2/doc</a></li>
+</ul>
+</li>
+<li><strong>Stagenet:</strong> TBD</li>
+</ul>
+<h2 id="thornode"><a class="header" href="#thornode">THORNode</a></h2>
+<p>THORNode provides raw blockchain data (e.g., balances, transactions) specific to THORChain's state machine, critical for wallets and block explorers. Avoid excessive queries to public nodes to prevent overloading.</p>
+<ul>
+<li><strong>Mainnet (for post-hard-fork blocks 4786560 and later):</strong>
+<ul>
+<li><a href="https://gateway.liquify.com/chain/thorchain_api/thorchain/doc">https://gateway.liquify.com/chain/thorchain_api/thorchain/doc</a></li>
+<li><a href="https://thornode.thorchain.network/thorchain/doc">https://thornode.thorchain.network/thorchain/doc</a></li>
+<li><strong>Pre-hard-fork blocks 4786559 and earlier</strong><br />
+<a href="https://gateway.liquify.com/chain/thorchain_v1_api/thorchain/doc">https://gateway.liquify.com/chain/thorchain_v1_api/thorchain/doc</a></li>
+</ul>
+</li>
+<li><strong>Stagenet:</strong> TBD</li>
+</ul>
+<h2 id="cosmos-rpc"><a class="header" href="#cosmos-rpc">Cosmos RPC</a></h2>
+<p>Cosmos RPC provides generic Cosmos SDK data (e.g., account balances, transactions). Common endpoints include <code>/cosmos/bank/v1beta1/balances</code> and <code>/cosmos/base/tendermint/v1beta1/blocks</code>. Not all endpoints are enabled.</p>
+<h3 id="cosmos-documentation"><a class="header" href="#cosmos-documentation">Cosmos Documentation</a></h3>
+<ul>
+<li>Cosmos SDK CLI, gRPC, and REST API - <a href="https://docs.cosmos.network/sdk/latest/learn/concepts/cli-grpc-rest">Cosmos Docs</a></li>
+</ul>
+<h3 id="cosmos-endpoints"><a class="header" href="#cosmos-endpoints">Cosmos Endpoints</a></h3>
+<p>Use THORNode URLs with <code>/cosmos/...</code> paths.</p>
+<ul>
+<li><strong>Example</strong>
+<ul>
+<li><strong>Mainnet</strong> <a href="https://gateway.liquify.com/chain/thorchain_api/cosmos/bank/v1beta1/balances/thor1dheycdevq39qlkxs2a6wuuzyn4aqxhve4qxtxt">https://gateway.liquify.com/chain/thorchain_api/cosmos/bank/v1beta1/balances/thor1dheycdevq39qlkxs2a6wuuzyn4aqxhve4qxtxt</a></li>
+<li><strong>Stagenet</strong> TBD</li>
+</ul>
+</li>
+</ul>
+<h2 id="tendermint-rpc"><a class="header" href="#tendermint-rpc">Tendermint RPC</a></h2>
+<p>Tendermint (CometBFT) RPC provides consensus and node status data (e.g., block height, validator status), useful for monitoring and debugging.</p>
+<h3 id="tendermint-documentation"><a class="header" href="#tendermint-documentation">Tendermint Documentation</a></h3>
+<ul>
+<li>CometBFT v0.38 RPC - <a href="https://docs.cometbft.com/v0.38/rpc/">CometBFT RPC Guide</a></li>
+</ul>
+<h3 id="ports"><a class="header" href="#ports">Ports</a></h3>
+<ul>
+<li>MAINNET Port: <code>27147</code></li>
+<li>STAGENET Port: <code>26657</code></li>
+</ul>
+<h3 id="tendermint-rpc-endpoints"><a class="header" href="#tendermint-rpc-endpoints">Tendermint RPC Endpoints</a></h3>
+<ul>
+<li><strong>Mainnet: (for post-hard-fork blocks 4786560 and later)</strong>
+<ul>
+<li><a href="https://gateway.liquify.com/chain/thorchain_rpc">https://gateway.liquify.com/chain/thorchain_rpc</a></li>
+<li><a href="https://rpc.thorchain.network">https://rpc.thorchain.network</a></li>
+</ul>
+</li>
+<li><strong>Mainnet: Pre-hard-fork blocks 4786559 and earlier.</strong>
+<ul>
+<li><a href="https://gateway.liquify.com/chain/thorchain_v1_rpc">https://gateway.liquify.com/chain/thorchain_v1_rpc</a></li>
+</ul>
+</li>
+<li><strong>Stagenet:</strong> TBD</li>
+</ul>
+<div id="admonition-info-3" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-3-title">
+<div class="admonition-title">
+<div id="admonition-info-3-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-info-3"></a>
+</div>
+<div>
+<p>Chainnet (<code>rpc.thorchain.network</code>) intentionally restricts some Tendermint RPC endpoints (e.g., <code>net_info</code>, <code>consensus_state</code>, <code>dump_consensus_state</code>). Use Liquify for full Tendermint RPC access.</p>
+</div>
+</div>
+<h2 id="grpc"><a class="header" href="#grpc">gRPC</a></h2>
+<p>gRPC provides the full Cosmos SDK interface via protocol buffers, useful for programmatic access from languages with gRPC support.</p>
+<ul>
+<li><strong>Mainnet:</strong> <code>grpc.thorchain.network</code></li>
+<li><strong>Documentation:</strong> <a href="https://docs.cosmos.network/sdk/latest/learn/concepts/cli-grpc-rest">Cosmos CLI, gRPC, and REST API</a></li>
+<li><strong>Stagenet:</strong> TBD</li>
+</ul>
+<div id="admonition-info-4" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-4-title">
+<div class="admonition-title">
+<div id="admonition-info-4-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-info-4"></a>
+</div>
+<div>
+<p>gRPC uses protocol buffers over HTTP/2, not JSON over HTTP. Standard HTTP clients (curl, browsers) will not work — use a gRPC client library.</p>
+</div>
+</div>
+<h2 id="p2p"><a class="header" href="#p2p">P2P</a></h2>
+<p>P2P is the peer-to-peer network layer for node communication, useful for debugging connectivity issues between THORChain nodes.</p>
+<ul>
+<li>MAINNET Port: <code>27146</code></li>
+<li>STAGENET Port: <code>26656</code></li>
+</ul>
+<h2 id="p2p-guide"><a class="header" href="#p2p-guide">P2P Guide</a></h2>
+<ul>
+<li><a href="https://docs.cometbft.com/v0.38/rpc/">https://docs.cometbft.com/v0.38/rpc/</a></li>
+</ul>
+<h3 id="example-check-peer-connections"><a class="header" href="#example-check-peer-connections">Example: Check Peer Connections</a></h3>
+<pre><code class="language-bash">curl -X GET "https://gateway.liquify.com/chain/thorchain_rpc/net_info" -H "accept: application/json"
+</code></pre>
+<h2 id="other-services"><a class="header" href="#other-services">Other Services</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Service</th><th>URL</th></tr></thead><tbody>
+<tr><td>Transaction tracking</td><td><a href="https://track.thorchain.org/">track.thorchain.org</a></td></tr>
+<tr><td>Haskoin (BCH)</td><td><a href="https://api.haskoin.com/bch">api.haskoin.com/bch</a></td></tr>
+</tbody></table>
+</div>
+<h2 id="external-chain-rpcs"><a class="header" href="#external-chain-rpcs">External Chain RPCs</a></h2>
+<p>THORChain does not provide public RPC proxies for external chains (Bitcoin, Ethereum, etc.). For external chain RPC access, use a provider of your choice or run your own node.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../affiliate-guide/affiliate-fee-guide.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../concepts/querying-thorchain.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../affiliate-guide/affiliate-fee-guide.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../concepts/querying-thorchain.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../mermaid.min.js"></script>
+        <script src="../mermaid-init.js"></script>
+
+
+    </div>
+    </body>
+</html>

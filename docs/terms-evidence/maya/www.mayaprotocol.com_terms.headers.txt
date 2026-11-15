@@ -1,0 +1,17 @@
+HTTP/2 404 
+date: Sun, 15 Nov 2026 14:16:11 GMT
+content-type: text/html; charset=utf-8
+set-cookie: _cfuvid=rwcxa2cbprHPtjWizrtD28OzgvZpeSx4t26F0qauS_w-1794752171.7148168-1.0.1.1-YHS2kcJCwYg3on5IU_cqTzxtch_EN3x5CmB8DLPacc4; HttpOnly; SameSite=None; Secure; Path=/; Domain=www.mayaprotocol.com
+cf-ray: a5aedf513c1b1611-DUS
+cf-cache-status: HIT
+age: 30
+cache-control: public, max-age=432000
+x-wf-region: us-east-1
+etag: W/"6af6873f-38a"
+server: cloudflare
+strict-transport-security: max-age=31536000
+vary: accept-encoding
+x-content-type-options: nosniff
+surrogate-key: www.mayaprotocol.com 66bd404740a1fb5a0ae73e83 sp:fd85e85e40905d5539c48d13410daaf3 404req
+alt-svc: h3=":443"; ma=86400
+

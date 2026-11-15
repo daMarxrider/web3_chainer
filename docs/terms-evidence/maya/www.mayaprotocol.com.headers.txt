@@ -1,0 +1,19 @@
+HTTP/2 200 
+date: Sun, 15 Nov 2026 14:16:11 GMT
+content-type: text/html; charset=utf-8
+set-cookie: _cfuvid=MFTYMPjUvduXrL3bucjTHiJARryE.Fy2E_iISsn0Zpc-1794752171.5776312-1.0.1.1-K59V8P9XNkwsvNtlrL3qm.wFgCpWTp5Bcu3eu_Egmx0; HttpOnly; SameSite=None; Secure; Path=/; Domain=www.mayaprotocol.com
+cf-ray: a5aedf505e23cae5-DUS
+cf-cache-status: HIT
+age: 119933
+last-modified: Sun, 15 Nov 2026 12:24:23 GMT
+link: <https://cdn.prod.website-files.com>; rel=preconnect; crossorigin, <https://cdn.prod.website-files.com/66bd404740a1fb5a0ae73e83/css/mayaprotocol-web-643dc8a200149398645e76.webflow.shared.eddab1f51.min.css>; rel=preload; as=style; crossorigin; integrity="sha384-7dqx9RO4A6WQIemHkr2Obzp60T5VdFo25wuuVDFpWd4cNsp9PswekLJiCul2GNsf", <https://fonts.googleapis.com>; rel=preconnect, <https://fonts.gstatic.com>; rel=preconnect; crossorigin
+server: cloudflare
+strict-transport-security: max-age=31536000
+vary: accept-encoding
+x-content-type-options: nosniff
+surrogate-control: max-age=432000
+surrogate-key: www.mayaprotocol.com 66bd404740a1fb5a0ae73e83 pageId:66f20781ccfe0ecf98e31b63 66c76bcf697f5f69d4c0c78e sp:269eaf5d86055aeac6b0e47ba1091424
+x-lambda-id: 996cf567-a0a7-41ad-8c45-9eec49c69527
+x-wf-region: us-east-1
+alt-svc: h3=":443"; ma=86400
+

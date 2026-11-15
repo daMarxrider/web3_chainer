@@ -21,6 +21,7 @@ import {
   lifiProvider,
   lifiToken,
   lifiTokens,
+  mayaProvider,
   listPipelines,
   loadKeystore,
   loadSettings,
@@ -34,6 +35,7 @@ import {
   runPipeline,
   saveSettings,
   solanaAdapter,
+  thorchainProvider,
   unlock,
   type AccountRecord,
   type Chain,
@@ -229,7 +231,8 @@ async function runDeps() {
     if (!chain) throw new Error(`Chain "${key}" is no longer listed`)
     return chain
   }
-  return { providers: [lifiProvider(fetchFn, chains, settings)], adapterFor: (key: string) => adapterFor(byKey(key)), chainName: (key: string) => byKey(key).name }
+  const providers = [lifiProvider(fetchFn, chains, settings), thorchainProvider(fetchFn, chains), mayaProvider(fetchFn, chains)].filter((p) => !settings.disabledProviders.includes(p.name))
+  return { providers, adapterFor: (key: string) => adapterFor(byKey(key)), chainName: (key: string) => byKey(key).name }
 }
 
 // ---- wallet -------------------------------------------------------------

@@ -14,6 +14,8 @@ export interface Chain {
   id: number
   name: string
   nativeSymbol: string
+  /** Price of the chain's own coin in USD, when the source of the chain list knows it. Used to price gas. */
+  nativePriceUsd?: number
   /** JSON-RPC endpoints (EVM, Solana) or Esplora-compatible REST endpoints (Bitcoin family). */
   rpcUrls: string[]
   /** Multicall3 contract, used to read many balances in one request. */

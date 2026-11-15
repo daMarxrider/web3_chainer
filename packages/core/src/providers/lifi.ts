@@ -68,6 +68,7 @@ export async function lifiChains(fetchFn: FetchFn): Promise<Chain[]> {
         id: c.id,
         name: c.name,
         nativeSymbol: c.nativeToken.symbol,
+        nativePriceUsd: c.nativeToken.priceUSD ? Number(c.nativeToken.priceUSD) : undefined,
         // LI.FI lists JSON-RPC nodes for UTXO chains; this app reads them through Esplora instead.
         rpcUrls: family === 'bitcoin' ? UTXO_COINS[c.key]!.esplora : c.metamask.rpcUrls,
         multicall: c.multicallAddress,
