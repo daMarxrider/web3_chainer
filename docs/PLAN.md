@@ -156,7 +156,7 @@ Checked on 14 Nov 2026 for everything the app uses at that point:
 
 ### LI.FI bridge terms review
 
-LI.FI lists 38 bridges (`https://li.quest/v1/tools`). They are read one at a time; a bridge goes into the default allow-list only after its terms were read. Not yet reviewed means not yet in the default list.
+LI.FI lists 38 bridges (`https://li.quest/v1/tools`). They are reviewed in batches. Decided by the project owner: a bridge whose terms are missing, unpublished or undocumented stays in the default allow-list (no terms means no restriction on contract use); only terms that actually forbid this kind of use would exclude one. Bridges not yet reviewed are not yet in the default list.
 
 | Bridge (LI.FI key) | Terms read | Verdict | Notes |
 |---|---|---|---|
