@@ -26,7 +26,12 @@ Decisions made with the user:
 - **Milestone 1: done** (core library and CLI for EVM chains through LI.FI).
 - **Milestone 2: done** (chained transfers with resume, automatic multi-hop routing, live status, plan files, testnet mode).
 - **Install scripts: written** for Linux, macOS and Windows. The Linux script passes in clean Arch, Debian, Ubuntu and Fedora containers (`scripts/test-install-linux.sh`). The macOS and Windows scripts have not been run: there is no Mac or Windows machine here.
-- Milestones 3-9: not started.
+- **Milestone 3: mostly done** (15 Nov 2026). Done: Solana and Bitcoin-family (Bitcoin, Litecoin) adapters with seed-derived keys and per-chain addresses (`chainer wallet refresh` adds them to older wallets), LI.FI routes to and from both, THORChain and Maya as direct route sources, per-leg source addresses in pipelines so a route can cross chain families. Not done, and why:
+  - **NEAR Intents direct:** needs a decision (see `docs/QUESTIONS.md`). The 1Click API terms bind registered API developers and exclude private individuals; NEAR Intents is already reachable through LI.FI (`near`).
+  - **Chainflip direct:** the public swap backend (`chainflip-swap.chainflip.io`) answers quotes keylessly but no longer opens deposit channels (`/openSwapDepositChannel` returns 404); that needs a broker account on the Chainflip chain or a third-party broker with an API key. Chainflip is reachable through LI.FI (`chainflip`), which the quote tables already show.
+  - **Dogecoin, Bitcoin Cash, Dash, Zcash adapters:** THORChain and Maya list these coins; each needs its own address format, data source and terms review. Left for later.
+  - Solana and Bitcoin signing is verified by unit tests with fake nodes and by live read-only calls (balances, fee estimates, quotes); no live transfer, because LI.FI has no test network for either and the Solana devnet faucet needs a web login.
+- Milestones 4-9: not started.
 
 Verified so far:
 

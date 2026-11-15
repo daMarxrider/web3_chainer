@@ -296,3 +296,26 @@ test('with the confirmation recorded the restricted bridge runs', async () => {
   assert.equal(result.state, 'done')
   assert.equal(w.sent.length, 1)
 })
+
+test('stop-over funds wait at the wallet\'s own address on the stop-over chain, and its leg sends from there', async () => {
+  const w = world(
+    [
+      [A, HUB1, 0.99],
+      [HUB1, Z, 0.99],
+    ],
+    [[A, 5_000_000n]],
+  )
+  const addresses: Record<string, string> = { a: 'evm-address', h1: 'bc1-address', z: 'sol-address' }
+  const { routes } = await findPipelineRoutes({ ...request, fromAddress: 'evm-address', toAddress: 'sol-address' }, [w.provider], defaultSettings, {
+    prefer: 'cheapest',
+    hubs: async () => [HUB1],
+    maxHops: 3,
+    addressOn: (chainKey) => addresses[chainKey]!,
+  })
+  const [first, second] = routes[0]!.legs
+  assert.deepEqual([first!.request.fromAddress, first!.request.toAddress], ['evm-address', 'bc1-address'])
+  assert.deepEqual([second!.request.fromAddress, second!.request.toAddress], ['bc1-address', 'sol-address'])
+
+  const record = pipelineFromRoute(routes[0]!, 'main')
+  assert.deepEqual(record.legs.map((l) => l.fromAddress), ['evm-address', 'bc1-address'])
+})
