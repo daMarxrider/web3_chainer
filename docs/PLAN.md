@@ -154,6 +154,14 @@ Checked on 14 Nov 2026 for everything the app uses at that point:
 - **PublicNode** (default RPC for several chains): automated access and use inside applications are allowed; reselling access and evading rate limits are not.
 - **Install and test tooling** (Node.js, Homebrew, winget, distribution packages, Docker Hub base images): installed or downloaded on the user's machine, never redistributed by this project.
 
+### LI.FI bridge terms review
+
+LI.FI lists 38 bridges (`https://li.quest/v1/tools`). They are read one at a time; a bridge goes into the default allow-list only after its terms were read. Not yet reviewed means not yet in the default list.
+
+| Bridge (LI.FI key) | Terms read | Verdict | Notes |
+|---|---|---|---|
+| Arbitrum Bridge (`arbitrum`) | Offchain Labs Terms of Service, revised 11 Mar 2026 (`arbitrum.io/tos`) | Allowed | 18+, sanctions compliance (OFAC, HMT; embargoed regions), no US-person ban, no account or KYC, non-custodial, Offchain Labs takes no fee on the bridge. The terms govern Offchain Labs' website interface, APIs and SDKs; the app only calls the public bridge contracts via LI.FI and never uses their website. Broad user indemnity (section on Indemnification) and "scrape" ban apply to their site content, not to contract calls. Binding arbitration, New Jersey. The non-circumvention clause only applies after Offchain Labs blocks a user. |
+
 Rule for later milestones: before a route source, daemon or library is integrated, its terms and licence are read and the result is added here; the README's third-party section lists every service the app contacts. Known in advance: the API-key services (1inch, Rango, SwapKit) have commercial terms that may exclude private individuals.
 
 ## Interfaces
