@@ -1,0 +1,11 @@
+HTTP/2 200 
+date: Sun, 15 Nov 2026 12:06:57 GMT
+content-type: text/html
+cf-cache-status: HIT
+access-control-allow-origin: *
+cache-control: public, max-age=0, must-revalidate
+x-content-type-options: nosniff
+referrer-policy: strict-origin-when-cross-origin
+server: cloudflare
+cf-ray: a5ae22005d98c808-DUS
+

@@ -1,0 +1,27 @@
+HTTP/2 200 
+date: Sun, 15 Nov 2026 12:07:12 GMT
+content-type: text/html; charset=utf-8
+x-lambda-id: 4ee78850-9daa-402c-85e9-886024d596d2
+x-wf-region: us-east-1
+permissions-policy: camera=(), microphone=()
+cf-cache-status: REVALIDATED
+age: 253690
+last-modified: Sat, 14 Nov 2026 13:48:08 GMT
+link: <https://cdn.prod.website-files.com>; rel=preconnect; crossorigin, <https://cdn.prod.website-files.com/6706324b4c48131ee537ff96/css/centrifuge-site.shared.7577521a5.min.css>; rel=preload; as=style; crossorigin; integrity="sha384-dXdSGlBkWMwth6bPV5r2nn398wB0s36JbV0uEAfyd/2f4gMoSIQgPfstsJfeSXMY", <https://fonts.googleapis.com>; rel=preconnect, <https://fonts.gstatic.com>; rel=preconnect; crossorigin
+server: cloudflare
+strict-transport-security: max-age=15552000; includeSubDomains; preload
+vary: accept-encoding
+x-content-type-options: nosniff
+content-security-policy: default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'self'; form-action 'self' https://forms.hsforms.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://www.google.com https://api.hsforms.com https://forms.hsforms.com https://api.lever.co https://webapi.centrifuge.io https://cloudflareinsights.com https://*.cloudflareinsights.com; img-src 'self' https: data: blob:; font-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; style-src-elem 'self' 'unsafe-inline' https:; style-src-attr 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdn.prod.website-files.com https://d3e54v103j8qbb.cloudfront.net https://ajax.googleapis.com https://js.hsforms.net https://www.googletagmanager.com https://www.google.com https://www.gstatic.com https://cdn.jsdelivr.net https://static.cloudflareinsights.com; script-src-elem 'self' 'unsafe-inline' https://cdn.prod.website-files.com https://d3e54v103j8qbb.cloudfront.net https://ajax.googleapis.com https://js.hsforms.net https://www.googletagmanager.com https://www.google.com https://www.gstatic.com https://cdn.jsdelivr.net https://static.cloudflareinsights.com; frame-src 'self' https://cdn.embedly.com https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com https://forms.hsforms.com; worker-src 'self' blob:
+o2o-cache-status: HIT
+surrogate-control: max-age=432000
+surrogate-key: centrifuge.io 6706324b4c48131ee537ff96 pageId:673edd6d5502a7ee9555b25c 67fd6c7ddab0bb491dc71e8d 67122bbc54d454dde388dc15 sp:735f94609bffa961875118ce48f9d72f
+x-frame-options: SAMEORIGIN
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=JqsNrbgLBeoM8RUhNUHzDJKaqnRx2cxuarNM5Y55CpoIVqRqGysY5uZEPnUCojOpt6oS0slsHX2fJZsREJgejEBgwkqdKb9H052nXKHtXiNIfZDvPnl882GRxl4XQis%3D"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+expect-ct: max-age=86400, enforce
+referrer-policy: strict-origin-when-cross-origin
+x-xss-protection: 1; mode=block
+cf-ray: a5ae225f0eccc7e4-DUS
+alt-svc: h3=":443"; ma=86400
+

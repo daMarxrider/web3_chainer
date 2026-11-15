@@ -1,0 +1,36 @@
+HTTP/2 301 
+location: https://polymerlabs.org/
+strict-transport-security: max-age=2592000; includeSubdomains
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 1; mode=block
+content-type: text/plain; charset=utf-8
+accept-ranges: bytes
+date: Sun, 15 Nov 2026 12:06:55 GMT
+x-served-by: cache-muc13947-MUC
+x-cache: MISS
+x-cache-hits: 0
+x-timer: S1794744416.836513,VS0,VE32
+vary: x-fh-requested-host, accept-encoding
+alt-svc: h3=":443";ma=86400,h3-29=":443";ma=86400,h3-27=":443";ma=86400
+content-length: 39
+
+HTTP/2 200 
+cache-control: max-age=3600
+content-type: text/html; charset=utf-8
+etag: "089a54b73520d021e8ef309917a249b895cc0e7aad251db85baf8003415ee800"
+last-modified: Wed, 16 Sep 2026 14:48:31 GMT
+strict-transport-security: max-age=2592000; includeSubdomains
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 1; mode=block
+accept-ranges: bytes
+date: Sun, 15 Nov 2026 12:06:56 GMT
+x-served-by: cache-muc13960-MUC
+x-cache: MISS
+x-cache-hits: 0
+x-timer: S1794744416.929789,VS0,VE123
+vary: x-fh-requested-host, accept-encoding
+alt-svc: h3=":443";ma=86400,h3-29=":443";ma=86400,h3-27=":443";ma=86400
+content-length: 534467
+

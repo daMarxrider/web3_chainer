@@ -1,0 +1,12 @@
+HTTP/2 404 
+age: 0
+cache-control: public,max-age=0,must-revalidate
+cache-status: "Netlify Edge"; fwd=miss; fwd-status=404; stored
+content-type: text/html; charset=utf-8
+date: Sun, 15 Nov 2026 12:06:48 GMT
+etag: 1676390848-ssl
+server: Netlify
+strict-transport-security: max-age=31536000
+vary: Accept-Encoding
+x-nf-request-id: 01M7FHMPJWSG56NTWMKWZS2BVM
+

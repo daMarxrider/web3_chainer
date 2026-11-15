@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 6753
+Connection: keep-alive
+Server: AmazonS3
+Last-Modified: Fri, 13 Nov 2026 05:37:00 GMT
+Date: Sun, 15 Nov 2026 05:38:29 GMT
+ETag: "92cd1363688e65e282c05c89f7d08a3e"
+X-Cache: Error from cloudfront
+Via: 1.1 d44f90cd56efbd1d9997c5b956a6d176.cloudfront.net (CloudFront)
+X-Amz-Cf-Pop: MUC50-P7
+X-Amz-Cf-Id: xK6e_SmaagZM-Co7GJ_sCzb-UwNNe1eXeWuMFDWXRu2Y-398ii71AQ==
+Age: 23289
+

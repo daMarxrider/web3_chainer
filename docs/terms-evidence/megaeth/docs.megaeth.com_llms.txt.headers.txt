@@ -1,0 +1,23 @@
+HTTP/2 200 
+date: Sun, 15 Nov 2026 12:06:41 GMT
+content-type: text/markdown; charset=utf-8
+x-vercel-cache: HIT
+x-vercel-id: fra1::cle1::22bc2-1794744401760-8acc69cc174e
+cf-cache-status: DYNAMIC
+age: 40576
+cache-control: public, max-age=0, must-revalidate
+x-matched-path: /sites/static/[mode]/[siteURL]/[siteData]/llms.txt
+server: cloudflare
+strict-transport-security: max-age=31536000
+vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, accept-encoding
+content-security-policy: default-src 'self' *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src 'self' 'unsafe-inline' blob: *; img-src * 'self' blob: data:; connect-src *; font-src *; frame-src *; object-src 'none'; base-uri 'self' https://static-2v.gitbook.com; form-action 'self' https://static-2v.gitbook.com *; frame-ancestors https: ionic: capacitor: ;
+referrer-policy: strict-origin-when-cross-origin
+x-content-type-options: nosniff
+x-gitbook-route-site: docs.megaeth.com/
+x-gitbook-route-type: static
+x-gitbook-target: 2v
+set-cookie: __cf_bm=CJue4HXs1OPGuwAnrCTcqjOrjzbdvvPilVIcppZoVJQ-1794744401.7114732-1.0.1.1-u5Vx2C5SwDmy.rXvOZ228VPwAKYw45x1J8Cnqra2FRioEjsJupsHaZ_xQf1EGx61b7cdau1LF47GecplCbSNXsVakaoyQjCX3jdI_NIjZAljrSsAgtlV3_WZ6uXDNUyR; HttpOnly; SameSite=None; Partitioned; Secure; Path=/; Domain=megaeth.com; Expires=Sun, 15 Nov 2026 12:36:41 GMT
+speculation-rules: "/cdn-cgi/speculation"
+cf-ray: a5ae219eaaa4f94a-DUS
+alt-svc: h3=":443"; ma=86400
+

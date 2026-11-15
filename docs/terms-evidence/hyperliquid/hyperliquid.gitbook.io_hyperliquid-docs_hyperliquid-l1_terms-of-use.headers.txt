@@ -1,0 +1,21 @@
+HTTP/2 404 
+date: Sun, 15 Nov 2026 12:06:35 GMT
+content-type: text/html; charset=utf-8
+cf-ray: a5ae216f0c21c80a-DUS
+cache-control: private, no-cache, no-store, max-age=0, must-revalidate
+etag: "rvfpxvuh163yef"
+server: cloudflare
+strict-transport-security: max-age=31536000
+vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, accept-encoding, accept
+content-security-policy: default-src 'self' *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src 'self' 'unsafe-inline' blob: *; img-src * 'self' blob: data:; connect-src *; font-src *; frame-src *; object-src 'none'; base-uri 'self' https://static-2c.gitbook.com; form-action 'self' https://static-2c.gitbook.com *; frame-ancestors https: ionic: capacitor: ;
+referrer-policy: strict-origin-when-cross-origin
+x-content-type-options: nosniff
+x-gitbook-route-site: hyperliquid.gitbook.io/hyperliquid-docs/
+x-gitbook-route-type: static
+x-gitbook-target: 2c
+x-nextjs-cache: MISS
+x-nextjs-prerender: 1
+x-nextjs-stale-time: 300
+x-opennext-requestid: 0.6kg1ugtok5i
+alt-svc: h3=":443"; ma=86400
+

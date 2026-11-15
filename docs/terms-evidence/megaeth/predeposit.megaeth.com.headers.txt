@@ -1,0 +1,15 @@
+HTTP/2 503 
+date: Sun, 15 Nov 2026 12:06:38 GMT
+content-type: text/plain; charset=utf-8
+content-length: 99
+cache-control: public, max-age=0, must-revalidate
+server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-error: DEPLOYMENT_PAUSED
+x-vercel-id: fra1::kl2tq-1794744398626-7ce4ae72aba0
+cf-cache-status: DYNAMIC
+speculation-rules: "/cdn-cgi/speculation"
+set-cookie: __cf_bm=e2QwzwlguT_C._6JgL5BxXV8YZhu_sutlbyCn.VfBZM-1794744398.5757782-1.0.1.1-NEKXLJNAvmF2RgM3SvAnhnEWzSX.McHcM0PmsrB4kdBgiX0Tz2_VpRKdaTszu2efDphHGbFC5xCb54aQgDElQKKSWrC13qROEZ7Vt7a2kSpaVhNKqtwp.PVMggjQyhXo; HttpOnly; SameSite=None; Partitioned; Secure; Path=/; Domain=megaeth.com; Expires=Sun, 15 Nov 2026 12:36:38 GMT
+cf-ray: a5ae218b1b9bcafd-DUS
+alt-svc: h3=":443"; ma=86400
+

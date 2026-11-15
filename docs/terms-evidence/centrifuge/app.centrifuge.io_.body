@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SDQW1Y709T"></script>
+    <script>
+      window.dataLayer = window.dataLayer || []
+      function gtag() {
+        dataLayer.push(arguments)
+      }
+      gtag('js', new Date())
+
+      gtag('config', 'G-SDQW1Y709T')
+    </script>
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Centrifuge App</title>
+    <meta
+      name="description"
+      content="The Centrifuge app for investments and portfolio management. Access tokenized assets on Centrifuge."
+    />
+    <style>
+      @font-face {
+        font-family: 'Inter';
+        src:
+          url('/fonts/Inter.var.woff2') format('woff2-variations'),
+          url('/fonts/Inter.var.ttf') format('truetype-variations');
+        font-weight: 100 900;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Inter Tight';
+        src: url('/fonts/InterTight.var.woff2') format('woff2-variations');
+        font-weight: 100 900;
+        font-display: swap;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-CFkMODPm.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DkGSnrj7.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5ae21c16872290f',t:'MTc5NDc0NDQwNw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a5ae21c16872290f',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

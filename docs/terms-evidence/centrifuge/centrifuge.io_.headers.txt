@@ -1,0 +1,27 @@
+HTTP/2 200 
+date: Sun, 15 Nov 2026 12:06:45 GMT
+content-type: text/html; charset=utf-8
+x-lambda-id: 5784a2a0-8521-461e-89c0-f73b354cf9b2
+x-wf-region: us-east-1
+permissions-policy: camera=(), microphone=()
+cf-cache-status: REVALIDATED
+age: 116565
+x-xss-protection: 1; mode=block
+last-modified: Sat, 14 Nov 2026 19:09:16 GMT
+link: <https://cdn.prod.website-files.com>; rel=preconnect; crossorigin, <https://cdn.prod.website-files.com/6706324b4c48131ee537ff96/css/centrifuge-site.shared.7577521a5.min.css>; rel=preload; as=style; crossorigin; integrity="sha384-dXdSGlBkWMwth6bPV5r2nn398wB0s36JbV0uEAfyd/2f4gMoSIQgPfstsJfeSXMY", <https://fonts.googleapis.com>; rel=preconnect, <https://fonts.gstatic.com>; rel=preconnect; crossorigin, <https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css>; rel=preload; as=style
+server: cloudflare
+strict-transport-security: max-age=15552000; includeSubDomains; preload
+vary: accept-encoding
+x-content-type-options: nosniff
+content-security-policy: default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'self'; form-action 'self' https://forms.hsforms.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://www.google.com https://api.hsforms.com https://forms.hsforms.com https://api.lever.co https://webapi.centrifuge.io https://cloudflareinsights.com https://*.cloudflareinsights.com; img-src 'self' https: data: blob:; font-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; style-src-elem 'self' 'unsafe-inline' https:; style-src-attr 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdn.prod.website-files.com https://d3e54v103j8qbb.cloudfront.net https://ajax.googleapis.com https://js.hsforms.net https://www.googletagmanager.com https://www.google.com https://www.gstatic.com https://cdn.jsdelivr.net https://static.cloudflareinsights.com; script-src-elem 'self' 'unsafe-inline' https://cdn.prod.website-files.com https://d3e54v103j8qbb.cloudfront.net https://ajax.googleapis.com https://js.hsforms.net https://www.googletagmanager.com https://www.google.com https://www.gstatic.com https://cdn.jsdelivr.net https://static.cloudflareinsights.com; frame-src 'self' https://cdn.embedly.com https://player.vimeo.com https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com https://forms.hsforms.com; worker-src 'self' blob:
+o2o-cache-status: HIT
+surrogate-control: max-age=432000
+surrogate-key: centrifuge.io 6706324b4c48131ee537ff96 pageId:6706324c4c48131ee537ffd6 67122bbc54d454dde388dc15 67fd6c7ddab0bb491dc71e8d sp:b7f9f69407e529093047b6e8c3c9fe2a
+x-frame-options: SAMEORIGIN
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=Se%2B9WsXuyLZyNr3vb6XcKM7DjYzd8t6p%2FRTqEP2jb11HTIxG%2BcqCFZh3W0R%2BBCpTYii6sBxJFB%2BxMrVs3eQnAyuO0Q%2Ftq%2BeSe6SB3czwj3H9ZAqPquxT2YojsDDnyA8%3D"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+expect-ct: max-age=86400, enforce
+referrer-policy: strict-origin-when-cross-origin
+cf-ray: a5ae21b77c2df95a-DUS
+alt-svc: h3=":443"; ma=86400
+

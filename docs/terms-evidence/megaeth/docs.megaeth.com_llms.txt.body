@@ -1,0 +1,166 @@
+# MegaETH Documentation
+
+## Documentation
+
+- [Home](https://docs.megaeth.com/readme.md): The official documentation for MegaETH — the first real-time blockchain.
+- [Architecture](https://docs.megaeth.com/architecture.md): MegaETH network architecture — how transactions flow from submission through execution, streaming, and L1 settlement.
+- [Mini-Blocks](https://docs.megaeth.com/mini-block.md): MegaETH mini-blocks — what they are, how they differ from EVM blocks, and what they mean for your application.
+- [Get Started](https://docs.megaeth.com/user-guide/get-started.md): Get started with MegaETH — connect your wallet, bridge ETH, and explore the network.
+- [Connect to MegaETH](https://docs.megaeth.com/user-guide/connect.md): Connect your wallet to MegaETH — chain parameters, RPC endpoints, and block explorers for Mainnet and Testnet.
+- [Get Funds on Mainnet](https://docs.megaeth.com/user-guide/bridge.md): Bridge assets to MegaETH — supported bridges, cross-chain swaps, and fiat on-ramps.
+- [Force-include a transaction](https://docs.megaeth.com/user-guide/force-inclusion.md): How to force-include a transaction on MegaETH by submitting it directly to Ethereum via Etherscan, bypassing the sequencer.
+- [Get ETH on Testnet](https://docs.megaeth.com/user-guide/faucet.md): MegaETH testnet faucet — request limits, eligibility, and how to get testnet ETH.
+- [User FAQ](https://docs.megaeth.com/user-guide/faq.md): Frequently asked questions for MegaETH users — wallet issues, testnet ETH, and faucet.
+- [Overview](https://docs.megaeth.com/developer-docs/overview.md): Overview of developing on MegaETH — EVM compatibility, gas estimation, debugging, and bridging.
+- [Bridge ERC-20 Tokens](https://docs.megaeth.com/developer-docs/bridge-erc20.md): How to deploy and bridge an ERC-20 token from Ethereum to MegaETH using the OP Stack Standard Bridge.
+- [Send Transaction](https://docs.megaeth.com/developer-docs/overview-1.md): How to submit transactions on MegaETH — deploy contracts, estimate gas, and debug failures.
+- [Contracts & Tokens](https://docs.megaeth.com/developer-docs/overview-1/contracts.md): Key contract addresses and tokens on MegaETH and Ethereum Mainnet.
+- [Gas Estimation](https://docs.megaeth.com/developer-docs/overview-1/gas-estimation.md): How to estimate gas on MegaETH — code examples, toolchain configuration, and common pitfalls.
+- [Debugging Transactions](https://docs.megaeth.com/developer-docs/overview-1/debugging.md): Debug failing transactions on MegaETH — trace with debug\_traceTransaction, replay with mega-evme, and diagnose gas errors.
+- [Force Inclusion — Foundry](https://docs.megaeth.com/developer-docs/overview-1/force-inclusion.md): Force-include a transaction on MegaETH using Foundry (cast or forge) — step-by-step guide for scripted and automated submissions.
+- [Read from MegaETH](https://docs.megaeth.com/developer-docs/overview-2.md): How to read current state, historical data, transactions, logs, and real-time updates from MegaETH.
+- [Realtime API](https://docs.megaeth.com/developer-docs/overview-2/realtime-api.md): MegaETH Realtime API — how to use MegaETH's low-latency extensions to Ethereum JSON-RPC for real-time data access.
+- [Transaction Execution](https://docs.megaeth.com/developer-docs/overview-3.md): How MegaEVM differs from standard Ethereum — contract size limits, gas forwarding, and precompile overrides.
+- [Gas Model](https://docs.megaeth.com/developer-docs/overview-3/gas-model.md): MegaETH dual gas model — compute gas, storage gas, bucket multiplier, resource limits, and developer tips.
+- [Resource Limits](https://docs.megaeth.com/developer-docs/overview-3/resource-limits.md): MegaETH resource limits — 7 per-transaction and per-block ceilings on gas, compute, data, KV updates, state growth, transaction size, and DA size.
+- [Volatile Data Access](https://docs.megaeth.com/developer-docs/overview-3/volatile-data.md): Volatile data access on MegaETH — what triggers the 20M compute gas cap, best practices for reading block data and oracle state, and common pitfalls.
+- [System Contracts](https://docs.megaeth.com/developer-docs/overview-3/system-contracts.md): MegaETH system contracts — addresses, interfaces, preconditions, and usage examples.
+- [Build with AI](https://docs.megaeth.com/developer-docs/build-with-ai.md): AI coding skills and tools for building on MegaETH with Claude Code, Cursor, Windsurf, and other AI assistants.
+- [Tooling & Infrastructure](https://docs.megaeth.com/developer-docs/tooling.md): Developer tooling and infrastructure partners on MegaETH — RPC providers, block explorers, oracles, indexers, bridges, wallets, account abstraction, developer tooling, and more.
+- [Verifiable Randomness (VRF)](https://docs.megaeth.com/developer-docs/vrf.md): Verifiable onchain randomness on MegaETH via DrandOracleQuicknet — a preinstalled, stateless BLS12-381 verifier for the public drand quicknet beacon.
+- [Onchain Payments](https://docs.megaeth.com/developer-docs/payments.md): How to accept onchain payments in a MegaETH dapp — the HTTP 402 "pay then retry" pattern, the x402 and MPP protocol families, and five concrete payment flows (one-time and pay-as-you-go, user-paid and
+- [JSON-RPC](https://docs.megaeth.com/developer-docs/rpc.md): MegaETH JSON-RPC endpoints, shared protocol conventions, operational limits, and method reference.
+- [Quickstart](https://docs.megaeth.com/developer-docs/rpc/quickstart.md): Make your first read-only MegaETH JSON-RPC requests and verify the connected network.
+- [JSON-RPC basics](https://docs.megaeth.com/developer-docs/rpc/json-rpc-basics.md): Shared JSON-RPC 2.0 request, notification, batch, success, and error conventions used by MegaETH.
+- [Type reference](https://docs.megaeth.com/developer-docs/rpc/types.md): Hexadecimal quantities, byte strings, addresses, hashes, block selectors, and transaction call objects used by MegaETH JSON-RPC.
+- [Error reference](https://docs.megaeth.com/developer-docs/rpc/error-codes.md): Standard JSON-RPC, Ethereum, MegaETH, and public-gateway errors with retry guidance.
+- [Operations and limits](https://docs.megaeth.com/developer-docs/rpc/operations-and-limits.md): Public MegaETH JSON-RPC rate limits, payload limits, method caps, caching behavior, and WebSocket limits.
+- [RPC Reference](https://docs.megaeth.com/developer-docs/rpc/reference.md): Complete reference for the 51 JSON-RPC methods available through MegaETH's public HTTP and WebSocket endpoints.
+- [debug\_getHistoryTransactionCount](https://docs.megaeth.com/developer-docs/rpc/reference/debug_gethistorytransactioncount.md): debug\_getHistoryTransactionCount JSON-RPC reference for MegaETH.
+- [debug\_getRawHeader](https://docs.megaeth.com/developer-docs/rpc/reference/debug_getrawheader.md): Returns the RLP-encoded header for a MegaETH block.
+- [debug\_traceBlockByHash](https://docs.megaeth.com/developer-docs/rpc/reference/debug_traceblockbyhash.md): Replays every transaction in a MegaETH block selected by hash and returns execution traces.
+- [debug\_traceBlockByNumber](https://docs.megaeth.com/developer-docs/rpc/reference/debug_traceblockbynumber.md): Replays every transaction in a MegaETH block selected by number and returns execution traces.
+- [debug\_traceTransaction](https://docs.megaeth.com/developer-docs/rpc/reference/debug_tracetransaction.md): Replays a MegaETH transaction and returns its execution trace.
+- [eth\_accounts](https://docs.megaeth.com/developer-docs/rpc/reference/eth_accounts.md): eth\_accounts JSON-RPC reference for MegaETH.
+- [eth\_blockNumber](https://docs.megaeth.com/developer-docs/rpc/reference/eth_blocknumber.md): eth\_blockNumber JSON-RPC reference for MegaETH.
+- [eth\_call](https://docs.megaeth.com/developer-docs/rpc/reference/eth_call.md): eth\_call JSON-RPC reference for MegaETH.
+- [eth\_callMany](https://docs.megaeth.com/developer-docs/rpc/reference/eth_callmany.md): Executes ordered bundles of read-only calls against a selected MegaETH state.
+- [eth\_chainId](https://docs.megaeth.com/developer-docs/rpc/reference/eth_chainid.md): eth\_chainId JSON-RPC reference for MegaETH.
+- [eth\_createAccessList](https://docs.megaeth.com/developer-docs/rpc/reference/eth_createaccesslist.md): eth\_createAccessList JSON-RPC reference for MegaETH.
+- [eth\_estimateGas](https://docs.megaeth.com/developer-docs/rpc/reference/eth_estimategas.md): eth\_estimateGas JSON-RPC reference for MegaETH.
+- [eth\_feeHistory](https://docs.megaeth.com/developer-docs/rpc/reference/eth_feehistory.md): eth\_feeHistory JSON-RPC reference for MegaETH.
+- [eth\_gasPrice](https://docs.megaeth.com/developer-docs/rpc/reference/eth_gasprice.md): eth\_gasPrice JSON-RPC reference for MegaETH.
+- [eth\_getBalance](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getbalance.md): eth\_getBalance JSON-RPC reference for MegaETH.
+- [eth\_getBlockByHash](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getblockbyhash.md): eth\_getBlockByHash JSON-RPC reference for MegaETH.
+- [eth\_getBlockByNumber](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getblockbynumber.md): eth\_getBlockByNumber JSON-RPC reference for MegaETH.
+- [eth\_getBlockReceipts](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getblockreceipts.md): eth\_getBlockReceipts JSON-RPC reference for MegaETH.
+- [eth\_getBlockTransactionCountByHash](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getblocktransactioncountbyhash.md): eth\_getBlockTransactionCountByHash JSON-RPC reference for MegaETH.
+- [eth\_getBlockTransactionCountByNumber](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getblocktransactioncountbynumber.md): eth\_getBlockTransactionCountByNumber JSON-RPC reference for MegaETH.
+- [eth\_getCode](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getcode.md): eth\_getCode JSON-RPC reference for MegaETH.
+- [eth\_getCodeByHash](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getcodebyhash.md): eth\_getCodeByHash JSON-RPC reference for MegaETH.
+- [eth\_getHeaderByHash](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getheaderbyhash.md): eth\_getHeaderByHash JSON-RPC reference for MegaETH.
+- [eth\_getHeaderByNumber](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getheaderbynumber.md): eth\_getHeaderByNumber JSON-RPC reference for MegaETH.
+- [eth\_getLogs](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getlogs.md): eth\_getLogs JSON-RPC reference for MegaETH.
+- [eth\_getStorageAt](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getstorageat.md): eth\_getStorageAt JSON-RPC reference for MegaETH.
+- [eth\_getTransactionByHash](https://docs.megaeth.com/developer-docs/rpc/reference/eth_gettransactionbyhash.md): eth\_getTransactionByHash JSON-RPC reference for MegaETH.
+- [eth\_getTransactionCount](https://docs.megaeth.com/developer-docs/rpc/reference/eth_gettransactioncount.md): eth\_getTransactionCount JSON-RPC reference for MegaETH.
+- [eth\_getTransactionReceipt](https://docs.megaeth.com/developer-docs/rpc/reference/eth_gettransactionreceipt.md): eth\_getTransactionReceipt JSON-RPC reference for MegaETH.
+- [eth\_getUncleByBlockHashAndIndex](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getunclebyblockhashandindex.md): Returns an uncle block by parent block hash and uncle index.
+- [eth\_getUncleByBlockNumberAndIndex](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getunclebyblocknumberandindex.md): Returns an uncle block by parent block number and uncle index.
+- [eth\_getUncleCountByBlockHash](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getunclecountbyblockhash.md): Returns the number of uncle blocks referenced by a MegaETH block selected by hash.
+- [eth\_getUncleCountByBlockNumber](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getunclecountbyblocknumber.md): Returns the number of uncle blocks referenced by a MegaETH block selected by number.
+- [eth\_getWithdrawalProof](https://docs.megaeth.com/developer-docs/rpc/reference/eth_getwithdrawalproof.md): Returns a withdrawal-storage proof for MegaETH's L2-to-L1 message passer contract.
+- [eth\_maxPriorityFeePerGas](https://docs.megaeth.com/developer-docs/rpc/reference/eth_maxpriorityfeepergas.md): eth\_maxPriorityFeePerGas JSON-RPC reference for MegaETH.
+- [eth\_protocolVersion](https://docs.megaeth.com/developer-docs/rpc/reference/eth_protocolversion.md): Returns the Ethereum protocol version reported by the MegaETH RPC node.
+- [eth\_sendRawTransaction](https://docs.megaeth.com/developer-docs/rpc/reference/eth_sendrawtransaction.md): eth\_sendRawTransaction JSON-RPC reference for MegaETH.
+- [eth\_sendRawTransactionSync](https://docs.megaeth.com/developer-docs/rpc/reference/eth_sendrawtransactionsync.md): eth\_sendRawTransactionSync JSON-RPC reference for MegaETH.
+- [eth\_subscribe](https://docs.megaeth.com/developer-docs/rpc/reference/eth_subscribe.md): eth\_subscribe — WebSocket subscriptions for block headers, logs, pending transactions, sync status, mini-blocks, and state changes.
+- [eth\_syncing](https://docs.megaeth.com/developer-docs/rpc/reference/eth_syncing.md): eth\_syncing JSON-RPC reference for MegaETH.
+- [eth\_uninstallFilter](https://docs.megaeth.com/developer-docs/rpc/reference/eth_uninstallfilter.md): Removes an Ethereum log or block filter by ID.
+- [eth\_unsubscribe](https://docs.megaeth.com/developer-docs/rpc/reference/eth_unsubscribe.md): eth\_unsubscribe JSON-RPC reference for MegaETH.
+- [mega\_getBlockWitness](https://docs.megaeth.com/developer-docs/rpc/reference/mega_getblockwitness.md): mega\_getBlockWitness JSON-RPC reference for MegaETH.
+- [mega\_getWithdrawalProof](https://docs.megaeth.com/developer-docs/rpc/reference/mega_getwithdrawalproof.md): mega\_getWithdrawalProof JSON-RPC reference for MegaETH.
+- [mega\_outputAtBlock](https://docs.megaeth.com/developer-docs/rpc/reference/mega_outputatblock.md): mega\_outputAtBlock JSON-RPC reference for MegaETH.
+- [net\_listening](https://docs.megaeth.com/developer-docs/rpc/reference/net_listening.md): net\_listening JSON-RPC reference for MegaETH.
+- [net\_peerCount](https://docs.megaeth.com/developer-docs/rpc/reference/net_peercount.md): net\_peerCount JSON-RPC reference for MegaETH.
+- [net\_version](https://docs.megaeth.com/developer-docs/rpc/reference/net_version.md): net\_version JSON-RPC reference for MegaETH.
+- [optimism\_outputAtBlock](https://docs.megaeth.com/developer-docs/rpc/reference/optimism_outputatblock.md): Returns the OP Stack output-root data for a MegaETH block.
+- [realtime\_sendRawTransaction](https://docs.megaeth.com/developer-docs/rpc/reference/realtime_sendrawtransaction.md): realtime\_sendRawTransaction — submit a transaction and receive the receipt in a single call without polling.
+- [web3\_clientVersion](https://docs.megaeth.com/developer-docs/rpc/reference/web3_clientversion.md): web3\_clientVersion JSON-RPC reference for MegaETH.
+- [Developer FAQ](https://docs.megaeth.com/developer-docs/faq.md): Frequently asked questions for MegaETH developers — EVM compatibility, gas, transactions, mini-blocks, RPC, and tooling.
+- [Stateless Validation](https://docs.megaeth.com/node-operation/stateless-validation.md): Run a stateless validator to independently verify every MegaETH block on commodity hardware using SALT witnesses.
+- [Validator Architecture](https://docs.megaeth.com/node-operation/stateless-validation/validator-architecture.md): Architecture and implementation guide for building a MegaETH-compatible stateless validator.
+- [Get Block Witness](https://docs.megaeth.com/node-operation/stateless-validation/witness.md): mega\_getBlockWitness — fetch the SALT + MPT witness needed to stateless-verify a MegaETH block.
+- [Debug Trace Server](https://docs.megaeth.com/node-operation/debug-trace-server.md): Self-host debug\_\* and trace\_\* RPC methods for MegaETH by replaying blocks with SALT witnesses — no archive node required.
+
+## Specification
+
+- [MegaETH Specification](https://docs.megaeth.com/spec/overview.md): MegaETH formal specification — normative behavioral definitions for EVM execution, system contracts, oracle services, and protocol upgrades.
+- [Hardforks and Specs](https://docs.megaeth.com/spec/hardfork-spec.md): MegaETH hardfork and spec versioning — how behavioral changes are versioned, activated, and tracked across network upgrades.
+- [Overview](https://docs.megaeth.com/spec/megaevm/overview.md): MegaEVM specification index — dual gas model, resource limits, gas detention, system contracts, and per-spec behavioral history.
+- [Dual Gas Model](https://docs.megaeth.com/spec/megaevm/dual-gas-model.md): MegaETH dual gas model specification — compute gas, storage gas, SALT bucket multiplier, and per-operation storage gas schedule.
+- [Compute Gas Accounting](https://docs.megaeth.com/spec/megaevm/compute-gas.md): MegaETH compute gas accounting specification — the measurement window that derives compute gas from inherited EVM gas, per-opcode metering classes, non-opcode recording sites, transaction and per-call
+- [Resource Limits](https://docs.megaeth.com/spec/megaevm/resource-limits.md): MegaETH per-transaction and per-block resource limits — compute gas, data size, KV updates, and state growth ceilings with enforcement semantics.
+- [Resource Accounting](https://docs.megaeth.com/spec/megaevm/resource-accounting.md): MegaETH resource accounting specification — counter semantics, revert behavior, and per-opcode metering for compute gas, data size, KV updates, and state growth.
+- [Gas Detention](https://docs.megaeth.com/spec/megaevm/gas-detention.md): MegaETH gas detention specification — compute gas caps triggered by volatile data access (block environment, oracle SLOAD).
+- [Gas Forwarding](https://docs.megaeth.com/spec/megaevm/gas-forwarding.md): MegaETH 98/100 gas forwarding rule — CALL, DELEGATECALL, STATICCALL, CALLCODE, and CREATE/CREATE2 forwarding semantics.
+- [Contract Limits](https://docs.megaeth.com/spec/megaevm/contract-limits.md): MegaETH contract size limits — 512 KB max bytecode, 536 KB max initcode, inherited from MiniRex.
+- [Precompiles](https://docs.megaeth.com/spec/megaevm/precompiles.md): MegaETH precompile gas overrides — KZG Point Evaluation and ModExp cost schedules diverging from standard Ethereum.
+- [SELFDESTRUCT](https://docs.megaeth.com/spec/megaevm/selfdestruct.md): SELFDESTRUCT opcode on MegaETH — EIP-6780 semantics, same-transaction destruction, beneficiary account metering, and spec history from MiniRex to Rex6.
+- [Overview](https://docs.megaeth.com/spec/system-contracts/overview.md): MegaETH system contract registry — addresses, whitelisting rules, and protocol-level execution constraints.
+- [Oracle](https://docs.megaeth.com/spec/system-contracts/oracle.md): MegaETH Oracle system contract — address, storage layout, hint forwarding, and gas detention trigger.
+- [High-Precision Timestamp](https://docs.megaeth.com/spec/system-contracts/high-precision-timestamp.md): High-Precision Timestamp system contract — sub-second timestamp oracle service backed by Oracle storage.
+- [Keyless Deployment](https://docs.megaeth.com/spec/system-contracts/keyless-deploy.md): KeylessDeploy system contract semantics for deterministic deployment via pre-EIP-155 transactions.
+- [MegaAccessControl](https://docs.megaeth.com/spec/system-contracts/mega-access-control.md): MegaAccessControl system contract — proactive volatile data access restriction for call subtrees.
+- [MegaLimitControl](https://docs.megaeth.com/spec/system-contracts/mega-limit-control.md): MegaLimitControl system contract — runtime query for effective remaining compute gas under detention and call-frame limits.
+- [SequencerRegistry](https://docs.megaeth.com/spec/system-contracts/sequencer-registry.md): SequencerRegistry system contract — dual-role registry for system address and sequencer, with change scheduling and history.
+- [Call Interception](https://docs.megaeth.com/spec/system-contracts/interception.md): Generic call-interception mechanism for MegaETH system contracts — frame-init hook, selector matching, intercepted vs. fall-through semantics, gas treatment, and call-scheme rules.
+- [Mega System Transactions](https://docs.megaeth.com/spec/system-contracts/system-tx.md): Mega system transactions — sender/recipient identification rules, whitelisted contracts, and execution bypass semantics.
+- [Overview](https://docs.megaeth.com/spec/network-upgrades/overview.md): MegaETH network upgrade history — hardfork timeline from MiniRex through Rex6 with activation dates and behavioral deltas.
+- [MiniRex](https://docs.megaeth.com/spec/network-upgrades/minirex.md): MiniRex network upgrade — the foundational MegaEVM spec built on Optimism Isthmus (Ethereum Prague).
+- [Rex](https://docs.megaeth.com/spec/network-upgrades/rex.md): Rex network upgrade — revised storage gas economics, 39K intrinsic storage gas, and state growth tracking.
+- [Rex1](https://docs.megaeth.com/spec/network-upgrades/rex1.md): Rex1 network upgrade — patch release fixing cross-transaction gas detention state leak.
+- [Rex2](https://docs.megaeth.com/spec/network-upgrades/rex2.md): Rex2 network upgrade — SELFDESTRUCT restored with EIP-6780, KeylessDeploy system contract added.
+- [Rex3](https://docs.megaeth.com/spec/network-upgrades/rex3.md): Rex3 network upgrade — oracle detention revised to SLOAD-based triggering with 20M cap.
+- [Rex4](https://docs.megaeth.com/spec/network-upgrades/rex4.md): Rex4 network upgrade — per-call-frame resource budgets, relative gas detention, storage gas stipend, and new system contracts.
+- [Rex5](https://docs.megaeth.com/spec/network-upgrades/rex5.md): Rex5 network upgrade — SequencerRegistry with dual roles, dynamic system address, Oracle v2.0.0, KeylessDeploy trailing-bytes rejection and sandbox resource accounting, caller-account update deduplica
+- [Rex6](https://docs.megaeth.com/spec/network-upgrades/rex6.md): Rex6 network upgrade — unified per-opcode gas metering order (storage gas charged before the opcode body, compute gas recorded exactly once after it completes), EIP-7702 authorization accounting conso
+- [Glossary](https://docs.megaeth.com/spec/reference/glossary.md): MegaETH glossary — definitions of protocol terms including EVM blocks, mini-blocks, compute gas, storage gas, and gas detention.
+
+## mega-evme
+
+- [mega-evme](https://docs.megaeth.com/mega-evme/overview.md): Execute and debug EVM bytecode locally with MegaETH's gas model, tracing, and state forking.
+- [Cookbook](https://docs.megaeth.com/mega-evme/cookbook.md): Runnable recipes for debugging, gas analysis, state diffing, and more.
+- [run](https://docs.megaeth.com/mega-evme/commands/run.md): Run raw EVM bytecode in call or create mode with full environment control.
+- [tx](https://docs.megaeth.com/mega-evme/commands/tx.md): Execute a transaction against local or fork-from-RPC state.
+- [replay](https://docs.megaeth.com/mega-evme/commands/replay.md): Fetch and re-execute one or many on-chain transactions with optional overrides, tracing, and on-chain receipt verification.
+- [cache](https://docs.megaeth.com/mega-evme/commands/cache.md): Merge RPC cache envelopes offline.
+- [Chain and Spec](https://docs.megaeth.com/mega-evme/configuration/chain-and-spec.md): Select which MegaETH spec version and chain ID to use.
+- [Block Environment](https://docs.megaeth.com/mega-evme/configuration/block-environment.md): Configure block number, timestamp, coinbase, base fee, and other block-level fields.
+- [State Management](https://docs.megaeth.com/mega-evme/configuration/state-management.md): Load prestate, override balances and storage, fork from RPC, and dump post-execution state.
+- [SALT Buckets](https://docs.megaeth.com/mega-evme/configuration/salt-buckets.md): Control SALT bucket capacities to test dynamic storage gas pricing.
+- [Overview](https://docs.megaeth.com/mega-evme/tracing/overview.md): Record step-by-step EVM execution with opcode, call, and pre-state tracers.
+- [Opcode Tracer](https://docs.megaeth.com/mega-evme/tracing/opcode-tracer.md): Log every instruction with gas, stack, memory, and storage at each step.
+- [Call Tracer](https://docs.megaeth.com/mega-evme/tracing/call-tracer.md): Capture the nested CALL/CREATE tree with gas usage, return data, and log events.
+- [Pre-State Tracer](https://docs.megaeth.com/mega-evme/tracing/prestate-tracer.md): Snapshot accessed account state before execution, with optional before/after diff mode.
+- [Transaction Types](https://docs.megaeth.com/mega-evme/reference/transaction-types.md): Legacy, EIP-2930, EIP-1559, EIP-7702, and Deposit transaction options.
+
+
+---
+
+# Agent Instructions
+This documentation is published with GitBook. GitBook is the documentation platform designed so that both humans and AI agents can read, navigate, and reason over technical content effectively. Learn more at gitbook.com.
+
+## Querying This Documentation
+This site has an agentic ask interface you may use to query the documentation dynamically by asking a question.
+
+Perform an HTTP GET request on the following URL with the `ask` and `goal` query parameters:
+
+```
+GET https://docs.megaeth.com/index.md?ask=<question>&goal=<user_goal>
+```
+
+`ask` is the immediate question: it should be specific, self-contained, and written in natural language.
+`goal` is what the user is ultimately trying to achieve, the reason they need the answer. Sharing it helps GitBook give you a better, more relevant answer. A goal is most helpful when it describes the outcome the user wants rather than restating the question. For example, with `ask=how do I create an API token`, a goal like `automate deployments from our CI pipeline` lets GitBook tailor the answer to that use case.
+
+The response will contain a direct answer to the question and relevant excerpts and sources from the documentation.

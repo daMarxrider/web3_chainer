@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Frax.com</title>
+    <style>
+      body {
+        background-color: hsl(222.2, 84%, 4.9%);
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        background-color: hsl(222.2, 84%, 4.9%);
+      }
+    </style>
+    <meta name="description" content="The Financial Engine of the Internet" />
+    <meta name="keywords" content="Frax, Frax.com" />
+    <meta property="og:title" content="Frax" />
+    <meta property="og:image" content="https://frax.com/social-image-v2.png" />
+    <meta
+      property="og:description"
+      content="The Financial Engine of the Internet"
+    />
+    <meta property="og:url" content="https://frax.com" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Frax" />
+    <meta name="twitter:creator" content="@fraxfinance" />
+    <meta name="twitter:site" content="@fraxfinance" />
+    <meta
+      name="twitter:description"
+      content="The Financial Engine of the Internet"
+    />
+    <meta name="twitter:image" content="https://frax.com/social-image-v2.png" />
+    <script type="module" crossorigin src="/assets/index-B4wpAsA2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Bs0xhzRG.css">
+  </head>
+  <body class="bg-background">
+    <div id="root"></div>
+  </body>
+</html>
