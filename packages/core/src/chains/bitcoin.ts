@@ -16,7 +16,7 @@ const MAX_FEE_SHARE = 0.05
 const MAX_FEE_FLOOR = 5_000n
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
-export function bitcoinAdapter(chain: Chain, opts: { fetch: FetchFn; rpcUrl?: string }): ChainAdapter {
+export function bitcoinAdapter(chain: Chain, opts: { fetch: FetchFn; rpcUrl?: string; blockcypher?: boolean }): ChainAdapter {
   const coin: UtxoCoin | undefined = UTXO_COINS[chain.key]
   if (!coin) throw new Error(`${chain.name} is not a supported Bitcoin-family chain`)
   if (coin.legacy) return legacyUtxoAdapter(chain, coin, opts)

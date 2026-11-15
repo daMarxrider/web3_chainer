@@ -89,7 +89,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 /** Size of a transaction with plain inputs: 148 bytes each, 34 per standard output, 10 for the rest, and the memo output. */
 const txSize = (inputs: number, memoBytes: number) => 10 + 148 * inputs + 34 + 34 + (memoBytes ? 11 + memoBytes : 0)
 
-export function legacyUtxoAdapter(chain: Chain, coin: UtxoCoin, opts: { fetch: FetchFn; rpcUrl?: string }): ChainAdapter {
+export function legacyUtxoAdapter(chain: Chain, coin: UtxoCoin, opts: { fetch: FetchFn; rpcUrl?: string; blockcypher?: boolean }): ChainAdapter {
   const backendFactory = BACKENDS[coin.backend as keyof typeof BACKENDS]
   if (!backendFactory) throw new Error(`${coin.name} has no data source`)
   const urls = opts.rpcUrl ? [opts.rpcUrl] : chain.rpcUrls.length ? chain.rpcUrls : coin.endpoints
@@ -97,6 +97,11 @@ export function legacyUtxoAdapter(chain: Chain, coin: UtxoCoin, opts: { fetch: F
   const forkId = Boolean(coin.cashAddrPrefix)
 
   const call: Call = async (path, init) => {
+    if (coin.backend === 'blockcypher' && !opts.rpcUrl && !opts.blockcypher) {
+      throw new Error(
+        `${chain.name} is read through BlockCypher, whose documentation asks for an API token on broadcasts. It is off until you allow it: chainer config set blockcypher on (or use your own endpoint: chainer config rpc ${chain.key} <url>)`,
+      )
+    }
     let last: Error = new Error('No endpoint')
     for (const base of urls) {
       try {

@@ -156,7 +156,7 @@ test('Dogecoin: BlockCypher balance, a deposit with memo, and the broadcast tran
       return ok({ tx: { hash: 'dd'.repeat(32) } }, 201)
     },
   })
-  const adapter = bitcoinAdapter(chainOf('doge'), { fetch: node.fetchFn })
+  const adapter = bitcoinAdapter(chainOf('doge'), { fetch: node.fetchFn, blockcypher: true })
   assert.deepEqual(await adapter.getBalances(me, [{ chainKey: 'doge', address: 'dogecoin', symbol: 'DOGE', decimals: 8 }]), [1_000_000_000n])
   const id = await adapter.send({ kind: 'utxo-send', chainKey: 'doge', to: vault, amount: 500_000_000n, memo: '=:ETH.ETH:0xabc:100' }, signer)
   assert.equal(id, 'dd'.repeat(32))
@@ -189,7 +189,7 @@ test('Dash: BlockCypher coins and broadcast, unconfirmed coins are not spent', a
       return ok({ tx: { hash: '11'.repeat(32) } }, 201)
     },
   })
-  const adapter = bitcoinAdapter(chainOf('dash'), { fetch: node.fetchFn })
+  const adapter = bitcoinAdapter(chainOf('dash'), { fetch: node.fetchFn, blockcypher: true })
   await assert.rejects(adapter.send({ kind: 'utxo-send', chainKey: 'dash', to: vault, amount: 100_000_000n }, signer), /Not enough DASH/)
   assert.equal(await adapter.send({ kind: 'utxo-send', chainKey: 'dash', to: vault, amount: 20_000_000n }, signer), '11'.repeat(32))
   const { inputs: ins, outputs: outs } = decodeBroadcast(pushed)
@@ -240,13 +240,13 @@ test('a fee out of proportion refuses to send', async () => {
     [`/addrs/${me}?unspentOnly=true&limit=200`]: () => ok({ txrefs: [{ tx_hash: 'cc'.repeat(32), tx_output_n: 0, value: 100_000_000_000, double_spend: false }] }),
     '/v1/doge/main': () => ok({ medium_fee_per_kb: 50_000_000_000 }),
   })
-  const adapter = bitcoinAdapter(chainOf('doge'), { fetch: node.fetchFn })
+  const adapter = bitcoinAdapter(chainOf('doge'), { fetch: node.fetchFn, blockcypher: true })
   const vault = dogeCodec.encode(hash160(secp256k1.getPublicKey(Uint8Array.from({ length: 32 }, (_, i) => i + 9), true)))
   await assert.rejects(adapter.send({ kind: 'utxo-send', chainKey: 'doge', to: vault, amount: 100_000_000n }, signer), /too high/)
 })
 
 test('a PSBT is refused for a legacy coin', async () => {
-  const adapter = bitcoinAdapter(chainOf('doge'), { fetch: fakeNode({}).fetchFn })
+  const adapter = bitcoinAdapter(chainOf('doge'), { fetch: fakeNode({}).fetchFn, blockcypher: true })
   await assert.rejects(adapter.send({ kind: 'utxo-psbt', chainKey: 'doge', psbt: '00', to: 'x', amount: 1n }, signer), /cannot sign a PSBT/)
 })
 
@@ -259,4 +259,23 @@ test('chains LI.FI does not list only have their own coin, resolved without aski
   assert.equal(isNative(doge), true)
   assert.deepEqual(await lifiTokens(never, chainOf('bch')), [{ chainKey: 'bch', address: 'bitcoincash', symbol: 'BCH', decimals: 8 }])
   await assert.rejects(lifiToken(never, chainOf('dash'), 'USDC'), /only has its own coin/)
+})
+
+test('Dogecoin and Dash stay off until BlockCypher is allowed, unless the user names their own endpoint', async () => {
+  const me = chainAddress(signer, chainOf('doge'))
+  const token = { chainKey: 'doge', address: 'dogecoin', symbol: 'DOGE', decimals: 8 }
+  let asked = 0
+  const fetchFn: typeof fetch = async () => {
+    asked++
+    return ok({ final_balance: 5 })
+  }
+  const off = bitcoinAdapter(chainOf('doge'), { fetch: fetchFn })
+  await assert.rejects(off.getBalances(me, [token]), /chainer config set blockcypher on/)
+  assert.equal(asked, 0)
+  assert.equal(off.validateAddress(me), true)
+  const own = bitcoinAdapter(chainOf('doge'), { fetch: fetchFn, rpcUrl: 'https://my.node/v1/doge/main' })
+  assert.deepEqual(await own.getBalances(me, [token]), [5n])
+  // Bitcoin Cash does not use BlockCypher and needs no switch.
+  const bch = bitcoinAdapter(chainOf('bch'), { fetch: async () => ok({ balanceSat: 1, unconfirmedBalanceSat: 0 }) })
+  assert.deepEqual(await bch.getBalances('bitcoincash:qqyx49mu0kkn9ftfj6hje6g2wfer34yfnq5tahq3q6', [token]), [1n])
 })

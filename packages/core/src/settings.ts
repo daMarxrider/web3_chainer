@@ -16,6 +16,8 @@ export interface Settings {
   lifi: { allowBridges: string[]; denyBridges: string[] }
   /** Route sources switched off by name ("thorchain", "maya"). LI.FI is always on. */
   disabledProviders: string[]
+  /** Use BlockCypher (Dogecoin, Dash) whose docs ask for an API token on broadcasts. Off until the user turns it on. */
+  blockcypher: boolean
 }
 
 export const defaultSettings: Settings = {
@@ -27,6 +29,7 @@ export const defaultSettings: Settings = {
   rpc: {},
   lifi: { allowBridges: [], denyBridges: [...DEFAULT_DENIED_BRIDGES] },
   disabledProviders: [],
+  blockcypher: false,
 }
 
 const KEY = 'settings.json'

@@ -72,7 +72,7 @@ Usage:
   chainer status [<id>]                       List runs, or show one in detail
   chainer resume <id>                         Continue a run that stopped or failed
   chainer config show
-  chainer config set <prefer|slippage|maxUsdPerTransfer|maxHops> <value>
+  chainer config set <prefer|slippage|maxUsdPerTransfer|maxHops|blockcypher> <value>   (blockcypher on|off: Dogecoin and Dash data, off by default)
   chainer config rpc <chain> <url|default>    Use your own RPC node for a chain
   chainer config avoid <add|remove> <token>   Tokens never to route through or into
 
@@ -189,7 +189,7 @@ const HUBS: [chain: string, token: string][] = [
 let chainList: Promise<Chain[]> | undefined
 const allChains = () => (chainList ??= lifiChains(fetchFn).then((found) => [...found, ...BUILTIN_CHAINS.filter((t) => !found.some((c) => c.key === t.key))]))
 const adapterFor = (chain: Chain): ChainAdapter => {
-  const o = { fetch: fetchFn, rpcUrl: settings.rpc[chain.key] }
+  const o = { fetch: fetchFn, rpcUrl: settings.rpc[chain.key], blockcypher: settings.blockcypher }
   return chain.family === 'solana' ? solanaAdapter(chain, o) : chain.family === 'bitcoin' ? bitcoinAdapter(chain, o) : evmAdapter(chain, o)
 }
 
@@ -625,6 +625,9 @@ async function configCommand(args: string[]): Promise<void> {
       const n = Number(b)
       if (!Number.isInteger(n) || n < 1 || n > 5) throw new Error('maxHops must be a whole number from 1 to 5')
       next.maxHops = n
+    } else if (a === 'blockcypher') {
+      if (b !== 'on' && b !== 'off') throw new Error('blockcypher must be "on" or "off"')
+      next.blockcypher = b === 'on'
     } else throw new Error(`Unknown setting "${a}"`)
   } else if (sub === 'rpc' && a && b) {
     const chain = findChain(await allChains(), a)
