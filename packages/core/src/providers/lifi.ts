@@ -1,7 +1,8 @@
-import { zeroAddress } from 'viem'
+import { UTXO_COINS } from '../chains/utxo-coins.ts'
 import { fetchJson } from '../http.ts'
 import type { Settings } from '../settings.ts'
-import type { Action, BridgeProvider, Chain, FetchFn, Quote, QuoteRequest, Token, TransferStatus } from '../types.ts'
+import { isNative } from '../tokens.ts'
+import type { Action, BridgeProvider, Chain, ChainFamily, FetchFn, Quote, QuoteRequest, Token, TransferStatus } from '../types.ts'
 
 const API = 'https://li.quest/v1'
 
@@ -13,6 +14,7 @@ interface LifiToken {
   priceUSD?: string
 }
 interface LifiChain {
+  chainType: 'EVM' | 'SVM' | 'UTXO' | 'MVM' | 'TVM'
   key: string
   id: number
   name: string
@@ -39,7 +41,7 @@ export interface LifiStep {
     gasCosts?: LifiCost[]
   }
   includedSteps?: { action: { fromToken: LifiToken; toToken: LifiToken } }[]
-  transactionRequest?: { to: string; data: string; value?: string; gasLimit?: string }
+  transactionRequest?: { to?: string; data: string; value?: string; gasLimit?: string; svmTransactionVersion?: string }
 }
 
 const toToken = (t: LifiToken, chainKey: string): Token => ({
@@ -50,19 +52,29 @@ const toToken = (t: LifiToken, chainKey: string): Token => ({
   priceUsd: t.priceUSD ? Number(t.priceUSD) : undefined,
 })
 
-/** All EVM chains LI.FI can route, mainnets and testnets. */
+const FAMILY: Partial<Record<LifiChain['chainType'], ChainFamily>> = { EVM: 'evm', SVM: 'solana', UTXO: 'bitcoin' }
+
+/** The chains LI.FI can route that this app has an adapter for (EVM, Solana, Bitcoin), mainnets and testnets. */
 export async function lifiChains(fetchFn: FetchFn): Promise<Chain[]> {
-  const { chains } = await fetchJson<{ chains: LifiChain[] }>(fetchFn, `${API}/chains?chainTypes=EVM`)
-  return chains.map((c) => ({
-    family: 'evm',
-    key: c.key,
-    id: c.id,
-    name: c.name,
-    nativeSymbol: c.nativeToken.symbol,
-    rpcUrls: c.metamask.rpcUrls,
-    multicall: c.multicallAddress,
-    testnet: !c.mainnet,
-  }))
+  const { chains } = await fetchJson<{ chains: LifiChain[] }>(fetchFn, `${API}/chains?chainTypes=EVM,SVM,UTXO`)
+  return chains.flatMap((c): Chain[] => {
+    const family = FAMILY[c.chainType]
+    // UTXO chains need a coin definition here (address format, key path); others are left out.
+    if (!family || (family === 'bitcoin' && !UTXO_COINS[c.key])) return []
+    return [
+      {
+        family,
+        key: c.key,
+        id: c.id,
+        name: c.name,
+        nativeSymbol: c.nativeToken.symbol,
+        // LI.FI lists JSON-RPC nodes for UTXO chains; this app reads them through Esplora instead.
+        rpcUrls: family === 'bitcoin' ? UTXO_COINS[c.key]!.esplora : c.metamask.rpcUrls,
+        multicall: c.multicallAddress,
+        testnet: !c.mainnet,
+      },
+    ]
+  })
 }
 
 /** Looks a token up by symbol or contract address. */
@@ -104,18 +116,24 @@ export function normalizeLifiStep(step: LifiStep, request: QuoteRequest): Quote 
 }
 
 /** Builds the transaction to sign from a step that LI.FI has filled in with transaction data. Exported for tests. */
-export function lifiAction(step: LifiStep, request: QuoteRequest): Action {
+export function lifiAction(step: LifiStep, request: QuoteRequest, family: ChainFamily = 'evm'): Action {
   const tx = step.transactionRequest
   if (!tx) throw new Error('LI.FI returned no transaction for this route')
-  const isNative = request.from.address.toLowerCase() === zeroAddress
+  const chainKey = request.from.chainKey
+  if (family === 'solana') return { kind: 'solana-tx', chainKey, transaction: tx.data }
+  if (family === 'bitcoin') {
+    if (!tx.to || tx.value === undefined) throw new Error('LI.FI returned a Bitcoin transaction without a recipient or amount')
+    return { kind: 'utxo-psbt', chainKey, psbt: tx.data, to: tx.to, amount: BigInt(tx.value) }
+  }
+  if (!tx.to) throw new Error('LI.FI returned an EVM transaction without a recipient')
   return {
     kind: 'evm-tx',
-    chainKey: request.from.chainKey,
+    chainKey,
     to: tx.to,
     data: tx.data,
     value: BigInt(tx.value ?? 0),
     gasLimit: tx.gasLimit ? BigInt(tx.gasLimit) : undefined,
-    approval: isNative ? undefined : { token: request.from.address, spender: step.estimate.approvalAddress, amount: request.amount },
+    approval: isNative(request.from) ? undefined : { token: request.from.address, spender: step.estimate.approvalAddress, amount: request.amount },
   }
 }
 
@@ -168,7 +186,8 @@ export function lifiProvider(fetchFn: FetchFn, chains: Chain[], settings: Pick<S
 
     async buildActions(quote) {
       const step = await fetchJson<LifiStep>(fetchFn, `${API}/advanced/stepTransaction`, postJson(quote.raw))
-      return [lifiAction(step, quote.request)]
+      const family = chains.find((c) => c.key === quote.request.from.chainKey)?.family ?? 'evm'
+      return [lifiAction(step, quote.request, family)]
     },
 
     async getStatus(txId, ref): Promise<TransferStatus> {

@@ -9,9 +9,9 @@ Moves tokens from one blockchain to another over the best available route, and f
 
 ## Status
 
-The command-line tool works today for EVM chains (Ethereum, Arbitrum, Base, Optimism, Polygon and about 55 more) through the [LI.FI](https://li.fi) bridge aggregator. It has been verified with real bridge transfers on test networks.
+The command-line tool works today for EVM chains (Ethereum, Arbitrum, Base, Optimism, Polygon and about 55 more), Solana and Bitcoin through the [LI.FI](https://li.fi) bridge aggregator. EVM transfers have been verified with real bridge transfers on test networks; Solana and Bitcoin signing is covered by automated tests only, because LI.FI has no test network for them.
 
-Still to come, in this order: Solana and Bitcoin, more route sources (NEAR Intents, THORChain, Maya, Chainflip, direct bridges, atomic swaps), whole-wallet bridging, saved routes and scheduling, the graphical app, Lightning and Cosmos, WalletConnect. The full plan and its progress are in [docs/PLAN.md](docs/PLAN.md).
+Still to come, in this order: more route sources (NEAR Intents, THORChain, Maya, Chainflip, direct bridges, atomic swaps), whole-wallet bridging, saved routes and scheduling, the graphical app, Lightning and Cosmos, WalletConnect. The full plan and its progress are in [docs/PLAN.md](docs/PLAN.md).
 
 > This is young software that moves real money. Try a route with `--dry-run` or `--testnet` first, and start with small amounts. It comes with no warranty; see [Disclaimer](#disclaimer).
 
@@ -42,7 +42,10 @@ On Android the command-line tool runs in [Termux](https://termux.dev) (`pkg inst
 chainer wallet init        # new wallet; shows the seed phrase once, write it down
 chainer wallet import      # or import a seed phrase or private key
 chainer wallet list
+chainer wallet refresh     # wallets made before Solana and Bitcoin support: adds their addresses
 ```
+
+A wallet made from a seed phrase has an address on every supported chain family (EVM, Solana, Bitcoin, Litecoin). A wallet imported from a single EVM private key only works on EVM chains.
 
 The wallet is stored encrypted under a password you choose. You can add more wallets with `--name` and pick one per command with `--wallet`.
 
@@ -180,6 +183,7 @@ chainer is independent software. It is not affiliated with, endorsed by or opera
   - LI.FI does not warrant the availability, reliability or operability of those third-party contracts at any time.
   - LI.FI's [terms and conditions](https://li.fi/legal/terms-and-conditions) apply to your use of its contracts. Under them you confirm that you are not a US citizen or resident, are not under sanctions or in a comprehensively sanctioned country, and that your use is lawful. chainer does not check any of this; it is for you to know whether you may use LI.FI.
   - The public API allows 75 route searches and 50 transactions per two hours.
+- **[mempool.space](https://mempool.space)** (Bitcoin) and **[litecoinspace.org](https://litecoinspace.org)** (Litecoin) for Bitcoin-family balances, fee estimates and broadcasting transactions. Their public API needs no account and is offered as is, without guarantee; you can use your own Esplora-compatible server with `chainer config rpc`.
 - **Public RPC nodes** of each blockchain (for example PublicNode and the chains' own endpoints) for balances and for sending transactions. They are rate-limited and come with no guarantee; you can use your own with `chainer config rpc`.
 
 You are responsible for meeting the terms of these services.

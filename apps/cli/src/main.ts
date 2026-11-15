@@ -3,6 +3,10 @@ import { parseArgs } from 'node:util'
 import { parse as parseYaml } from 'yaml'
 import {
   addAccount,
+  addressSlot,
+  bitcoinAdapter,
+  BUILTIN_TEST_CHAINS,
+  chainAddress,
   evmAdapter,
   findAccount,
   findChain,
@@ -24,12 +28,16 @@ import {
   newPipeline,
   parseUnits,
   pipelineFromRoute,
+  refreshAddresses,
   routeEta,
   routeNetUsd,
   runPipeline,
   saveSettings,
+  solanaAdapter,
   unlock,
+  type AccountRecord,
   type Chain,
+  type ChainAdapter,
   type GeoNotice,
   type PipelineLeg,
   type PipelineRecord,
@@ -49,6 +57,7 @@ Usage:
   chainer wallet init [--name <name>]         Create a wallet with a new seed phrase
   chainer wallet import [--name <name>]       Import a seed phrase or private key
   chainer wallet list                         Show wallets and their addresses
+  chainer wallet refresh                      Add Solana and Bitcoin addresses to a wallet made earlier
   chainer chains [--testnets]                 List supported chains
   chainer balances <chain>                    Show the wallet's tokens on a chain
   chainer quote <amount> <token> <chain> [<to-token>] <to-chain>
@@ -170,11 +179,28 @@ const HUBS: [chain: string, token: string][] = [
   ['arb', 'ETH'],
   ['bas', 'USDC'],
   ['bas', 'ETH'],
+  ['sol', 'USDC'],
+  ['sol', 'SOL'],
+  ['btc', 'BTC'],
 ]
 
 let chainList: Promise<Chain[]> | undefined
-const allChains = () => (chainList ??= lifiChains(fetchFn))
-const adapterFor = (chain: Chain) => evmAdapter(chain, { fetch: fetchFn, rpcUrl: settings.rpc[chain.key] })
+const allChains = () => (chainList ??= lifiChains(fetchFn).then((found) => [...found, ...BUILTIN_TEST_CHAINS.filter((t) => !found.some((c) => c.key === t.key))]))
+const adapterFor = (chain: Chain): ChainAdapter => {
+  const o = { fetch: fetchFn, rpcUrl: settings.rpc[chain.key] }
+  return chain.family === 'solana' ? solanaAdapter(chain, o) : chain.family === 'bitcoin' ? bitcoinAdapter(chain, o) : evmAdapter(chain, o)
+}
+
+/** The wallet's address on a chain, from the public list stored with the wallet. */
+function ownAddress(account: AccountRecord, chain: Pick<Chain, 'family' | 'key' | 'name'>): string {
+  const address = account.addresses[addressSlot(chain)]
+  if (address) return address
+  throw new Error(
+    account.type === 'key'
+      ? `Wallet "${account.name}" was made from a single EVM private key and has no address on ${chain.name}. Import a seed phrase to use it.`
+      : `Wallet "${account.name}" has no ${chain.name} address stored yet. Run "chainer wallet refresh" once to add the new chains.`,
+  )
+}
 
 async function resolveChain(query: string): Promise<Chain> {
   const chains = await allChains()
@@ -213,9 +239,14 @@ async function walletCommand(sub: string | undefined): Promise<void> {
   if (sub === 'list') {
     if (opts.json) return printJson(keystore.accounts.map(({ name, type, addresses }) => ({ name, type, addresses })))
     if (keystore.accounts.length === 0) return out('No wallets yet. Create one with "chainer wallet init".')
-    return table([['NAME', 'TYPE', 'EVM ADDRESS'], ...keystore.accounts.map((a) => [a.name, a.type, a.addresses.evm])])
+    const shown = ['evm', 'sol', 'btc', 'ltc']
+    return table([['NAME', 'TYPE', ...shown.map((k) => k.toUpperCase())], ...keystore.accounts.map((a) => [a.name, a.type, ...shown.map((k) => a.addresses[k] ?? '-')])])
   }
-  if (sub !== 'init' && sub !== 'import') throw new Error('Use: chainer wallet init | import | list')
+  if (sub === 'refresh') {
+    const record = await refreshAddresses(store, opts.wallet, await askPassword())
+    return out(`Wallet "${record.name}" now lists: ${Object.entries(record.addresses).map(([k, v]) => `${k} ${v}`).join(', ')}`)
+  }
+  if (sub !== 'init' && sub !== 'import') throw new Error('Use: chainer wallet init | import | list | refresh')
 
   const name = opts.name ?? (keystore.accounts.length === 0 ? 'main' : `wallet${keystore.accounts.length + 1}`)
   const secret = sub === 'init' ? newMnemonic() : await askHidden('Seed phrase or private key (input hidden): ')
@@ -225,6 +256,7 @@ async function walletCommand(sub: string | undefined): Promise<void> {
   }
   const record = await addAccount(store, name, secret, password)
   out(`Wallet "${record.name}" saved. EVM address: ${record.addresses.evm}`)
+  for (const [key, address] of Object.entries(record.addresses)) if (key !== 'evm' && key !== 'sold' && key !== 'btct') out(`${key.toUpperCase()} address: ${address}`)
   if (sub === 'init') {
     out()
     out('Write this seed phrase down and keep it offline. It is the only backup and is not shown again:')
@@ -246,13 +278,14 @@ async function balancesCommand(chainQuery: string | undefined): Promise<void> {
   const account = findAccount(await loadKeystore(store), opts.wallet)
   const chain = await resolveChain(chainQuery)
   const tokens = await lifiTokens(fetchFn, chain)
-  const balances = await adapterFor(chain).getBalances(account.addresses.evm, tokens)
+  const address = ownAddress(account, chain)
+  const balances = await adapterFor(chain).getBalances(address, tokens)
   const held = tokens
     .map((token, i) => ({ token, balance: balances[i]!, usd: token.priceUsd === undefined ? undefined : (Number(balances[i]!) / 10 ** token.decimals) * token.priceUsd }))
     .filter((h) => h.balance > 0n)
     .sort((a, b) => (b.usd ?? 0) - (a.usd ?? 0))
   if (opts.json) return printJson(held)
-  out(`${account.name} (${account.addresses.evm}) on ${chain.name}`)
+  out(`${account.name} (${address}) on ${chain.name}`)
   if (held.length === 0) return out('No tokens found.')
   table([['TOKEN', 'BALANCE', 'VALUE', 'ADDRESS'], ...held.map((h) => [h.token.symbol, fmt(h.balance, h.token), usd(h.usd), h.token.address])])
 }
@@ -331,15 +364,19 @@ async function buildPlan(args: string[]): Promise<Plan> {
   const [fromChain, toChain] = await Promise.all([resolveChain(fromChainQuery), resolveChain(args.at(-1)!)])
   const [from, to] = await Promise.all([lifiToken(fetchFn, fromChain, fromSymbol), lifiToken(fetchFn, toChain, toSymbol)])
   const amount = parseAmount(amountText, from)
-  const toAddress = opts.to ?? account.addresses.evm
+  const toAddress = opts.to ?? ownAddress(account, toChain)
   if (!adapterFor(toChain).validateAddress(toAddress)) throw new Error(`"${toAddress}" is not a valid address on ${toChain.name}`)
   checkLimit(amount, from)
-  return { request: { from, to, amount, fromAddress: account.addresses.evm, toAddress, slippage: settings.slippage }, fromChain, toChain, wallet: account.name }
+  return { request: { from, to, amount, fromAddress: ownAddress(account, fromChain), toAddress, slippage: settings.slippage }, fromChain, toChain, wallet: account.name }
 }
 
 async function search(plan: Plan): Promise<Route[]> {
   const { providers } = await runDeps()
-  const { routes, errors } = await findPipelineRoutes(plan.request, providers, settings, { prefer: preference(), hubs: hubTokens, maxHops: maxHops() })
+  const chains = await allChains()
+  const account = findAccount(await loadKeystore(store), plan.wallet)
+  // Stop-over funds wait in the wallet's own address on whichever chain the route passes through.
+  const addressOn = (chainKey: string) => ownAddress(account, chains.find((c) => c.key === chainKey)!)
+  const { routes, errors } = await findPipelineRoutes(plan.request, providers, settings, { prefer: preference(), hubs: hubTokens, maxHops: maxHops(), addressOn })
   if (routes.length === 0) throw new Error(errors.length ? `No route found. ${errors.join('; ')}` : 'No route found, also not through other chains.')
   for (const e of errors) console.error(`Note: ${e}`)
   return routes
@@ -437,7 +474,11 @@ function printPipeline(record: PipelineRecord): void {
 /** Unlocks the wallet and runs (or continues) a pipeline to the end, showing live status. */
 async function execute(record: PipelineRecord): Promise<void> {
   const signer = await unlock(store, record.wallet, await askPassword())
-  if (signer.evm.address !== record.fromAddress) throw new Error('The wallet no longer matches the address this run was created for')
+  const chains = await allChains()
+  for (const leg of record.legs) {
+    const chain = chains.find((c) => c.key === leg.from.chainKey)
+    if (chain && chainAddress(signer, chain) !== (leg.fromAddress ?? record.fromAddress)) throw new Error('The wallet no longer matches the address this run was created for')
+  }
   const deps = await runDeps()
   process.once('SIGINT', () => {
     console.error(`\nStopped. A transaction already submitted continues on-chain; pick the run up again with "chainer resume ${record.id.slice(0, 8)}${opts.testnet ? ' --testnet' : ''}".`)
@@ -484,12 +525,14 @@ async function pipelineCommand(sub: string | undefined, file: string | undefined
     const [from, to] = await Promise.all([resolveToken(spec.from), resolveToken(spec.to)])
     const amount = String(spec.amount) === 'all' ? 'all' : parseAmount(String(spec.amount), from).toString()
     if (amount !== 'all') checkLimit(BigInt(amount), from)
-    const toAddress = spec.recipient ?? account.addresses.evm
-    if (!(await runDeps()).adapterFor(to.chainKey).validateAddress(toAddress)) throw new Error(`Leg ${i + 1}: "${toAddress}" is not a valid address`)
-    if (i < plan.legs.length - 1 && toAddress !== account.addresses.evm) throw new Error(`Leg ${i + 1} sends to another address, so the next leg would have nothing to continue with`)
-    legs.push({ from, to, amount, toAddress })
+    const chains = await allChains()
+    const [fromChain, toChain] = [chains.find((c) => c.key === from.chainKey)!, chains.find((c) => c.key === to.chainKey)!]
+    const toAddress = spec.recipient ?? ownAddress(account, toChain)
+    if (!adapterFor(toChain).validateAddress(toAddress)) throw new Error(`Leg ${i + 1}: "${toAddress}" is not a valid address on ${toChain.name}`)
+    if (i < plan.legs.length - 1 && toAddress !== ownAddress(account, toChain)) throw new Error(`Leg ${i + 1} sends to another address, so the next leg would have nothing to continue with`)
+    legs.push({ from, to, amount, fromAddress: ownAddress(account, fromChain), toAddress })
   }
-  const record = newPipeline(account.name, account.addresses.evm, legs)
+  const record = newPipeline(account.name, legs[0]!.fromAddress!, legs)
 
   if (!opts.json) {
     out(`Plan with ${legs.length} leg${legs.length === 1 ? '' : 's'}, wallet ${account.name}${opts.testnet ? ', on test networks' : ''}:`)
@@ -505,7 +548,7 @@ async function pipelineCommand(sub: string | undefined, file: string | undefined
         out(`  ${i + 1}. sends the whole balance; quoted when it runs`)
         continue
       }
-      const { quotes, errors } = await findRoutes({ from: leg.from, to: leg.to, amount, fromAddress: record.fromAddress, toAddress: leg.toAddress, slippage: settings.slippage }, providers, settings, preference())
+      const { quotes, errors } = await findRoutes({ from: leg.from, to: leg.to, amount, fromAddress: leg.fromAddress ?? record.fromAddress, toAddress: leg.toAddress, slippage: settings.slippage }, providers, settings, preference())
       if (quotes.length === 0) throw new Error(`Leg ${i + 1} has no route${errors.length ? `: ${errors.join('; ')}` : ''}`)
       const q = quotes[0]!
       out(`  ${i + 1}. would receive ${fmt(q.toAmount, leg.to)} (at worst ${fmt(q.toAmountMin, leg.to)}) via ${q.provider}/${q.tool}, about ${duration(q.etaSeconds)}`)
