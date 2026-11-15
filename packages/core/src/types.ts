@@ -100,6 +100,8 @@ export interface Quote {
   toAmountUsd?: number
   /** Gas and fees paid on top of the amount sent (fees already deducted from toAmount are not repeated). */
   costUsd: number
+  /** Expected loss from price movement before the swap settles (thin liquidity), in USD. Counts against the route when ranking. */
+  riskUsd?: number
   etaSeconds: number
   /** Symbols of every token the route passes through, for the avoid list. */
   viaSymbols: string[]

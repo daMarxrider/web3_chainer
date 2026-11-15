@@ -10,7 +10,7 @@ export function usableProviders(providers: BridgeProvider[]): BridgeProvider[] {
 export function netUsd(q: Quote): number | undefined {
   const price = q.request.to.priceUsd
   const received = q.toAmountUsd ?? (price === undefined ? undefined : (Number(q.toAmount) / 10 ** q.request.to.decimals) * price)
-  return received === undefined ? undefined : received - q.costUsd
+  return received === undefined ? undefined : received - q.costUsd - (q.riskUsd ?? 0)
 }
 
 export function rankQuotes(quotes: Quote[], prefer: Prefer): Quote[] {

@@ -28,6 +28,9 @@ export const MAYA: ThorConfig = {
   nativeAssets: { eth: 'ETH.ETH', arb: 'ARB.ETH', btc: 'BTC.BTC' },
 }
 
+/** Quotes whose own price impact exceeds this are not offered at all. */
+const MAX_IMPACT_BPS = 1500
+
 /** Both networks count every asset with 8 decimals. */
 const NORMAL = 8
 const rescale = (amount: bigint, from: number, to: number) => (to >= from ? amount * 10n ** BigInt(to - from) : amount / 10n ** BigInt(from - to))
@@ -44,7 +47,7 @@ interface NodeQuote {
   total_swap_seconds?: number
   inbound_confirmation_seconds?: number
   outbound_delay_seconds?: number
-  fees: { total: string }
+  fees: { total: string; slippage_bps?: number }
 }
 interface Inbound {
   chain: string
@@ -166,7 +169,14 @@ export function thorProvider(fetchFn: FetchFn, config: ThorConfig, chains: Chain
         throw new Error(`${request.amount} is below the ${config.name} minimum for this swap; amounts this small are usually lost to fees`)
       }
       const toAmount = outAmount(q, request.to)
-      const bps = BigInt(Math.round(request.slippage * 10_000))
+      // Thin pools: the price impact of the swap itself is already in the quote, but a pool that moves
+      // this much between quote and settlement can move further. A tenth of the impact is added to the
+      // worst case and counted as expected loss, so deep pools win over shallow ones at similar quotes.
+      const impactBps = q.fees.slippage_bps ?? 0
+      if (impactBps > MAX_IMPACT_BPS) throw new Error(`The ${config.name} pool is too thin for this amount (${(impactBps / 100).toFixed(1)} % price impact)`)
+      const riskBps = Math.ceil(impactBps / 10)
+      const bps = BigInt(Math.round(request.slippage * 10_000) + riskBps)
+      const outUsd = request.to.priceUsd === undefined ? 0 : (Number(toAmount) / 10 ** request.to.decimals) * request.to.priceUsd
       return [
         {
           provider: config.name,
@@ -175,6 +185,7 @@ export function thorProvider(fetchFn: FetchFn, config: ThorConfig, chains: Chain
           toAmount,
           toAmountMin: (toAmount * (10_000n - bps)) / 10_000n,
           // Pool and outbound fees are already taken from the output; this is the fee for the deposit transaction itself.
+          riskUsd: (outUsd * riskBps) / 10_000,
           costUsd: depositGasUsd(chains.find((c) => c.key === request.from.chainKey), chains.find((c) => c.key === request.from.chainKey)?.family ?? 'evm', isNative(request.from), q),
           etaSeconds: q.total_swap_seconds ?? (q.inbound_confirmation_seconds ?? 0) + (q.outbound_delay_seconds ?? 0) + 6,
           viaSymbols: [request.from.symbol, request.to.symbol],

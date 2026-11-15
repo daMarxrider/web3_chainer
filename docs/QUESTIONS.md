@@ -1,17 +1,12 @@
 # Open questions
 
-Collected while working on my own; answer when convenient. Nothing here blocks the work that was done.
+Answered 15 Nov 2026: NEAR Intents and Chainflip stay LI.FI-only (no direct integration); Maya stays on by default, with thin pools priced into the ranking (done); the extra Bitcoin-family adapters (Dogecoin, Bitcoin Cash, Dash, Zcash) are the first task of the next session; the testnet funding for live Solana and Bitcoin checks comes after those adapters.
 
-## Decisions
-
-1. **NEAR Intents, direct integration.** The keyless 1Click quote endpoint works, but the 1Click API terms (7 Oct 2026, sections 9.3 and 2.7) are written for registered API developers and exclude private individuals, and an unauthenticated client would be a downstream user of that API. Options: (a) leave NEAR Intents reachable only through LI.FI (current state, no extra risk); (b) integrate it directly and show the "needs an account" warning, off by default like the API-key services. Recommendation: (a).
-2. **Chainflip, direct integration.** Chainflip's deposit channels need a broker. Options: (a) keep using it through LI.FI only (current); (b) wait for a public keyless broker; (c) a user-supplied broker URL setting, off by default. Recommendation: (a).
-3. **More Bitcoin-family coins** (Dogecoin, Bitcoin Cash, Dash, Zcash transparent). THORChain and Maya trade them. Worth it now, or after the GUI? Each needs its own address code, data source and terms check.
-4. **Maya Protocol is on by default** although its pools are thin (34 % slippage on a 0.1 ETH test quote) and it publishes no terms. It only wins when its pool is deeper. Keep it on, or off by default? Recommendation: keep on (the ranking handles it).
+Still open:
 
 ## Things only you can do
 
-5. **Funds for one live Solana and Bitcoin test.** Both adapters are tested with fake nodes only. A live check needs a few cents on devnet and testnet4, and the faucets need a web login (the Solana devnet RPC faucet is closed). If you want it: fund an address I print, then I run a self-transfer on each. Not urgent.
+5. **Funds for one live Solana and Bitcoin test** (after the extra adapters). Both adapters are tested with fake nodes only. A live check needs a few cents on devnet and testnet4, and the faucets need a web login (the Solana devnet RPC faucet is closed). If you want it: fund an address I print, then I run a self-transfer on each. Not urgent.
 6. **First real mainnet transfer through THORChain** (a few dollars, `--dry-run` first), same as for the other providers.
 
 ## Legal work postponed to the next session (as agreed)

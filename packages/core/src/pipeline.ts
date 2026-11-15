@@ -18,7 +18,7 @@ const sameToken = (a: Token, b: Token) => a.chainKey === b.chainKey && a.address
 export function routeNetUsd(route: Route): number | undefined {
   const last = netUsd(route.legs.at(-1)!)
   if (last === undefined) return undefined
-  return last - route.legs.slice(0, -1).reduce((sum, q) => sum + q.costUsd, 0)
+  return last - route.legs.slice(0, -1).reduce((sum, q) => sum + q.costUsd + (q.riskUsd ?? 0), 0)
 }
 export const routeEta = (route: Route) => route.legs.reduce((sum, q) => sum + q.etaSeconds, 0)
 

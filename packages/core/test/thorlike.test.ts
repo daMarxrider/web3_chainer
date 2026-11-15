@@ -138,3 +138,18 @@ test('status follows the swap to the payout', async () => {
   const refunded = await status({ ...stages({ outbound_signed: { completed: true } }), out_txs: [{ id: 'R', coins: [] }], planned_out_txs: [{ refund: true }] })
   assert.equal(refunded.state, 'failed')
 })
+
+test('a thin pool costs extra in the worst case and in the ranking, and a very thin one is refused', async () => {
+  const withImpact = (bps: number): typeof fetch => async (url, init) => {
+    const res = await fakeNode().fetchFn(url, init)
+    if (!String(url).includes('/quote/swap')) return res
+    const body = (await res.json()) as { fees: object }
+    return new Response(JSON.stringify({ ...body, fees: { total: '1', slippage_bps: bps } }))
+  }
+  const priced = { ...BTC, priceUsd: 60000 }
+  const deep = (await thorProvider(withImpact(10), THORCHAIN, chains).getQuotes(request(ETH, priced, 10n ** 18n), 'cheapest'))[0]!
+  const thin = (await thorProvider(withImpact(1000), THORCHAIN, chains).getQuotes(request(ETH, priced, 10n ** 18n), 'cheapest'))[0]!
+  assert.ok(thin.toAmountMin < deep.toAmountMin)
+  assert.ok(thin.riskUsd! > deep.riskUsd!)
+  await assert.rejects(thorProvider(withImpact(3000), THORCHAIN, chains).getQuotes(request(ETH, priced, 10n ** 18n), 'cheapest'), /too thin/)
+})
