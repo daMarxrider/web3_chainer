@@ -11,7 +11,7 @@ Moves tokens from one blockchain to another over the best available route, and f
 
 The command-line tool works today for EVM chains (Ethereum, Arbitrum, Base, Optimism, Polygon and about 55 more), Solana and Bitcoin through the [LI.FI](https://li.fi) bridge aggregator. EVM transfers have been verified with real bridge transfers on test networks; Solana and Bitcoin signing is covered by automated tests only, because LI.FI has no test network for them.
 
-Also available: THORChain and Maya as extra route sources, covering Bitcoin and Litecoin (and Solana through THORChain) without an aggregator. Their transaction building is covered by automated tests; their live behaviour has been checked with read-only quotes only.
+Also available: THORChain and Maya as extra route sources, covering Bitcoin, Litecoin, Dogecoin, Bitcoin Cash and Dash (and Solana through THORChain) without an aggregator. Their transaction building is covered by automated tests; their live behaviour has been checked with read-only quotes only.
 
 Still to come, in this order: more route sources (NEAR Intents, Chainflip, direct bridges, atomic swaps), whole-wallet bridging, saved routes and scheduling, the graphical app, Lightning and Cosmos, WalletConnect. The full plan and its progress are in [docs/PLAN.md](docs/PLAN.md).
 
@@ -47,7 +47,7 @@ chainer wallet list
 chainer wallet refresh     # wallets made before Solana and Bitcoin support: adds their addresses
 ```
 
-A wallet made from a seed phrase has an address on every supported chain family (EVM, Solana, Bitcoin, Litecoin). A wallet imported from a single EVM private key only works on EVM chains.
+A wallet made from a seed phrase has an address on every supported chain family (EVM, Solana, Bitcoin, Litecoin, Dogecoin, Bitcoin Cash, Dash). A wallet imported from a single EVM private key only works on EVM chains.
 
 The wallet is stored encrypted under a password you choose. You can add more wallets with `--name` and pick one per command with `--wallet`.
 
@@ -185,8 +185,9 @@ chainer is independent software. It is not affiliated with, endorsed by or opera
   - LI.FI does not warrant the availability, reliability or operability of those third-party contracts at any time.
   - LI.FI's [terms and conditions](https://li.fi/legal/terms-and-conditions) apply to your use of its contracts. Under them you confirm that you are not a US citizen or resident, are not under sanctions or in a comprehensively sanctioned country, and that your use is lawful. chainer does not check any of this; it is for you to know whether you may use LI.FI.
   - The public API allows 75 route searches and 50 transactions per two hours.
-- **[THORChain](https://thorchain.org)** and **[Maya Protocol](https://www.mayaprotocol.com)** as direct route sources between Bitcoin, Litecoin, Solana, Ethereum, Base, Avalanche, BNB Chain and Arbitrum (Maya: Bitcoin, Ethereum, Arbitrum). chainer reads their public nodes (THORChain through a Liquify gateway, 50,000 requests per day per IP) and sends your deposit to the vault address a node reports. Both are decentralised protocols: no company holds your funds, but swaps can still be refunded or delayed, and a halted chain stops deposits. They are independent of chainer. You can switch one off with `disabledProviders` in the settings.
+- **[THORChain](https://thorchain.org)** and **[Maya Protocol](https://www.mayaprotocol.com)** as direct route sources between Bitcoin, Litecoin, Dogecoin, Bitcoin Cash, Solana, Ethereum, Base, Avalanche, BNB Chain and Arbitrum (Maya: Bitcoin, Dash, Ethereum, Arbitrum). chainer reads their public nodes (THORChain through a Liquify gateway, 50,000 requests per day per IP) and sends your deposit to the vault address a node reports. Both are decentralised protocols: no company holds your funds, but swaps can still be refunded or delayed, and a halted chain stops deposits. They are independent of chainer. You can switch one off with `disabledProviders` in the settings.
 - **[mempool.space](https://mempool.space)** (Bitcoin) and **[litecoinspace.org](https://litecoinspace.org)** (Litecoin) for Bitcoin-family balances, fee estimates and broadcasting transactions. Their public API needs no account and is offered as is, without guarantee; you can use your own Esplora-compatible server with `chainer config rpc`.
+- **[BlockCypher](https://www.blockcypher.com)** (Dogecoin and Dash) and an open Bitcoin Cash node REST gateway run by [ActorForth](https://rest.bch.actorforth.org) for balances, coins to spend, fee estimates and broadcasting. Both are public and need no account; BlockCypher limits keyless use to about 100 requests an hour and its documentation asks for a token on POST calls such as broadcasting; broadcasting works without one today, but may stop. You can point chainer at your own endpoint with `chainer config rpc`.
 - **Public RPC nodes** of each blockchain (for example PublicNode and the chains' own endpoints) for balances and for sending transactions. They are rate-limited and come with no guarantee; you can use your own with `chainer config rpc`.
 
 You are responsible for meeting the terms of these services.

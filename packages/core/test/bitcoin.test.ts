@@ -4,12 +4,12 @@ import { hex } from '@scure/base'
 import { mnemonicToSeedSync } from '@scure/bip39'
 import * as btc from '@scure/btc-signer'
 import { mnemonicToAccount } from 'viem/accounts'
-import { BUILTIN_TEST_CHAINS, bitcoinAdapter, chainAddress, UTXO_COINS, utxoKey, type Signer } from '../src/index.ts'
+import { BUILTIN_CHAINS, bitcoinAdapter, chainAddress, UTXO_COINS, utxoKey, type Signer } from '../src/index.ts'
 
 const MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 const seed = mnemonicToSeedSync(MNEMONIC)
 const signer: Signer = { evm: mnemonicToAccount(MNEMONIC), seed }
-const chain = BUILTIN_TEST_CHAINS.find((c) => c.key === 'btct')!
+const chain = BUILTIN_CHAINS.find((c) => c.key === 'btct')!
 const net = UTXO_COINS.btct!.network
 const me = chainAddress(signer, chain)
 const THEM = 'tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx'

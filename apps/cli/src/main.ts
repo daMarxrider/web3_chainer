@@ -5,7 +5,7 @@ import {
   addAccount,
   addressSlot,
   bitcoinAdapter,
-  BUILTIN_TEST_CHAINS,
+  BUILTIN_CHAINS,
   chainAddress,
   evmAdapter,
   findAccount,
@@ -187,7 +187,7 @@ const HUBS: [chain: string, token: string][] = [
 ]
 
 let chainList: Promise<Chain[]> | undefined
-const allChains = () => (chainList ??= lifiChains(fetchFn).then((found) => [...found, ...BUILTIN_TEST_CHAINS.filter((t) => !found.some((c) => c.key === t.key))]))
+const allChains = () => (chainList ??= lifiChains(fetchFn).then((found) => [...found, ...BUILTIN_CHAINS.filter((t) => !found.some((c) => c.key === t.key))]))
 const adapterFor = (chain: Chain): ChainAdapter => {
   const o = { fetch: fetchFn, rpcUrl: settings.rpc[chain.key] }
   return chain.family === 'solana' ? solanaAdapter(chain, o) : chain.family === 'bitcoin' ? bitcoinAdapter(chain, o) : evmAdapter(chain, o)
@@ -242,7 +242,7 @@ async function walletCommand(sub: string | undefined): Promise<void> {
   if (sub === 'list') {
     if (opts.json) return printJson(keystore.accounts.map(({ name, type, addresses }) => ({ name, type, addresses })))
     if (keystore.accounts.length === 0) return out('No wallets yet. Create one with "chainer wallet init".')
-    const shown = ['evm', 'sol', 'btc', 'ltc']
+    const shown = ['evm', 'sol', 'btc', 'ltc', 'doge', 'bch', 'dash']
     return table([['NAME', 'TYPE', ...shown.map((k) => k.toUpperCase())], ...keystore.accounts.map((a) => [a.name, a.type, ...shown.map((k) => a.addresses[k] ?? '-')])])
   }
   if (sub === 'refresh') {

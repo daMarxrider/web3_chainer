@@ -5,11 +5,11 @@ import { base58 } from '@scure/base'
 import { mnemonicToSeedSync } from '@scure/bip39'
 import { getBase64Encoder, getTransactionDecoder } from '@solana/kit'
 import { mnemonicToAccount } from 'viem/accounts'
-import { BUILTIN_TEST_CHAINS, chainAddress, solanaAdapter, type Signer } from '../src/index.ts'
+import { BUILTIN_CHAINS, chainAddress, solanaAdapter, type Signer } from '../src/index.ts'
 
 const MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 const signer: Signer = { evm: mnemonicToAccount(MNEMONIC), seed: mnemonicToSeedSync(MNEMONIC) }
-const chain = BUILTIN_TEST_CHAINS.find((c) => c.key === 'sold')!
+const chain = BUILTIN_CHAINS.find((c) => c.key === 'sold')!
 const me = chainAddress(signer, chain)
 const RECIPIENT = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU'
 

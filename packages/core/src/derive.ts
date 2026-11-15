@@ -4,6 +4,7 @@ import { sha512 } from '@noble/hashes/sha2.js'
 import { base58 } from '@scure/base'
 import { HDKey } from '@scure/bip32'
 import * as btc from '@scure/btc-signer'
+import { addressCodec, hash160 } from './chains/legacy-tx.ts'
 import { UTXO_COINS } from './chains/utxo-coins.ts'
 import type { Chain, Signer } from './types.ts'
 
@@ -23,12 +24,12 @@ function slip10(seed: Uint8Array, path: number[]): Uint8Array {
 export const solanaSecretKey = (seed: Uint8Array) => slip10(seed, [44, 501, 0, 0])
 export const solanaAddress = (secret: Uint8Array) => base58.encode(ed25519.getPublicKey(secret))
 
-/** Native SegWit (BIP-84) key for the first address of the account, m/84'/<coin>'/0'/0/0. */
+/** First address of the account: native SegWit (BIP-84, m/84'/<coin>'/0'/0/0) or, for coins without SegWit, pay-to-pubkey-hash (BIP-44, m/44'/…). */
 export function utxoKey(seed: Uint8Array, chainKey: string): { privateKey: Uint8Array; publicKey: Uint8Array; address: string } {
   const coin = UTXO_COINS[chainKey]
   if (!coin) throw new Error(`No Bitcoin-family coin "${chainKey}"`)
-  const node = HDKey.fromMasterSeed(seed).derive(`m/84'/${coin.coinType}'/0'/0/0`)
-  const address = btc.p2wpkh(node.publicKey!, coin.network).address!
+  const node = HDKey.fromMasterSeed(seed).derive(`m/${coin.legacy ? 44 : 84}'/${coin.coinType}'/0'/0/0`)
+  const address = coin.legacy ? addressCodec(coin).encode(hash160(node.publicKey!)) : btc.p2wpkh(node.publicKey!, coin.network).address!
   return { privateKey: node.privateKey!, publicKey: node.publicKey!, address }
 }
 

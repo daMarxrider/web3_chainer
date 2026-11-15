@@ -1,0 +1,1218 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="./assets/favicon/favicon.ico" type="image/x-icon" />
+  <link rel="icon" type="image/png" href="./assets/favicon-196x196.png" sizes="196x196" />
+  <link rel="icon" type="image/png" href="./assets/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/png" href="./assets/favicon-32x32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="./assets/favicon-16x16.png" sizes="16x16" />
+  <link rel="icon" type="image/png" href="./assets/favicon-128.png" sizes="128x128" />
+  
+  <!-- Map CSS -->
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css" />
+  
+  <!-- Libs CSS -->
+  <link rel="stylesheet" href="./assets/css/libs.bundle.css" />
+  
+  <!-- Theme CSS -->
+  <link rel="stylesheet" href="./assets/css/theme.bundle.css" />
+  
+  <!-- Title -->
+  <title>Terms of Services - BlockCypher</title></head>
+
+<body class="bg-light">
+
+  <!-- MODALS -->
+  <!-- Example -->
+  <div class="modal fade" id="modalExample" tabindex="-1" role="dialog" aria-labelledby="modalExampleTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body">
+  
+          <!-- Close -->
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  
+          <!-- Image -->
+          <div class="text-center">
+            <img src="./assets/img/illustrations/illustration-1.png" alt="..." class="img-fluid mb-3" style="width: 200px;">
+          </div>
+  
+          <!-- Heading -->
+          <h2 class="fw-bold text-center mb-1" id="modalExampleTitle">
+            Schedule a demo with us
+          </h2>
+  
+          <!-- Text -->
+          <p class="fs-lg text-center text-muted mb-6 mb-md-8">
+            We can help you solve company communication.
+          </p>
+  
+          <!-- Form -->
+          <form>
+            <div class="row">
+              <div class="col-12 col-md-6">
+  
+                <!-- First name -->
+                <div class="form-floating">
+                  <input type="text" class="form-control form-control-flush" id="registrationFirstNameModal" placeholder="First name">
+                  <label for="registrationFirstNameModal">First name</label>
+                </div>
+  
+              </div>
+              <div class="col-12 col-md-6">
+  
+                <!-- Last name -->
+                <div class="form-floating">
+                  <input type="text" class="form-control form-control-flush" id="registrationLastNameModal" placeholder="Last name">
+                  <label for="registrationLastNameModal">Last name</label>
+                </div>
+  
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12 col-md-6">
+  
+                <!-- Email -->
+                <div class="form-floating">
+                  <input type="email" class="form-control form-control-flush" id="registrationEmailModal" placeholder="Email">
+                  <label for="registrationEmailModal">Email</label>
+                </div>
+  
+              </div>
+              <div class="col-12 col-md-6">
+  
+                <!-- Password -->
+                <div class="form-floating">
+                  <input type="password" class="form-control form-control-flush" id="registrationPasswordModal" placeholder="Password">
+                  <label for="registrationPasswordModal">Password</label>
+                </div>
+  
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12">
+  
+                <!-- Submit -->
+                <button class="btn w-100 btn-primary mt-3 lift">
+                  Request a demo
+                </button>
+  
+              </div>
+            </div>
+          </form>
+  
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Signup: Horizontal  -->
+  <div class="modal fade" id="modalSignupHorizontal" tabindex="-1" role="dialog" aria-labelledby="modalSignupHorizontalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="card card-row">
+          <div class="row gx-0">
+            <div class="col-12 col-md-6 bg-cover card-img-start" style="background-image: url(./assets/img/photos/photo-8.jpg);">
+  
+              <!-- Image (placeholder) -->
+              <img src="./assets/img/photos/photo-8.jpg" alt="..." class="img-fluid d-md-none invisible">
+  
+              <!-- Shape -->
+              <div class="shape shape-end shape-fluid-y text-white d-none d-md-block">
+                <svg viewBox="0 0 112 690" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M116 0H51v172C76 384 0 517 0 517v173h116V0z" fill="currentColor"/></svg>            </div>
+  
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="card-body">
+  
+                <!-- Close -->
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  
+                <!-- Heading -->
+                <h2 class="mb-0 fw-bold text-center" id="modalSignupHorizontalTitle">
+                  Sign Up
+                </h2>
+  
+                <!-- Text -->
+                <p class="mb-6 text-center text-muted">
+                  Simplify your workflow in minutes.
+                </p>
+  
+                <!-- Form -->
+                <form class="mb-6">
+  
+                  <!-- Email -->
+                  <div class="form-group">
+                    <label class="visually-hidden" for="modalSignupHorizontalEmail">
+                      Your email
+                    </label>
+                    <input type="email" class="form-control" id="modalSignupHorizontalEmail" placeholder="Your email">
+                  </div>
+  
+                  <!-- Password -->
+                  <div class="form-group mb-5">
+                    <label class="visually-hidden" for="modalSignupHorizontalPassword">
+                      Create a password
+                    </label>
+                    <input type="password" class="form-control" id="modalSignupHorizontalPassword" placeholder="Create a password">
+                  </div>
+  
+                  <!-- Submit -->
+                  <button class="btn w-100 btn-primary" type="submit">
+                    Sign up
+                  </button>
+  
+                </form>
+  
+                <!-- Text -->
+                <p class="mb-0 fs-sm text-center text-muted">
+                  Already have an account? <a href="./signin-illustration.html">Log in</a>.
+                </p>
+  
+              </div>
+            </div>
+  
+          </div> <!-- / .row -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Signup: Vertical  -->
+  <div class="modal fade" id="modalSignupVertical" tabindex="-1" role="dialog" aria-labelledby="modalSignupVerticalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="card">
+  
+          <!-- Close -->
+          <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  
+          <!-- Image -->
+          <img src="./assets/img/photos/photo-7.jpg" alt="..." class="card-img-top">
+  
+          <!-- Shape -->
+          <div class="position-relative">
+            <div class="shape shape-bottom shape-fluid-x text-white">
+              <svg viewBox="0 0 2880 480" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2160 0C1440 240 720 240 720 240H0v240h2880V0h-720z" fill="currentColor"/></svg>          </div>
+          </div>
+  
+          <!-- Body -->
+          <div class="card-body">
+  
+            <!-- Heading -->
+            <h2 class="mb-0 fw-bold text-center" id="modalSignupVerticalTitle">
+              Sign Up
+            </h2>
+  
+            <!-- Text -->
+            <p class="mb-6 text-center text-muted">
+              Simplify your workflow in minutes.
+            </p>
+  
+            <!-- Form -->
+            <form class="mb-6">
+  
+              <!-- Email -->
+              <div class="form-group">
+                <label class="visually-hidden" for="modalSignupVerticalEmail">
+                  Your email
+                </label>
+                <input type="email" class="form-control" id="modalSignupVerticalEmail" placeholder="Your email">
+              </div>
+  
+              <!-- Password -->
+              <div class="form-group mb-5">
+                <label class="visually-hidden" for="modalSignupVerticalPassword">
+                  Create a password
+                </label>
+                <input type="password" class="form-control" id="modalSignupVerticalPassword" placeholder="Create a password">
+              </div>
+  
+              <!-- Submit -->
+              <button class="btn w-100 btn-primary" type="submit">
+                Sign up
+              </button>
+  
+            </form>
+  
+            <!-- Text -->
+            <p class="mb-0 fs-sm text-center text-muted">
+              Already have an account? <a href="./signin-illustration.html">Log in</a>.
+            </p>
+  
+          </div>
+  
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Signin: Horizontal  -->
+  <div class="modal fade" id="modalSigninHorizontal" tabindex="-1" role="dialog" aria-labelledby="modalSigninHorizontalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="card card-row">
+          <div class="row gx-0">
+            <div class="col-12 col-md-6 bg-cover card-img-start" style="background-image: url(./assets/img/photos/photo-1.jpg);">
+  
+              <!-- Image (placeholder) -->
+              <img src="./assets/img/photos/photo-1.jpg" alt="..." class="img-fluid d-md-none invisible">
+  
+              <!-- Shape -->
+              <div class="shape shape-end shape-fluid-y text-white d-none d-md-block">
+                <svg viewBox="0 0 112 690" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M116 0H51v172C76 384 0 517 0 517v173h116V0z" fill="currentColor"/></svg>            </div>
+  
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="card-body">
+  
+                <!-- Close -->
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  
+                <!-- Heading -->
+                <h2 class="mb-0 fw-bold text-center" id="modalSigninHorizontalTitle">
+                  Sign In
+                </h2>
+  
+                <!-- Text -->
+                <p class="mb-6 text-center text-muted">
+                  Simplify your workflow in minutes.
+                </p>
+  
+                <!-- Form -->
+                <form class="mb-6">
+  
+                  <!-- Email -->
+                  <div class="form-group">
+                    <label class="visually-hidden" for="modalSigninHorizontalEmail">
+                      Your email
+                    </label>
+                    <input type="email" class="form-control" id="modalSigninHorizontalEmail" placeholder="Your email">
+                  </div>
+  
+                  <!-- Password -->
+                  <div class="form-group mb-5">
+                    <label class="visually-hidden" for="modalSigninHorizontalPassword">
+                      Enter your password
+                    </label>
+                    <input type="password" class="form-control" id="modalSigninHorizontalPassword" placeholder="Enter your password">
+                  </div>
+  
+                  <!-- Submit -->
+                  <button class="btn w-100 btn-primary" type="submit">
+                    Sign in
+                  </button>
+  
+                </form>
+  
+                <!-- Text -->
+                <p class="mb-0 fs-sm text-center text-muted">
+                  Don't have an account yet? <a href="./signin-illustration.html">Sign up</a>.
+                </p>
+  
+              </div>
+            </div>
+  
+          </div> <!-- / .row -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Signin: Vertical  -->
+  <div class="modal fade" id="modalSigninVertical" tabindex="-1" role="dialog" aria-labelledby="modalSigninVerticalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="card">
+  
+          <!-- Close -->
+          <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+  
+          <!-- Image -->
+          <img src="./assets/img/photos/photo-21.jpg" alt="..." class="card-img-top">
+  
+          <!-- Shape -->
+          <div class="position-relative">
+            <div class="shape shape-bottom shape-fluid-x text-white">
+              <svg viewBox="0 0 2880 480" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2160 0C1440 240 720 240 720 240H0v240h2880V0h-720z" fill="currentColor"/></svg>          </div>
+          </div>
+  
+          <!-- Body -->
+          <div class="card-body">
+  
+            <!-- Heading -->
+            <h2 class="mb-0 fw-bold text-center" id="modalSigninVerticalTitle">
+              Sign In
+            </h2>
+  
+            <!-- Text -->
+            <p class="mb-6 text-center text-muted">
+              Simplify your workflow in minutes.
+            </p>
+  
+            <!-- Form -->
+            <form class="mb-6">
+  
+              <!-- Email -->
+              <div class="form-group">
+                <label class="visually-hidden" for="modalSigninVerticalEmail">
+                  Your email
+                </label>
+                <input type="email" class="form-control" id="modalSigninVerticalEmail" placeholder="Your email">
+              </div>
+  
+              <!-- Password -->
+              <div class="form-group mb-5">
+                <label class="visually-hidden" for="modalSigninVerticalPassword">
+                  Enter your password
+                </label>
+                <input type="password" class="form-control" id="modalSigninVerticalPassword" placeholder="Enter your password">
+              </div>
+  
+              <!-- Submit -->
+              <button class="btn w-100 btn-primary" type="submit">
+                Sign in
+              </button>
+  
+            </form>
+  
+            <!-- Text -->
+            <p class="mb-0 fs-sm text-center text-muted">
+              Don't have an account yet? <a href="./signin-illustration.html">Sign up</a>.
+            </p>
+  
+          </div>
+  
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Payment -->
+  <div class="modal fade" id="modalPayment" tabindex="-1" role="dialog" aria-labelledby="modalPaymentTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body">
+  
+          <!-- Close -->
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  
+          <!-- Heading -->
+          <h2 class="fw-bold text-center mb-1" id="modalPaymentTitle">
+            Add Payment
+          </h2>
+  
+          <!-- Text -->
+          <p class="fs-lg text-center text-muted mb-6 mb-md-8">
+            Simplify your workflow in minutes.
+          </p>
+  
+          <!-- Form -->
+          <form>
+  
+            <!-- Name -->
+            <div class="form-group">
+              <label class="form-label" for="modalPaymentName">Name on card</label>
+              <input class="form-control" id="modalPaymentName" type="text" placeholder="First Last">
+            </div>
+  
+            <!-- Name -->
+            <div class="form-group">
+              <label class="form-label" for="modalPaymentNumbber">Card number</label>
+              <input class="form-control" id="modalPaymentNumbber" type="number" placeholder="4242 4242 4242 4242">
+            </div>
+  
+            <!-- Name -->
+            <div class="form-group">
+              <label class="form-label" for="modalPaymentDate">Exp. Date</label>
+              <input class="form-control" id="modalPaymentDate" type="text" placeholder="03/2023">
+            </div>
+  
+            <!-- Submit -->
+            <button class="btn w-100 btn-primary mt-3 lift">
+              Add Payment Method
+            </button>
+  
+          </form>
+  
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+    <div class="container">
+  
+      <!-- Brand -->
+      <a class="navbar-brand" href="./index.html">
+        <img src="./assets/img/brand.svg" class="navbar-brand-img" alt="...">
+      </a>
+  
+      <!-- Toggler -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+        aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+  
+      <!-- Collapse -->
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+  
+        <!-- Toggler -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+          aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="fe fe-x"></i>
+        </button>
+  
+        <!-- Navigation -->
+        <ul class="navbar-nav ms-auto">
+  
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" id="navbarDocumentation" data-bs-toggle="dropdown" href="#"
+              aria-haspopup="true" aria-expanded="false">
+              Products
+            </a>
+            <div class="dropdown-menu dropdown-menu-md" aria-labelledby="navbarDocumentation">
+              <div class="list-group list-group-flush">
+                <a class="list-group-item" href="./apis.html">
+  
+                  <!-- Icon -->
+                  <div class="icon icon-sm text-primary">
+                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/><path d="M12.374 19.939l5.849-8.773A.75.75 0 0017.599 10H13V4.477a.75.75 0 00-1.374-.416l-5.849 8.773A.75.75 0 006.401 14H11v5.523a.75.75 0 001.374.416z" fill="#335EEA"/></g></svg>                </div>
+  
+                  <!-- Content -->
+                  <div class="ms-4">
+  
+                    <!-- Heading -->
+                    <h6 class="fw-bold text-uppercase text-primary mb-0">
+                      APIs
+                    </h6>
+  
+                    <!-- Text -->
+                    <p class="fs-sm text-gray-700 mb-0">
+                      Build Your Blockchain App
+                    </p>
+  
+                  </div>
+  
+                </a>
+                <a class="list-group-item" href="https://live.blockcypher.com">
+  
+                  <!-- Icon -->
+                  <div class="icon icon-sm text-primary">
+                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/><rect fill="#335EEA" x="4" y="4" width="7" height="7" rx="1.5"/><path d="M5.5 13h4a1.5 1.5 0 011.5 1.5v4A1.5 1.5 0 019.5 20h-4A1.5 1.5 0 014 18.5v-4A1.5 1.5 0 015.5 13zm9-9h4A1.5 1.5 0 0120 5.5v4a1.5 1.5 0 01-1.5 1.5h-4A1.5 1.5 0 0113 9.5v-4A1.5 1.5 0 0114.5 4zm0 9h4a1.5 1.5 0 011.5 1.5v4a1.5 1.5 0 01-1.5 1.5h-4a1.5 1.5 0 01-1.5-1.5v-4a1.5 1.5 0 011.5-1.5z" fill="#335EEA" opacity=".3"/></g></svg>                </div>
+  
+                  <!-- Content -->
+                  <div class="ms-4">
+  
+                    <!-- Heading -->
+                    <h6 class="fw-bold text-uppercase text-primary mb-0">
+                      Block Explorer
+                    </h6>
+  
+                    <!-- Text -->
+                    <p class="fs-sm text-gray-700 mb-0">
+                      Explore the Blockchain
+                    </p>
+  
+                  </div>
+  
+                </a>
+              </div>
+            </div>
+          </li>
+  
+          <li class="nav-item">
+            <a class="nav-link" id="navbarPages" href="./pricing.html" aria-haspopup="false"
+              aria-expanded="false">
+              Pricing
+            </a>
+          </li>
+          <li class="nav-item ">
+            <a class="nav-link" id="navbarCompany" href="./about.html">
+              Company
+            </a>
+  
+          </li>
+  
+          <li class="nav-item">
+            <a class="nav-link " id="navarBlog" href="https://blog.blockcypher.com" aria-haspopup="true">
+              Blog
+            </a>
+          </li>
+  
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" id="navbarDocumentation" data-bs-toggle="dropdown" href="#"
+              aria-haspopup="true" aria-expanded="false">
+              Docs
+            </a>
+            <div class="dropdown-menu dropdown-menu-md" aria-labelledby="navbarDocumentation">
+              <div class="list-group list-group-flush">
+                <a class="list-group-item" href="./getting-started.html">
+  
+                  <!-- Icon -->
+                  <div class="icon icon-sm text-primary">
+                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/><path d="M8 3v.5A1.5 1.5 0 009.5 5h5A1.5 1.5 0 0016 3.5V3h2a2 2 0 012 2v16a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2h2z" fill="#335EEA" opacity=".3"/><path d="M11 2a1 1 0 012 0h1.5a.5.5 0 01.5.5v1a.5.5 0 01-.5.5h-5a.5.5 0 01-.5-.5v-1a.5.5 0 01.5-.5H11z" fill="#335EEA"/><rect fill="#335EEA" opacity=".3" x="7" y="10" width="5" height="2" rx="1"/><rect fill="#335EEA" opacity=".3" x="7" y="14" width="9" height="2" rx="1"/></g></svg>                </div>
+  
+                  <!-- Content -->
+                  <div class="ms-4">
+  
+                    <!-- Heading -->
+                    <h6 class="fw-bold text-uppercase text-primary mb-0">
+                      Getting Started
+                    </h6>
+  
+                    <!-- Text -->
+                    <p class="fs-sm text-gray-700 mb-0">
+                      Customizing and building
+                    </p>
+  
+                  </div>
+  
+                </a>
+                <a class="list-group-item" href="https://www.blockcypher.com/dev/bitcoin">
+  
+                  <!-- Icon -->
+                  <div class="icon icon-sm text-primary">
+                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/><rect fill="#335EEA" x="4" y="4" width="7" height="7" rx="1.5"/><path d="M5.5 13h4a1.5 1.5 0 011.5 1.5v4A1.5 1.5 0 019.5 20h-4A1.5 1.5 0 014 18.5v-4A1.5 1.5 0 015.5 13zm9-9h4A1.5 1.5 0 0120 5.5v4a1.5 1.5 0 01-1.5 1.5h-4A1.5 1.5 0 0113 9.5v-4A1.5 1.5 0 0114.5 4zm0 9h4a1.5 1.5 0 011.5 1.5v4a1.5 1.5 0 01-1.5 1.5h-4a1.5 1.5 0 01-1.5-1.5v-4a1.5 1.5 0 011.5-1.5z" fill="#335EEA" opacity=".3"/></g></svg>                </div>
+  
+                  <!-- Content -->
+                  <div class="ms-4">
+  
+                    <!-- Heading -->
+                    <h6 class="fw-bold text-uppercase text-primary mb-0">
+                      Bitcoin / Dash / Doge / Litecoin
+                    </h6>
+  
+                    <!-- Text -->
+                    <p class="fs-sm text-gray-700 mb-0">
+                      API Documentation
+                    </p>
+  
+                  </div>
+  
+                </a>
+                <a class="list-group-item" href="https://www.blockcypher.com/dev/ethereum">
+  
+                  <!-- Icon -->
+                  <div class="icon icon-sm text-primary">
+                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/><path d="M5.857 2h7.88a1.5 1.5 0 01.968.355l4.764 4.029A1.5 1.5 0 0120 7.529v12.554c0 1.79-.02 1.917-1.857 1.917H5.857C4.02 22 4 21.874 4 20.083V3.917C4 2.127 4.02 2 5.857 2z" fill="#335EEA" opacity=".3"/><rect fill="#335EEA" x="6" y="11" width="9" height="2" rx="1"/><rect fill="#335EEA" x="6" y="15" width="5" height="2" rx="1"/></g></svg>                </div>
+  
+                  <!-- Content -->
+                  <div class="ms-4">
+  
+                    <!-- Heading -->
+                    <h6 class="fw-bold text-uppercase text-primary mb-0">
+                      Ethereum
+                    </h6>
+  
+                    <!-- Text -->
+                    <p class="fs-sm text-gray-700 mb-0">
+                      API Documentation
+                    </p>
+  
+                  </div>
+  
+                </a>
+              </div>
+            </div>
+          </li>
+        </ul>
+  
+        <!-- Login -->
+        <a href="https://accounts.blockcypher.com" class="navbar-btn btn-sm ms-auto btn btn-primary-soft me-1 lift">
+          Login
+        </a>
+        <!-- Button -->
+        <div>
+          <a class="navbar-btn btn btn-sm btn-primary lift ms-auto" href="https://accounts.blockcypher.com"
+            target="_blank">
+            Sign Up
+          </a>
+        </div>
+  
+      </div>
+  
+    </div>
+  </nav>
+  <!-- CONTENT -->
+  <section class="pt-13 pt-md-13 pb-8 pb-md-14">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-12 col-md">
+
+          <!-- Heading -->
+          <h1 class="display-4 mb-2">
+            Terms of Service
+          </h1>
+
+          <!-- Text -->
+          <p class="fs-lg text-gray-700 mb-md-0">
+            BlockCypher Inc. Services Agreement
+          </p>
+
+        </div>
+        <div class="col-auto">
+
+          <!-- Buttons -->
+          <a class="btn btn-primary-soft d-print-none" aria-hidden="true" onClick="window.print()">
+            Print
+          </a>
+
+        </div>
+      </div> <!-- / .row -->
+      <div class="row">
+        <div class="col-12">
+
+          <!-- Divider -->
+          <hr class="my-6 my-md-8">
+
+        </div>
+      </div> <!-- / .row -->
+      <div class="row">
+        <div class="col-12 col-md-8">
+
+          <!-- Text -->
+          <p class="fs-lg text-gray-800 mb-6 mb-md-8">
+            THIS IS A LEGAL AGREEMENT BETWEEN YOU ("CUSTOMER") AND BLOCKCYPHER, INC ("BLOCKCYPHER"). BY CLICKING ON THE
+            "I ACCEPT" CHECKBOX YOU ARE AGREEING THAT YOU HAVE READ AND UNDERSTAND THE TERMS AND CONDITIONS OF THIS
+            AGREEMENT, YOU REPRESENT AND WARRANT THAT YOU ARE AUTHORIZED TO BIND CUSTOMER, AND YOU AGREE TO BE LEGALLY
+            RESPONSIBLE FOR EACH AND EVERY TERM AND CONDITION OF THIS AGREEMENT.
+          </p>
+
+          <!-- 1. Access Rights; Restrictions -->
+          <h3 class="mb-5">
+            1. Access Rights; Restrictions
+          </h3>
+
+          <!-- 1.1. Access -->
+          <h4 class="mb-2">
+            1.1. Access
+          </h4>
+
+          <!-- Text -->
+          <p class="text-gray-800">
+            Subject to Customer’s compliance with the terms and conditions of this agreement (the “Agreement”),
+            BlockCypher hereby agrees that Customer has the non-exclusive right to access and use the services specified
+            in the order form (“Order Form”) (collectively, the “Service”) during the term of this Agreement for the
+            purposes of supporting Customer and only in accordance with BlockCypher’s applicable user documentation (or
+            other BlockCypher-provided written instructions). For clarity, the Service is hosted by BlockCypher.
+          </p>
+
+          <!-- 1.2. Service Materials -->
+          <h4 class="mb-2">
+            1.2. Service Materials
+          </h4>
+
+          <!-- Text -->
+          <p class="text-gray-800">
+            The Service may include the provision of certain materials (such as, APIs, SDKs, software code,
+            etc.)(“Service Materials”). Subject to the terms of this Agreement, BlockCypher grants to Customer a
+            non-exclusive, non-sublicenseable, non-transferable, limited license to internally use the Service Materials
+            in accordance with the documentation supplied by BlockCypher solely for the purpose of making Customer’s
+            product(s) (“Customer Product(s)”) fully compatible and interoperable with the Service. Customer represents
+            and warrants that the Customer Product(s) (and the development, use, distribution and marketing thereof)
+            will (i) comply with all laws and regulations and (ii) not violate any of the rights of any third party
+            (including, without limitation, privacy rights and intellectual property rights. Customer will defend,
+            indemnify and hold BlockCypher harmless from and against all third party claims (and all resulting damages
+            awarded to third parties, and costs and expenses, including reasonably attorneys’ fees) arising from or in
+            connection with any Customer Product (including, without limitation, any breach of the preceding sentence).
+          </p>
+
+          <!-- 1.3. Restrictions -->
+          <h4 class="mb-2">
+            1.3. Restrictions
+          </h4>
+
+          <!-- Text -->
+          <p class="text-gray-800">
+            Customer will not (and will not allow any third party to): (i) reverse engineer, decompile, disassemble, or
+            otherwise attempt to discover the source code, object code, or underlying structure, ideas, or algorithms of
+            the Service; (ii) modify, translate, or create derivative works based on the Service; (iii) copy, rent,
+            lease, distribute, pledge, assign, or otherwise transfer or encumber rights to the Service; (iv) use the
+            Service for timesharing or service bureau purposes or otherwise for the benefit of a third party (excepting
+            its end users as contemplated by Section 1.1); or (v) remove or otherwise alter any proprietary notices or
+            labels from the Service or any portion thereof. Customer will use the Service only in compliance with (i)
+            the rights granted hereunder, and (ii) in accordance with all applicable laws and regulations. For clarity,
+            all use restrictions on the Service also apply to the Service Materials.
+          </p>
+
+          <!-- 1.4. Professional Services -->
+          <h4 class="mb-2">
+            1.4. Professional Services
+          </h4>
+
+          <!-- Text -->
+          <p class="text-gray-800">
+            In connection with the Service, BlockCypher may provide ancillary professional services (such as training
+            and implementation) (“Professional Services”). Any such Professional Services will be specified in an
+            applicable Statement of Work (“SOW”).
+          </p>
+
+          <!-- 1.5. Ownership -->
+          <h4 class="mb-2">
+            1.5. Ownership
+          </h4>
+
+          <!-- Text -->
+          <p class="text-gray-800">
+            Except for the rights expressly granted under this Section 1, BlockCypher retains all right, title, and
+            interest in and to the Service (and all data, software, products, works, and other intellectual property
+            created, used, or provided by BlockCypher for the purposes of this Agreement). To the extent Customer
+            provides BlockCypher with any feedback relating to the Service (including, without limitation, feedback
+            related to usability, performance, bug reports and test results or the Service Materials) (“Feedback”),
+            Customer hereby grants BlockCypher a non-exclusive, perpetual, irrevocable, sublicensbale, royalty-free,
+            fully paid-up, worldwide right and license to use, reproduce, display, distribute and otherwise fully
+            exploit such Feedback.
+          </p>
+
+
+          <!-- 2. Payment of Fees -->
+          <h3 class="mb-5">
+            2. Payment of Fees
+          </h3>
+
+          <p class="text-gray-800">
+            If Customer use of the Services exceeds the usage capacity based on the Customer’s fee tier, as set forth in
+            the Order Form, Customer will no longer be able to access the Services until either (i) Customer pays fees
+            for the excess usage or (ii) the next calendar month. Unless otherwise specified in an Order Form, all Fees
+            will be invoiced in advance and all invoices issued under this Agreement are payable in U.S. dollars within
+            thirty (30) days from date of invoice or in bitcoin for the equivalent USD amount on the date of invoice.
+            Invoices unpaid for more than 30 days are subject to a finance charge of 1.5% per month or the maximum
+            permitted by law, whichever is lower, plus all expenses of collection. Customer shall be responsible for all
+            (i) taxes associated with Service other than taxes based on BlockCypher’s net income, and (ii) BlockCypher’s
+            costs of collection in the event of Customer’s delinquent payment. All Fees paid are non-refundable (except
+            as otherwise expressly set forth in an Order Form) and not subject to set-off.
+          </p>
+
+          <!-- 3. Term; Termination -->
+          <h3 class="mb-5">
+            3. Term; Termination
+          </h3>
+
+          <p class="text-gray-800">
+            Subject to earlier termination as provided below, this Agreement shall commence on the Effective Date and
+            continue for one (1) year; thereafter this Agreement will automatically renew for consecutive periods of one
+            (1) year each (unless either party provides the other party with written notice of non-renewal at least
+            thirty (30) days prior to the end of the then current period). Either party may terminate this Agreement in
+            the event the other party materially breaches this Agreement and fails to cure such breach within thirty
+            (30) days (ten (10) days in the case of non-payment) from receipt of written notice thereof. Without
+            limiting the foregoing, BlockCypher may immediately suspend or limit Customer’s access to or use of the
+            Service if in BlockCypher’s reasonable judgment, (a) Customer is engaging in illegal activities in
+            connection with its use of the Service or (b) the BlockCypher Service or any component thereof is about to
+            suffer a significant threat to security or functionality. Upon termination of this Agreement, all rights
+            granted herein to Customer will terminate and Customer will make no further use of the Services. The
+            following provisions will survive termination of this Agreement: Sections 1.5, 2, 3, 4, 6, 7, 8 and 10, as
+            well as all license/use restrictions and indemnity obligations.
+          </p>
+
+          <!-- 4. Confidentiality -->
+          <h3 class="mb-5">
+            4. Confidentiality
+          </h3>
+
+          <p class="text-gray-800">
+            During the term of this Agreement, each party (a “Disclosing Party”) may provide the other party (a
+            “Receiving Party”) with confidential and/or proprietary materials and information (“Confidential
+            Information”). For clarity, the Service Materials are the BlockCypher’s Confidential Information. All
+            materials and information provided by Disclosing Party to Receiving Party and identified at the time of
+            disclosure as “Confidential” or bearing a similar legend, and all other information that the Receiving Party
+            reasonably should have known was the Confidential Information of the Disclosing Party, shall be considered
+            Confidential Information; for the avoidance of doubt, the Service and terms of this Agreement are
+            Confidential Information of BlockCypher. Receiving Party shall maintain the confidentiality of the
+            Confidential Information and will not disclose such information to any third party without the prior written
+            consent of Disclosing Party. Receiving Party will only use the Confidential Information internally for the
+            purposes contemplated hereunder. The obligations in this Section 4 shall not apply to any information that:
+            (i) is made generally available to the public without breach of this Agreement, (ii) is developed by the
+            Receiving Party independently from the Disclosing Party’s Confidential Information, (iii) is disclosed to
+            Receiving Party by a third party without restriction, or (iv) was in the Receiving Party’s lawful possession
+            prior to the disclosure to the Receiving Party and was not obtained by the Receiving Party either directly
+            or indirectly from the Disclosing Party. Receiving Party may disclose Confidential Information as required
+            by law or court order; provided that, Receiving Party provides Disclosing Party with prompt written notice
+            thereof and uses its best efforts to limit disclosure. At any time, upon Disclosing Party’s request,
+            Receiving Party shall return to Disclosing Party all Disclosing Party’s Confidential Information in its
+            possession, including, without limitation, all copies and extracts thereof. Notwithstanding the foregoing,
+            Receiving Party may disclose Confidential Information to any third-party to the limited extent necessary to
+            exercise its rights, or perform its obligations, under this Agreement; provided that, all such third parties
+            are bound in writing by obligations of confidentiality and non-use at least as protective of the Disclosing
+            Party’s Confidential Information as this Agreement.
+          </p>
+
+          <!-- 5. Indemnity -->
+          <h3 class="mb-5">
+            5. Indemnity
+          </h3>
+
+          <p class="text-gray-800">
+            BlockCypher will defend, indemnify and hold Customer harmless from and against all third party claims (and
+            all resulting damages awarded to third parties, and costs and expenses, including reasonably attorneys’
+            fees) arising from infringement by the Service of any third party U.S. patent, copyright or trademark;
+            provided that, Customer provides BlockCypher with (i) prompt written notice of all claims and threats
+            thereof, (ii) sole control of all defense and settlement activities and (iii) all reasonably requested
+            assistance with respect thereto. BlockCypher will not be responsible for any settlements it does not
+            pre-approve in writing.
+          </p>
+
+          <!-- 6. WARRANTY; DISCLAIMER -->
+          <h3 class="mb-5">
+            6. Warranty; Disclaimer
+          </h3>
+
+          <p class="text-gray-800">
+            BlockCypher warrants that it will use commercially reasonable efforts to (i) provide all Professional
+            Services in a professional and workmanlike manner, and (ii) promptly correct all verifiable defects in the
+            Service and Professional Services of which BlockCypher is aware. EXCEPT AS EXPRESSLY SET FORTH IN THIS
+            SECTION 6, BLOCKCYPHER DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+            WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. BLOCKCYPHER DOES NOT
+            MAKE ANY WARRANTY AS TO THE RESULTS THAT MAY BE OBTAINED FROM USE OF THE SERVICE.
+          </p>
+
+          <!-- 7. Limitation of Liability -->
+          <h3 class="mb-5">
+            7. Limitation of Liability
+          </h3>
+
+          <p class="text-gray-800">
+            NOTWITHSTANDING ANYTHING TO THE CONTRARY, EXCEPT FOR BODILY INJURY OF A PERSON, NEITHER PARTY, SHALL BE
+            LIABLE WITH RESPECT TO ANY SUBJECT MATTER OF THIS AGREEMENT, UNDER ANY LEGAL OR EQUITABLE THEORY, FOR ANY:
+            (A) ERROR OR INTERRUPTION OF USE, LOSS OR INACCURACY OR CORRUPTION OF DATA, THE COST OF PROCUREMENT OF
+            SUBSTITUTE GOODS, SERVICE, OR TECHNOLOGY, OR LOSS OF BUSINESS; (B) INDIRECT, EXEMPLARY, INCIDENTAL, SPECIAL
+            OR CONSEQUENTIAL DAMAGES, EVEN IF SUCH PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH LOSS OR DAMAGE; (C)
+            MATTERS BEYOND SUCH PARTY’S REASONABLE CONTROL; OR (D) AMOUNTS IN THE AGGREGATE THAT EXCEED THE FEES PAID BY
+            CUSTOMER TO BLOCKCYPHER DURING THE TWELVE (12) MONTH PERIOD PRIOR TO THE DATE THE CAUSE OF ACTION ACCRUES
+            (PROVIDED THAT, IF NO FEES ARE PAID, SUCH AMOUNTS SHALL BE LIMITED TO US$1,000.00). THE LIMITATIONS ON
+            LIABILITY CONTAINED HEREIN SHALL NOT APPLY TO BREACH(ES) OF SECTIONS 1.2, 1.3 OR 4. THE LIMITATION CONTAINED
+            IN SUBSECTION (D) DOES NOT APPLY TO A PARTY’S INDEMNITY OBLIGATIONS.
+          </p>
+
+
+          <!-- 8. Non-solicitation -->
+          <h3 class="mb-5">
+            8. Non-solicitation
+          </h3>
+
+          <p class="text-gray-800">
+            Until one (1) year after termination of this Agreement, Customer will not encourage or solicit any employee
+            or consultant of BlockCypher to leave BlockCypher for any reason.
+          </p>
+
+          <!-- 9. Press Release -->
+          <h3 class="mb-5">
+            9. Press Release
+          </h3>
+
+          <p class="text-gray-800">
+            The parties shall work together in good faith to issue at least one mutually agreed upon press release
+            within ninety (90) days of the Effective Date (such agreement not to be unreasonably withheld or
+            conditioned). In addition, Customer will reasonably cooperate with BlockCypher for case studies and serve as
+            a reference for potential BlockCypher customers.
+          </p>
+
+          <!-- 10. Miscellaneous -->
+          <h3 class="mb-5">
+            10. Miscellaneous
+          </h3>
+
+          <p class="text-gray-800">
+            If any provision of this Agreement is found to be unenforceable or invalid, that provision will be limited
+            or eliminated to the minimum extent necessary so that this Agreement will otherwise remain in full force and
+            effect and enforceable. This Agreement is not assignable or transferable by a party except with the other
+            party’s prior written consent; provided that, a party may transfer and assign its rights and obligations
+            under this Agreement without consent to a successor to all or substantially all of its assets or business to
+            which this Agreement relates. This Agreement is the complete and exclusive statement of the mutual
+            understanding of the parties and supersedes and cancels all previous written and oral agreements,
+            communications, and other understandings relating to the subject matter of this Agreement, and all waivers
+            and modifications must be in a writing signed by both parties, except as otherwise provided herein. No
+            agency, partnership, joint venture, or employment is created as a result of this Agreement, and Customer
+            does not have any authority of any kind to bind BlockCypher in any respect whatsoever. Any notices in
+            connection with this Agreement will be in writing and sent by first class US mail, confirmed facsimile or
+            major commercial rapid delivery courier service to the address specified on the Order Form (or such other
+            address as may be properly specified by written notice hereunder). This Agreement shall be governed by the
+            laws of the State of California, without regard to the conflict of law provisions thereof. Except for claims
+            for injunctive or equitable relief or claims regarding intellectual property rights (which may be brought in
+            any competent court), any dispute arising under this Agreement shall be finally settled in accordance with
+            the Comprehensive Arbitration Rules of the Judicial Arbitration and Mediation Service, Inc. (“JAMS”) by one
+            arbitrators appointed in accordance with such Rules. The arbitration shall take place in San Mateo County,
+            California, USA, in the English language and the arbitral decision may be enforced in any court. With
+            respect to all disputes arising in relation to this Agreement, but subject to the preceding arbitration
+            provision, the parties consent to exclusive jurisdiction and venue in the state and Federal courts located
+            in, respectively, San Mateo County, California or the Northern District of California. The prevailing party
+            in any action or proceeding to enforce this Agreement will be entitled to recover costs and attorneys’ fees.
+          </p>
+
+
+
+          <!-- Text -->
+          <p>
+            Here are terms of our Standard License:
+          </p>
+
+          <!-- List -->
+          <div class="d-flex">
+
+            <!-- Badge -->
+            <span class="badge badge-rounded-circle bg-success-soft mt-1 me-4">
+              <i class="fe fe-check"></i>
+            </span>
+
+            <!-- Text -->
+            <p class="text-gray-800">
+              The Standard License grants you a non-exclusive right to make use of Theme you have purchased.
+            </p>
+
+          </div>
+          <div class="d-flex">
+
+            <!-- Badge -->
+            <span class="badge badge-rounded-circle bg-success-soft mt-1 me-4">
+              <i class="fe fe-check"></i>
+            </span>
+
+            <!-- Text -->
+            <p class="text-gray-800">
+              You are licensed to use the Item to create one End Product for yourself or for one client (a “single
+              application”), and the End Product can be distributed for Free.
+            </p>
+
+          </div>
+          <div class="d-flex">
+
+            <!-- Badge -->
+            <span class="badge badge-rounded-circle bg-success-soft mt-1 me-4">
+              <i class="fe fe-check"></i>
+            </span>
+
+            <!-- Text -->
+            <p class="text-gray-800">
+              If a Theme contains code, images, or content sourced from elsewhere under a different license, that item
+              retains its original license. The license for the code, images, or content will be noted by the Theme
+              author. You are responsible for adhering to the original license or clearing it with the author of the
+              code, image, or content.
+            </p>
+
+          </div>
+          <div class="d-flex">
+
+            <!-- Badge -->
+            <span class="badge badge-rounded-circle bg-success-soft mt-1 me-4">
+              <i class="fe fe-check"></i>
+            </span>
+
+            <!-- Text -->
+            <p class="text-gray-800">
+              This license can be terminated if you breach it and you lose the right to distribute the End Product until
+              the Theme has been fully removed from the End Product.
+            </p>
+
+          </div>
+          <div class="d-flex">
+
+            <!-- Badge -->
+            <span class="badge badge-rounded-circle bg-success-soft mt-1 me-4">
+              <i class="fe fe-check"></i>
+            </span>
+
+            <!-- Text -->
+            <p class="text-gray-800">
+              The author of the Theme retains ownership of the Theme, but grants you the license on these terms. This
+              license is between the author of the Theme and you. Be Colossal LLC (Bootstrap Themes) are not a party to
+              this license or the one granting you the license.
+            </p>
+
+          </div>
+
+        </div>
+        <div class="col-12 col-md-4">
+
+          <!-- Card -->
+          <div class="card shadow-light-lg">
+            <div class="card-body">
+
+              <!-- Heading -->
+              <h4>
+                Have a question?
+              </h4>
+
+              <!-- Text -->
+              <p class="fs-sm text-gray-800 mb-5">
+                Not sure exactly what we’re looking for or just want clarification? We’d be happy to chat with you and
+                clear things up for you. Anytime!
+              </p>
+
+              <!-- Heading -->
+              <h6 class="fw-bold text-uppercase text-gray-700 mb-2">
+                Email us
+              </h6>
+
+              <!-- Text -->
+              <p class="fs-sm mb-0">
+                <a href="/cdn-cgi/l/email-protection#0a797f7a7a65787e4a686665696169737a626f7824696567" class="text-reset"><span class="__cf_email__" data-cfemail="d1a2a4a1a1bea3a591b3bdbeb2bab2a8a1b9b4a3ffb2bebc">[email&#160;protected]</span></a>
+              </p>
+
+            </div>
+          </div>
+
+        </div>
+      </div> <!-- / .row -->
+    </div> <!-- / .container -->
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="py-8 py-md-11 bg-white">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 col-md-4 col-lg-3">
+  
+          <!-- Brand -->
+          <img src="./assets/img/brand.svg" alt="..." class="footer-brand img-fluid mb-2">
+  
+          <!-- Text -->
+          <p class="text-gray-700 mb-2">
+            Blockchain Web Services.
+          </p>
+  
+          <!-- Social -->
+          <ul class="list-unstyled list-inline list-social mb-6 mb-md-0">
+            <li class="list-inline-item list-social-item me-3">
+              <a href="https://github.com/blockcypher" target="_blank" class="text-decoration-none">
+                <img src="./assets/img/icons/social/github.svg" class="list-social-icon" alt="...">
+              </a>
+            </li>
+            <li class="list-inline-item list-social-item me-3">
+              <a href="https://www.facebook.com/blockcypher" target="_blank" class="text-decoration-none">
+                <img src="./assets/img/icons/social/facebook.svg" class="list-social-icon" alt="...">
+              </a>
+            </li>
+            <li class="list-inline-item list-social-item me-3">
+              <a href="https://twitter.com/blockcypher" target="_blank" class="text-decoration-none">
+                <img src="./assets/img/icons/social/twitter.svg" class="list-social-icon" alt="...">
+              </a>
+            </li>
+          </ul>
+  
+        </div>
+  
+        <div class="col-6 col-md-4 col-lg-2">
+  
+          <!-- Heading -->
+          <h6 class="fw-bold text-uppercase text-gray-700">
+            Products
+          </h6>
+  
+          <!-- List -->
+          <ul class="list-unstyled text-muted mb-6 mb-md-8 mb-lg-0">
+            <li class="mb-3">
+              <a href="./apis.html" class="text-reset">
+                APIS
+              </a>
+            </li>
+            <li class="mb-3">
+              <a href="https://live.blockcypher.com" class="text-reset">
+                Explorer
+              </a>
+            </li>
+          </ul>
+  
+        </div>
+        <div class="col-6 col-md-4 offset-md-4 col-lg-2 offset-lg-0">
+  
+          <!-- Heading -->
+          <h6 class="fw-bold text-uppercase text-gray-700">
+            Documentation
+          </h6>
+  
+          <!-- List -->
+          <ul class="list-unstyled text-muted mb-0">
+            <li class="mb-3">
+              <a href="./getting-started.html" class="text-reset">
+                Getting Started
+              </a>
+            </li>
+            <li class="mb-3">
+              <a href="https://www.blockcypher.com/dev/bitcoin/" class="text-reset">
+                Bitcoin API
+              </a>
+            </li>
+            <li>
+              <a href="https://www.blockcypher.com/dev/ethereum/" class="text-reset">
+                Ethereum API
+              </a>
+            </li>
+          </ul>
+  
+        </div>
+  
+        <div class="col-6 col-md-4 col-lg-2">
+  
+          <!-- Heading -->
+          <h6 class="fw-bold text-uppercase text-gray-700">
+            Company
+          </h6>
+  
+          <!-- List -->
+          <ul class="list-unstyled text-muted mb-6 mb-md-8 mb-lg-0">
+            <li class="mb-3">
+              <a href="./about.html" class="text-reset">
+                About Us
+              </a>
+            </li>
+            <li class="mb-3">
+              <a href="https://blog.blockcypher.com" class="text-reset">
+                Blog
+              </a>
+            </li>
+            <li class="mb-3">
+              <a href="./privacy-policy.html" class="text-reset">
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="./terms-of-service.html" class="text-reset">
+                Terms of Services
+              </a>
+            </li>
+          </ul>
+  
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+  
+          <!-- Heading -->
+          <h6 class="fw-bold text-uppercase text-gray-700">
+            Support
+          </h6>
+  
+          <!-- List -->
+          <ul class="list-unstyled text-muted mb-0">
+            <li class="mb-3">
+              <a href="./contact.html" class="text-reset">
+                Contact Us
+              </a>
+            </li>
+            <li>
+              <a href="https://status.blockcypher.com" class="text-reset">
+                Status
+              </a>
+            </li>
+          </ul>
+  
+        </div>
+      </div> <!-- / .row -->
+    </div> <!-- / .container -->
+  </footer>
+  <!-- JAVASCRIPT -->
+  <!-- Map JS -->
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src='https://api.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
+  
+  <!-- Vendor JS -->
+  <script src="./assets/js/vendor.bundle.js"></script>
+  
+  <!-- Theme JS -->
+  <script src="./assets/js/theme.bundle.js"></script>
+</body>
+
+</html>

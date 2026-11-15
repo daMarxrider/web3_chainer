@@ -1,0 +1,40 @@
+<!DOCTYPE html><!-- HTML for static distribution bundle build--><html lang="en"><head><!-- Global site tag (gtag.js) - Google Analytics--><meta charset="UTF-8"><title>REST V2 by ActorForth.org - BCH RPC over HTTP</title><link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700" rel="stylesheet"><link rel="stylesheet" type="text/css" href="../../public/swagger-ui-v2.css"><link rel="icon" type="image/png" href="../public/favicon-af.png" sizes="32x32"><style>html
+{
+box-sizing: border-box;
+overflow: -moz-scrollbars-vertical;
+overflow-y: scroll;
+}
+*,
+*:before,
+*:after
+{
+box-sizing: inherit;
+}
+body
+{
+margin:0;
+background: #ffffff;
+}</style></head><body><div id="swagger-ui"></div><script src="../public/swagger-ui-bundle.js"></script><script src="../public/swagger-ui-standalone-preset.js"></script><script>window.onload = function() {
+let network = "mainnet"
+let path;
+if(network === 'mainnet') {
+  path = "../public/actorforth-org-mainnet-rest-v2.json" 
+} else {
+  path = "../public/actorforth-org-testnet-rest-v2.json" 
+}
+const ui = SwaggerUIBundle({
+  
+url: path,
+dom_id: '#swagger-ui',
+deepLinking: true,
+presets: [
+SwaggerUIBundle.presets.apis,
+SwaggerUIStandalonePreset
+],
+plugins: [
+SwaggerUIBundle.plugins.DownloadUrl
+],
+layout: "StandaloneLayout"
+})
+window.ui = ui
+}</script></body></html>

@@ -1,0 +1,1 @@
+Fetched 15 Nov 2026: https://rest.bch.actorforth.org/terms-of-service.html and https://actorforth.org/terms-of-service.html both answer 404; the site has no terms, legal or privacy page.

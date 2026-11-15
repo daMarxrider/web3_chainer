@@ -1,4 +1,4 @@
-import { UTXO_COINS } from '../chains/utxo-coins.ts'
+import { builtinNativeToken, UTXO_COINS } from '../chains/utxo-coins.ts'
 import { fetchJson } from '../http.ts'
 import type { Settings } from '../settings.ts'
 import { isNative } from '../tokens.ts'
@@ -54,9 +54,13 @@ const toToken = (t: LifiToken, chainKey: string): Token => ({
 
 const FAMILY: Partial<Record<LifiChain['chainType'], ChainFamily>> = { EVM: 'evm', SVM: 'solana', UTXO: 'bitcoin' }
 
+/** Keys of the Bitcoin-family chains LI.FI listed on the last call to lifiChains. */
+const lifiKnows = new Set<string>()
+
 /** The chains LI.FI can route that this app has an adapter for (EVM, Solana, Bitcoin), mainnets and testnets. */
 export async function lifiChains(fetchFn: FetchFn): Promise<Chain[]> {
   const { chains } = await fetchJson<{ chains: LifiChain[] }>(fetchFn, `${API}/chains?chainTypes=EVM,SVM,UTXO`)
+  for (const c of chains) if (c.chainType === 'UTXO') lifiKnows.add(c.key)
   return chains.flatMap((c): Chain[] => {
     const family = FAMILY[c.chainType]
     // UTXO chains need a coin definition here (address format, key path); others are left out.
@@ -70,7 +74,7 @@ export async function lifiChains(fetchFn: FetchFn): Promise<Chain[]> {
         nativeSymbol: c.nativeToken.symbol,
         nativePriceUsd: c.nativeToken.priceUSD ? Number(c.nativeToken.priceUSD) : undefined,
         // LI.FI lists JSON-RPC nodes for UTXO chains; this app reads them through Esplora instead.
-        rpcUrls: family === 'bitcoin' ? UTXO_COINS[c.key]!.esplora : c.metamask.rpcUrls,
+        rpcUrls: family === 'bitcoin' ? UTXO_COINS[c.key]!.endpoints : c.metamask.rpcUrls,
         multicall: c.multicallAddress,
         testnet: !c.mainnet,
       },
@@ -80,12 +84,20 @@ export async function lifiChains(fetchFn: FetchFn): Promise<Chain[]> {
 
 /** Looks a token up by symbol or contract address. */
 export async function lifiToken(fetchFn: FetchFn, chain: Chain, symbolOrAddress: string): Promise<Token> {
+  // Chains LI.FI does not list (Litecoin, Dogecoin, Dash, Bitcoin Cash) only have their own coin.
+  const own = chain.family === 'bitcoin' ? builtinNativeToken(chain.key) : undefined
+  if (own && !lifiKnows.has(chain.key)) {
+    if (own.symbol.toLowerCase() !== symbolOrAddress.toLowerCase()) throw new Error(`${chain.name} only has its own coin (${own.symbol}) here`)
+    return own
+  }
   const t = await fetchJson<LifiToken>(fetchFn, `${API}/token?chain=${chain.id}&token=${encodeURIComponent(symbolOrAddress)}`)
   return toToken(t, chain.key)
 }
 
 /** Every token LI.FI can route on a chain. */
 export async function lifiTokens(fetchFn: FetchFn, chain: Chain): Promise<Token[]> {
+  const own = chain.family === 'bitcoin' ? builtinNativeToken(chain.key) : undefined
+  if (own && !lifiKnows.has(chain.key)) return [own]
   const { tokens } = await fetchJson<{ tokens: Record<string, LifiToken[]> }>(fetchFn, `${API}/tokens?chains=${chain.id}`)
   return (tokens[chain.id] ?? []).map((t) => toToken(t, chain.key))
 }

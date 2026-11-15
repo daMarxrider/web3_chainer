@@ -153,3 +153,24 @@ test('a thin pool costs extra in the worst case and in the ranking, and a very t
   assert.ok(thin.riskUsd! > deep.riskUsd!)
   await assert.rejects(thorProvider(withImpact(3000), THORCHAIN, chains).getQuotes(request(ETH, priced, 10n ** 18n), 'cheapest'), /too thin/)
 })
+
+test('a Dogecoin deposit asks for no refund address and a Bitcoin Cash destination loses its prefix', async () => {
+  const quoteUrls: URLSearchParams[] = []
+  const fetchFn: typeof fetch = async (url) => {
+    const u = new URL(String(url))
+    const json = (v: unknown) => new Response(JSON.stringify(v))
+    if (u.pathname.endsWith('/pools')) return json(['DOGE.DOGE', 'BCH.BCH'].map((asset) => ({ asset, status: 'Available' })))
+    if (u.pathname.endsWith('/inbound_addresses')) return json([{ chain: 'DOGE', address: 'DOGE_VAULT', halted: false }])
+    quoteUrls.push(u.searchParams)
+    return json({ inbound_address: 'DOGE_VAULT', expiry: 4102444800, memo: `=:c:${u.searchParams.get('destination')}`, expected_amount_out: '1000000', recommended_min_amount_in: '1000', fees: { total: '1' } })
+  }
+  const doge: Token = { chainKey: 'doge', address: 'dogecoin', symbol: 'DOGE', decimals: 8 }
+  const bch: Token = { chainKey: 'bch', address: 'bitcoincash', symbol: 'BCH', decimals: 8 }
+  const provider = thorProvider(fetchFn, THORCHAIN, [])
+  const [q] = await provider.getQuotes({ from: doge, to: bch, amount: 2_000_000_000n, fromAddress: 'D-me', toAddress: 'bitcoincash:qqyx49mu0kkn9ftfj6hje6g2wfer34yfnq5tahq3q6', slippage: 0.01 }, 'cheapest')
+  const actions = await provider.buildActions(q!)
+  assert.equal(quoteUrls[0]!.get('refund_address'), null)
+  assert.equal(quoteUrls[0]!.get('destination'), 'qqyx49mu0kkn9ftfj6hje6g2wfer34yfnq5tahq3q6')
+  assert.deepEqual(actions.map((a) => a.kind), ['utxo-send'])
+  assert.equal((actions[0] as { to: string }).to, 'DOGE_VAULT')
+})

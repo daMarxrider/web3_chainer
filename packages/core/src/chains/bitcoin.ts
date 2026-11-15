@@ -2,6 +2,7 @@ import { hex } from '@scure/base'
 import * as btc from '@scure/btc-signer'
 import { utxoKey } from '../derive.ts'
 import type { Chain, ChainAdapter, FetchFn, Signer } from '../types.ts'
+import { legacyUtxoAdapter } from './legacy-utxo.ts'
 import { UTXO_COINS, type UtxoCoin } from './utxo-coins.ts'
 
 interface Utxo {
@@ -18,7 +19,8 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 export function bitcoinAdapter(chain: Chain, opts: { fetch: FetchFn; rpcUrl?: string }): ChainAdapter {
   const coin: UtxoCoin | undefined = UTXO_COINS[chain.key]
   if (!coin) throw new Error(`${chain.name} is not a supported Bitcoin-family chain`)
-  const urls = opts.rpcUrl ? [opts.rpcUrl] : chain.rpcUrls.length ? chain.rpcUrls : coin.esplora
+  if (coin.legacy) return legacyUtxoAdapter(chain, coin, opts)
+  const urls = opts.rpcUrl ? [opts.rpcUrl] : chain.rpcUrls.length ? chain.rpcUrls : coin.endpoints
   const network = coin.network
   const parseAddress = btc.Address(network)
 

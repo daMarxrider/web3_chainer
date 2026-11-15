@@ -1,4 +1,5 @@
 import { encodeFunctionData, stringToHex, type Address } from 'viem'
+import { UTXO_COINS } from '../chains/utxo-coins.ts'
 import { fetchJson } from '../http.ts'
 import { isNative } from '../tokens.ts'
 import type { Action, BridgeProvider, Chain, FetchFn, Quote, QuoteRequest, Token, TransferStatus } from '../types.ts'
@@ -18,14 +19,14 @@ export interface ThorConfig {
 export const THORCHAIN: ThorConfig = {
   name: 'thorchain',
   api: 'https://gateway.liquify.com/chain/thorchain_api/thorchain',
-  chainCodes: { eth: 'ETH', bas: 'BASE', ava: 'AVAX', bsc: 'BSC', btc: 'BTC', ltc: 'LTC', sol: 'SOL' },
-  nativeAssets: { eth: 'ETH.ETH', bas: 'BASE.ETH', ava: 'AVAX.AVAX', bsc: 'BSC.BNB', btc: 'BTC.BTC', ltc: 'LTC.LTC', sol: 'SOL.SOL' },
+  chainCodes: { eth: 'ETH', bas: 'BASE', ava: 'AVAX', bsc: 'BSC', btc: 'BTC', ltc: 'LTC', doge: 'DOGE', bch: 'BCH', sol: 'SOL' },
+  nativeAssets: { eth: 'ETH.ETH', bas: 'BASE.ETH', ava: 'AVAX.AVAX', bsc: 'BSC.BNB', btc: 'BTC.BTC', ltc: 'LTC.LTC', doge: 'DOGE.DOGE', bch: 'BCH.BCH', sol: 'SOL.SOL' },
 }
 export const MAYA: ThorConfig = {
   name: 'maya',
   api: 'https://mayanode.mayachain.info/mayachain',
-  chainCodes: { eth: 'ETH', arb: 'ARB', btc: 'BTC' },
-  nativeAssets: { eth: 'ETH.ETH', arb: 'ARB.ETH', btc: 'BTC.BTC' },
+  chainCodes: { eth: 'ETH', arb: 'ARB', btc: 'BTC', dash: 'DASH' },
+  nativeAssets: { eth: 'ETH.ETH', arb: 'ARB.ETH', btc: 'BTC.BTC', dash: 'DASH.DASH' },
 }
 
 /** Quotes whose own price impact exceeds this are not offered at all. */
@@ -124,9 +125,11 @@ export function thorProvider(fetchFn: FetchFn, config: ThorConfig, chains: Chain
       from_asset: fromAsset,
       to_asset: toAsset,
       amount: rescale(request.amount, request.from.decimals, NORMAL).toString(),
-      destination: request.toAddress,
-      refund_address: request.fromAddress,
+      // The networks write Bitcoin Cash addresses without the "bitcoincash:" prefix, whose colon would also break the memo.
+      destination: request.toAddress.replace(/^bitcoincash:/i, ''),
     })
+    // A refund address goes into the memo, which Bitcoin-family deposits have only 80 bytes for; their vaults refund to the sending address anyway.
+    if (!UTXO_COINS[request.from.chainKey]) params.set('refund_address', request.fromAddress)
     return fetchJson<NodeQuote>(fetchFn, `${config.api}/quote/swap?${params}`)
   }
 
@@ -211,7 +214,7 @@ export function thorProvider(fetchFn: FetchFn, config: ThorConfig, chains: Chain
       const chainKey = request.from.chainKey
       const vault = inbound.address
       const native = isNative(request.from)
-      if (chainKey === 'btc' || chainKey === 'ltc') return [{ kind: 'utxo-send', chainKey, to: vault, amount: request.amount, memo }]
+      if (UTXO_COINS[chainKey]) return [{ kind: 'utxo-send', chainKey, to: vault, amount: request.amount, memo }]
       if (chainKey === 'sol') return [{ kind: 'solana-transfer', chainKey, to: vault, amount: request.amount, mint: native ? undefined : request.from.address, memo }]
       if (native) return [{ kind: 'evm-tx', chainKey, to: vault, data: stringToHex(memo), value: request.amount }]
 
