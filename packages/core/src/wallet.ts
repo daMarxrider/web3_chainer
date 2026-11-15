@@ -1,15 +1,19 @@
-import { generateMnemonic, validateMnemonic } from '@scure/bip39'
+import { generateMnemonic, mnemonicToSeedSync, validateMnemonic } from '@scure/bip39'
 import { wordlist } from '@scure/bip39/wordlists/english.js'
 import { bytesToHex, hexToBytes, isHex, type Hex } from 'viem'
 import { mnemonicToAccount, privateKeyToAccount } from 'viem/accounts'
+import { walletAddresses } from './derive.ts'
 import type { Signer, Store } from './types.ts'
 
 export interface AccountRecord {
   name: string
   /** "seed" derives a key for every chain family; "key" is one imported private key. */
   type: 'seed' | 'key'
-  /** Public addresses, readable without the password. */
-  addresses: { evm: string }
+  /**
+   * Public addresses, readable without the password. "evm" serves every EVM chain; other chains
+   * are keyed by chain key ("sol", "btc", ...). Wallets made from a single private key only have "evm".
+   */
+  addresses: Record<string, string> & { evm: string }
   iv: Hex
   data: Hex
 }
@@ -69,7 +73,7 @@ function signerFromSecret(secret: string): { type: AccountRecord['type']; signer
     return { type: 'key', signer: { evm: privateKeyToAccount(secret) } }
   }
   if (!validateMnemonic(secret, wordlist)) throw new Error('Not a valid private key or BIP-39 seed phrase')
-  return { type: 'seed', signer: { evm: mnemonicToAccount(secret) } }
+  return { type: 'seed', signer: { evm: mnemonicToAccount(secret), seed: mnemonicToSeedSync(secret) } }
 }
 
 /** Normalises user input: trims, collapses whitespace in seed phrases, adds 0x to bare hex keys. */
@@ -94,7 +98,7 @@ export async function addAccount(store: Store, name: string, secretInput: string
   const record: AccountRecord = {
     name,
     type,
-    addresses: { evm: signer.evm.address },
+    addresses: walletAddresses(signer) as AccountRecord['addresses'],
     iv: bytesToHex(iv),
     data: bytesToHex(new Uint8Array(data)),
   }
@@ -115,4 +119,17 @@ export async function unlock(store: Store, name: string | undefined, password: s
   const keystore = await loadKeystore(store)
   const record = findAccount(keystore, name)
   return signerFromSecret(await decrypt(keystore, record, password)).signer
+}
+
+/**
+ * Adds addresses for chains the wallet did not know when it was created (wallets made before
+ * Solana and Bitcoin support). Needs the password because the addresses come from the seed.
+ */
+export async function refreshAddresses(store: Store, name: string | undefined, password: string): Promise<AccountRecord> {
+  const keystore = await loadKeystore(store)
+  const record = findAccount(keystore, name)
+  const { signer } = signerFromSecret(await decrypt(keystore, record, password))
+  record.addresses = walletAddresses(signer) as AccountRecord['addresses']
+  await store.set(KEY, JSON.stringify(keystore, null, 2))
+  return record
 }

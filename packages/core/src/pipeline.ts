@@ -1,7 +1,7 @@
-import { zeroAddress } from 'viem'
 import { geoAllowed } from './geo.ts'
 import { findRoutes, netUsd } from './optimizer.ts'
 import { isAvoided, type Settings } from './settings.ts'
+import { isNative } from './tokens.ts'
 import { executeQuote, getTransfer, trackTransfer, type TransferRecord } from './transfer.ts'
 import type { BridgeProvider, ChainAdapter, Prefer, Quote, QuoteRequest, Signer, Store, Token } from './types.ts'
 
@@ -39,6 +39,8 @@ export interface RouteSearchOptions {
   hubs: () => Promise<Token[]>
   /** Most legs a route may have. */
   maxHops: number
+  /** The wallet's own address on a chain, where stop-over funds wait. Defaults to the sender's address (all-EVM routes). */
+  addressOn?: (chainKey: string) => string
 }
 
 /**
@@ -70,7 +72,8 @@ export async function findPipelineRoutes(
     from,
     to,
     amount,
-    toAddress: final ? request.toAddress : request.fromAddress,
+    fromAddress: options.addressOn?.(from.chainKey) ?? request.fromAddress,
+    toAddress: final ? request.toAddress : (options.addressOn?.(to.chainKey) ?? request.fromAddress),
   })
 
   let frontier: Route[] = []
@@ -114,6 +117,8 @@ export interface PipelineLeg {
   to: Token
   /** Smallest units, or "all": the whole wallet balance for the first leg, otherwise what the previous leg delivered. */
   amount: string
+  /** The wallet's address on the source chain. Absent in runs saved before other chain families existed: then the run's `fromAddress` applies. */
+  fromAddress?: string
   toAddress: string
   /** Rate seen when the route was planned; the leg stops if a fresh quote is worse than this. */
   planned?: { amountIn: string; minOut: string }
@@ -129,6 +134,7 @@ export interface PipelineRecord {
   id: string
   createdAt: string
   wallet: string
+  /** Address on the first leg's chain; each leg may carry its own (see PipelineLeg.fromAddress). */
   fromAddress: string
   legs: PipelineLeg[]
   state: 'running' | 'done' | 'failed'
@@ -162,6 +168,7 @@ export function pipelineFromRoute(route: Route, wallet: string, geoAccepted: str
       from: q.request.from,
       to: q.request.to,
       amount: i === 0 ? q.request.amount.toString() : 'all',
+      fromAddress: q.request.fromAddress,
       toAddress: q.request.toAddress,
       planned: { amountIn: q.request.amount.toString(), minOut: q.toAmountMin.toString() },
     })),
@@ -209,7 +216,8 @@ async function runLeg(record: PipelineRecord, i: number, deps: PipelineDeps): Pr
     // created / failed: nothing left the wallet, so the leg starts again below.
   }
 
-  const [balance] = await adapter.getBalances(record.fromAddress, [leg.from])
+  const fromAddress = leg.fromAddress ?? record.fromAddress
+  const [balance] = await adapter.getBalances(fromAddress, [leg.from])
   let amount: bigint
   if (leg.amount !== 'all') amount = BigInt(leg.amount)
   else amount = i === 0 ? balance! : min(BigInt(record.legs[i - 1]!.received ?? '0'), balance!)
@@ -218,7 +226,7 @@ async function runLeg(record: PipelineRecord, i: number, deps: PipelineDeps): Pr
 
   say('Looking for the best route')
   const quoteFor = async (a: bigint) => {
-    const request: QuoteRequest = { from: leg.from, to: leg.to, amount: a, fromAddress: record.fromAddress, toAddress: leg.toAddress, slippage: settings.slippage }
+    const request: QuoteRequest = { from: leg.from, to: leg.to, amount: a, fromAddress, toAddress: leg.toAddress, slippage: settings.slippage }
     const found = await findRoutes(request, providers, settings)
     // Bridges with geo restrictions are only used if the user confirmed their location for them.
     const quotes = found.quotes.filter((q) => geoAllowed(q, record.geoAccepted))
@@ -231,7 +239,7 @@ async function runLeg(record: PipelineRecord, i: number, deps: PipelineDeps): Pr
   let quote = await quoteFor(amount)
 
   // Sending a whole balance of the chain's own coin must leave enough behind to pay for gas.
-  if (leg.amount === 'all' && leg.from.address.toLowerCase() === zeroAddress && leg.from.priceUsd) {
+  if (leg.amount === 'all' && isNative(leg.from) && leg.from.priceUsd) {
     const reserve = BigInt(Math.ceil(((quote.costUsd * 2) / leg.from.priceUsd) * 10 ** leg.from.decimals))
     if (reserve >= amount) throw new Error(`The ${leg.from.symbol} balance is too small to cover gas for this leg`)
     amount -= reserve

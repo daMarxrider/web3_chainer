@@ -51,7 +51,7 @@ export function evmAdapter(chain: Chain, opts: { fetch: FetchFn; rpcUrl?: string
     },
 
     async prepare(action, signer, onEvent) {
-      if (!action.approval) return
+      if (action.kind !== 'evm-tx' || !action.approval) return
       const wallet = createWalletClient({ account: signer.evm, chain: viemChain, transport })
       const token = action.approval.token as Address
       const spender = action.approval.spender as Address
@@ -73,6 +73,7 @@ export function evmAdapter(chain: Chain, opts: { fetch: FetchFn; rpcUrl?: string
     },
 
     async send(action, signer) {
+      if (action.kind !== 'evm-tx') throw new Error(`An EVM chain cannot run a "${action.kind}" action`)
       const wallet = createWalletClient({ account: signer.evm, chain: viemChain, transport })
       return wallet.sendTransaction({ to: action.to as Address, data: action.data as Hex, value: action.value, gas: action.gasLimit })
     },

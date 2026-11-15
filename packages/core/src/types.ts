@@ -4,16 +4,17 @@ export type FetchFn = typeof fetch
 export type Prefer = 'cheapest' | 'fastest'
 
 /** Chain families; each has one ChainAdapter. More are added per milestone. */
-export type ChainFamily = 'evm'
+export type ChainFamily = 'evm' | 'solana' | 'bitcoin'
 
 export interface Chain {
   family: ChainFamily
   /** Short unique key, e.g. "arb". */
   key: string
-  /** Native chain id (EVM chain id). */
+  /** Native chain id (EVM chain id). For other families the id LI.FI uses, or one made up here for test networks. */
   id: number
   name: string
   nativeSymbol: string
+  /** JSON-RPC endpoints (EVM, Solana) or Esplora-compatible REST endpoints (Bitcoin family). */
   rpcUrls: string[]
   /** Multicall3 contract, used to read many balances in one request. */
   multicall?: string
@@ -51,7 +52,40 @@ export interface EvmTxAction {
   /** ERC-20 allowance that must exist before the transaction is sent. */
   approval?: { token: string; spender: string; amount: bigint }
 }
-export type Action = EvmTxAction
+/** A finished Solana transaction (base64, versioned) that still needs the wallet's signature. */
+export interface SolanaTxAction {
+  kind: 'solana-tx'
+  chainKey: string
+  transaction: string
+}
+/** Plain Solana transfer of SOL or an SPL token to a deposit address, with an optional memo. */
+export interface SolanaTransferAction {
+  kind: 'solana-transfer'
+  chainKey: string
+  to: string
+  /** SPL token mint; absent for SOL. */
+  mint?: string
+  amount: bigint
+  memo?: string
+}
+/** A PSBT (hex) prepared by a route source; the wallet signs the inputs it owns and broadcasts. */
+export interface UtxoPsbtAction {
+  kind: 'utxo-psbt'
+  chainKey: string
+  psbt: string
+  /** What the user means to send; the adapter refuses a PSBT that pays anyone else more than this. */
+  to: string
+  amount: bigint
+}
+/** Send coins to an address, optionally with an OP_RETURN memo (THORChain, Maya). The adapter picks inputs. */
+export interface UtxoSendAction {
+  kind: 'utxo-send'
+  chainKey: string
+  to: string
+  amount: bigint
+  memo?: string
+}
+export type Action = EvmTxAction | SolanaTxAction | SolanaTransferAction | UtxoPsbtAction | UtxoSendAction
 
 export interface Quote {
   provider: string
@@ -97,9 +131,14 @@ export interface BridgeProvider {
   getStatus(txId: string, statusRef: Quote['statusRef']): Promise<TransferStatus>
 }
 
-/** Keys able to sign for each chain family. */
+/**
+ * Keys able to sign. `evm` always exists. `seed` (the BIP-39 seed) exists for seed-phrase
+ * wallets only; the other families derive their keys from it, so a wallet made from a single
+ * imported EVM private key cannot use them.
+ */
 export interface Signer {
   evm: Account
+  seed?: Uint8Array
 }
 
 export interface ChainAdapter {
