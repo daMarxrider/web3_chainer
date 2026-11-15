@@ -1,3 +1,4 @@
+import { DEFAULT_DENIED_BRIDGES } from './geo.ts'
 import type { Prefer, Store, Token } from './types.ts'
 
 export interface Settings {
@@ -22,7 +23,7 @@ export const defaultSettings: Settings = {
   maxHops: 3,
   avoidTokens: [],
   rpc: {},
-  lifi: { allowBridges: [], denyBridges: [] },
+  lifi: { allowBridges: [], denyBridges: [...DEFAULT_DENIED_BRIDGES] },
 }
 
 const KEY = 'settings.json'

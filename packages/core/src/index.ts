@@ -1,5 +1,6 @@
 export { formatUnits, parseUnits, zeroAddress } from 'viem'
 export * from './types.ts'
+export * from './geo.ts'
 export * from './settings.ts'
 export * from './wallet.ts'
 export * from './optimizer.ts'

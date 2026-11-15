@@ -1,4 +1,5 @@
 import { zeroAddress } from 'viem'
+import { geoAllowed } from './geo.ts'
 import { findRoutes, netUsd } from './optimizer.ts'
 import { isAvoided, type Settings } from './settings.ts'
 import { executeQuote, getTransfer, trackTransfer, type TransferRecord } from './transfer.ts'
@@ -131,6 +132,11 @@ export interface PipelineRecord {
   fromAddress: string
   legs: PipelineLeg[]
   state: 'running' | 'done' | 'failed'
+  /**
+   * LI.FI bridge keys with geo restrictions that the user confirmed their location for (see geo.ts).
+   * Bridges with restrictions that are not listed here are never used by this run.
+   */
+  geoAccepted?: string[]
 }
 
 const PREFIX = 'pipelines/'
@@ -142,12 +148,12 @@ export async function listPipelines(store: Store): Promise<PipelineRecord[]> {
   return records.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
 }
 
-export function newPipeline(wallet: string, fromAddress: string, legs: Omit<PipelineLeg, 'state'>[]): PipelineRecord {
-  return { id: crypto.randomUUID(), createdAt: new Date().toISOString(), wallet, fromAddress, state: 'running', legs: legs.map((l) => ({ ...l, state: 'waiting' })) }
+export function newPipeline(wallet: string, fromAddress: string, legs: Omit<PipelineLeg, 'state'>[], geoAccepted: string[] = []): PipelineRecord {
+  return { id: crypto.randomUUID(), createdAt: new Date().toISOString(), wallet, fromAddress, state: 'running', geoAccepted, legs: legs.map((l) => ({ ...l, state: 'waiting' })) }
 }
 
 /** Turns a searched route into a pipeline: the first amount is fixed, later legs forward what arrived. */
-export function pipelineFromRoute(route: Route, wallet: string): PipelineRecord {
+export function pipelineFromRoute(route: Route, wallet: string, geoAccepted: string[] = []): PipelineRecord {
   const first = route.legs[0]!.request
   return newPipeline(
     wallet,
@@ -159,6 +165,7 @@ export function pipelineFromRoute(route: Route, wallet: string): PipelineRecord 
       toAddress: q.request.toAddress,
       planned: { amountIn: q.request.amount.toString(), minOut: q.toAmountMin.toString() },
     })),
+    geoAccepted,
   )
 }
 
@@ -212,8 +219,13 @@ async function runLeg(record: PipelineRecord, i: number, deps: PipelineDeps): Pr
   say('Looking for the best route')
   const quoteFor = async (a: bigint) => {
     const request: QuoteRequest = { from: leg.from, to: leg.to, amount: a, fromAddress: record.fromAddress, toAddress: leg.toAddress, slippage: settings.slippage }
-    const { quotes, errors } = await findRoutes(request, providers, settings)
-    if (quotes.length === 0) throw new Error(`No route for this leg${errors.length ? `: ${errors.join('; ')}` : ''}`)
+    const found = await findRoutes(request, providers, settings)
+    // Bridges with geo restrictions are only used if the user confirmed their location for them.
+    const quotes = found.quotes.filter((q) => geoAllowed(q, record.geoAccepted))
+    if (quotes.length === 0) {
+      const skipped = found.quotes.length > 0
+      throw new Error(skipped ? 'The only routes for this leg use bridges with geo restrictions that were not confirmed for this run' : `No route for this leg${found.errors.length ? `: ${found.errors.join('; ')}` : ''}`)
+    }
     return quotes[0]!
   }
   let quote = await quoteFor(amount)

@@ -73,6 +73,8 @@ chainer send 100 USDC arbitrum base --dry-run    # stops before signing
 
 You confirm once. After that it runs by itself and shows live status until the funds have arrived.
 
+Some bridges only allow use from certain countries. Routes that use one are marked `[geo]` in the table, and before sending you get a warning that lists the bridge, the countries or regions it excludes and the terms that say so. The run starts only if you type `yes` to say you are currently in none of them; `--yes` does not skip this question. Without that confirmation those bridges are never used. `chainer geo` lists every bridge with a restriction. Plans and resumed runs ask the same question. Paxos Labs Transit is excluded from route searches altogether.
+
 ### 5. Chain several transfers
 
 Write a plan file:
@@ -121,6 +123,7 @@ chainer config set maxUsdPerTransfer 500        # refuse larger transfers ("off"
 chainer config set maxHops 3                    # most legs an automatic route may have
 chainer config avoid add USDT                   # never route through or into this token
 chainer config rpc arbitrum https://my-node...  # use your own RPC node ("default" to undo)
+chainer geo                                     # bridges with geo restrictions, and where
 ```
 
 ### Scripting

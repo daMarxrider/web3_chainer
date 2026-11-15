@@ -9,6 +9,10 @@ import {
   findPipelineRoutes,
   findRoutes,
   formatUnits,
+  GEO_RESTRICTIONS,
+  geoKeys,
+  geoNotices,
+  geoStatement,
   lifiChains,
   lifiProvider,
   lifiToken,
@@ -26,6 +30,7 @@ import {
   saveSettings,
   unlock,
   type Chain,
+  type GeoNotice,
   type PipelineLeg,
   type PipelineRecord,
   type Prefer,
@@ -36,7 +41,7 @@ import {
   type Token,
 } from '@chainer/core'
 import { dataDir, fetchWithTimeout as fetchFn, fileStore } from './env.ts'
-import { askHidden, askPassword, confirm } from './prompt.ts'
+import { ask, askHidden, askPassword, confirm } from './prompt.ts'
 
 const HELP = `chainer - move tokens between blockchains over the best route
 
@@ -52,6 +57,7 @@ Usage:
                                               Send over the best route and follow it live
   chainer pipeline run <plan.yaml>            Run a chain of transfers, each starting when
                                               the previous one has arrived
+  chainer geo                                 List bridges with geo restrictions and where they apply
   chainer status [<id>]                       List runs, or show one in detail
   chainer resume <id>                         Continue a run that stopped or failed
   chainer config show
@@ -66,7 +72,8 @@ Options:
   --to <address>             Recipient (default: your own address)
   --testnet                  Run on the test networks of the named chains, with test funds
   --dry-run                  Stop before signing
-  --yes                      Do not ask for confirmation
+  --yes                      Do not ask for confirmation (the location confirmation for
+                             geo-restricted bridges is always asked)
   --json                     Machine-readable output
 
 Plan file:
@@ -250,6 +257,48 @@ async function balancesCommand(chainQuery: string | undefined): Promise<void> {
   table([['TOKEN', 'BALANCE', 'VALUE', 'ADDRESS'], ...held.map((h) => [h.token.symbol, fmt(h.balance, h.token), usd(h.usd), h.token.address])])
 }
 
+// ---- geo restrictions ---------------------------------------------------
+
+const regionsText = (n: GeoNotice) => `${n.onlyIn ? 'only available in' : 'not available in'}: ${n.regions.join(', ')}`
+
+/**
+ * The location form. Shown whenever a route uses bridges whose terms restrict countries; the run
+ * only goes ahead if the user types "yes". --yes does not skip it. Test-network runs move no
+ * real value and skip it.
+ */
+async function geoForm(notices: GeoNotice[], intro: string): Promise<boolean> {
+  if (notices.length === 0 || opts.testnet) return true
+  const e = (line = '') => console.error(line)
+  e()
+  e('!! GEO-RESTRICTED SERVICES !!')
+  e(intro)
+  e()
+  for (const n of notices) {
+    e(`  ${n.name} - ${regionsText(n)}`)
+    if (n.note) e(`    ${n.note}`)
+    e(`    Source: ${n.terms}`)
+  }
+  e()
+  e('Using a service from a place it excludes can break its terms and the law that applies to you.')
+  e(`  ${geoStatement(notices)}`)
+  return /^yes$/i.test(await ask('Type "yes" to confirm, anything else cancels: '))
+}
+
+/** Bridge keys the run may use for restricted services, or undefined if the user declined. */
+async function geoAcceptance(route: Route): Promise<string[] | undefined> {
+  const notices = geoNotices(route.legs)
+  const keys = geoKeys(route.legs)
+  return (await geoForm(notices, 'This route uses:')) ? keys : undefined
+}
+
+function geoCommand(): void {
+  const rows = Object.entries(GEO_RESTRICTIONS).map(([key, r]) => [key, r.name, `${r.onlyIn ? 'only in' : 'not in'}: ${r.regions.join(', ')}`, settings.lifi.denyBridges.includes(key) ? 'denied' : ''])
+  if (opts.json) return printJson(GEO_RESTRICTIONS)
+  table([['BRIDGE', 'SERVICE', 'COUNTRIES AND REGIONS', 'DEFAULT'], ...rows])
+  out()
+  out('From the terms of each service, see docs/PLAN.md. Bridges not listed have no geo restriction in their terms, or no terms.')
+}
+
 // ---- quote and send -----------------------------------------------------
 
 interface Plan {
@@ -306,9 +355,13 @@ function printRoutes(plan: Plan, routes: Route[]): void {
     ['#', 'VIA', 'YOU RECEIVE', 'AT WORST', 'GAS + FEES', 'NET VALUE', 'TIME'],
     ...routes.slice(0, 8).map((r, i) => {
       const last = r.legs.at(-1)!
-      return [String(i + 1), routeVia(r), fmt(last.toAmount, to), fmt(last.toAmountMin, to), usd(r.legs.reduce((s, q) => s + q.costUsd, 0)), usd(routeNetUsd(r)), duration(routeEta(r))]
+      return [String(i + 1), routeVia(r) + (geoKeys(r.legs).length ? ' [geo]' : ''), fmt(last.toAmount, to), fmt(last.toAmountMin, to), usd(r.legs.reduce((s, q) => s + q.costUsd, 0)), usd(routeNetUsd(r)), duration(routeEta(r))]
     }),
   ])
+  if (routes.slice(0, 8).some((r) => geoKeys(r.legs).length)) {
+    out()
+    out('[geo] = uses a service with geo restrictions (chainer geo); you must confirm your location before it is used.')
+  }
   const best = routes[0]!
   if (best.legs.length > 1) {
     out()
@@ -343,7 +396,9 @@ async function sendCommand(args: string[]): Promise<void> {
   }
   if (opts['dry-run']) return out('Dry run: nothing was signed or sent.')
   if (!opts.yes && !(await confirm(`Send ${fmt(request.amount, request.from)} over this route?`))) return out('Cancelled.')
-  await execute(pipelineFromRoute(routes[0]!, plan.wallet))
+  const accepted = await geoAcceptance(routes[0]!)
+  if (!accepted) return out('Cancelled: the location confirmation was not given. Nothing was sent.')
+  await execute(pipelineFromRoute(routes[0]!, plan.wallet, accepted))
 }
 
 // ---- pipelines ----------------------------------------------------------
@@ -407,6 +462,16 @@ interface PlanFile {
   legs?: { amount?: number | string; from?: string; to?: string; recipient?: string }[]
 }
 
+/** Plans choose bridges at run time: ask once for all restricted bridges; without the confirmation they are simply not used. */
+async function askGeoForPlan(): Promise<string[]> {
+  const usable = Object.keys(GEO_RESTRICTIONS).filter((k) => !settings.lifi.denyBridges.includes(k))
+  const notices = geoNotices(usable.map((tool) => ({ provider: 'lifi', tool })))
+  if (opts.testnet) return usable
+  if (await geoForm(notices, 'This plan picks its bridges while it runs and may use any of these:')) return usable
+  out('Without the confirmation these bridges are left out; the plan continues with the others.')
+  return []
+}
+
 async function pipelineCommand(sub: string | undefined, file: string | undefined): Promise<void> {
   if (sub !== 'run' || !file) throw new Error('Use: chainer pipeline run <plan.yaml>')
   const plan = parseYaml(await readFile(file, 'utf8')) as PlanFile
@@ -449,6 +514,8 @@ async function pipelineCommand(sub: string | undefined, file: string | undefined
     return out('Dry run: nothing was signed or sent.')
   }
   if (!opts.yes && !(await confirm('Run this plan? Each leg starts by itself once the previous one has arrived.'))) return out('Cancelled.')
+  // The bridges are picked while the plan runs, so the form covers every geo-restricted bridge it might use.
+  record.geoAccepted = await askGeoForPlan()
   await execute(record)
 }
 
@@ -478,6 +545,14 @@ async function statusCommand(id: string | undefined): Promise<void> {
 async function resumeCommand(id: string | undefined): Promise<void> {
   const record = await findRun(id)
   if (record.state === 'done') return printPipeline(record)
+  // Your location may have changed since the run started, so earlier confirmations are asked for again.
+  if (record.geoAccepted?.length) {
+    const notices = geoNotices(record.geoAccepted.map((tool) => ({ provider: 'lifi', tool })))
+    if (!(await geoForm(notices, 'This run was started with a confirmation for:'))) {
+      record.geoAccepted = []
+      out('Without the confirmation these bridges are left out; the remaining legs use the others.')
+    }
+  }
   await execute(record)
 }
 
@@ -538,6 +613,8 @@ async function main(): Promise<void> {
       return sendCommand(rest)
     case 'pipeline':
       return pipelineCommand(rest[0], rest[1])
+    case 'geo':
+      return geoCommand()
     case 'status':
       return statusCommand(rest[0])
     case 'resume':

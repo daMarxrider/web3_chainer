@@ -271,3 +271,28 @@ test('a leg interrupted while sending is never re-sent on resume', async () => {
   assert.match(again.legs[0]!.error!, /unclear whether the transaction went out/)
   assert.equal(w.sent.length, 0)
 })
+
+// ---- geo restrictions ---------------------------------------------------
+
+const asAcross = (w: ReturnType<typeof world>): BridgeProvider => ({
+  ...w.provider,
+  name: 'lifi',
+  getQuotes: async (r, p) => (await w.provider.getQuotes(r, p)).map((q) => ({ ...q, provider: 'lifi', tool: 'across' })),
+})
+
+test('a bridge with geo restrictions is not used unless the user confirmed their location', async () => {
+  const w = world([[A, Z, 1]], [[A, 100n]])
+  const deps = { ...w.deps(memoryStore()), providers: [asAcross(w)] }
+  const result = await runPipeline(newPipeline('main', ME, [{ from: A, to: Z, amount: '100', toAddress: ME }]), deps)
+  assert.equal(result.state, 'failed')
+  assert.match(result.legs[0]!.error!, /geo restrictions/)
+  assert.equal(w.sent.length, 0)
+})
+
+test('with the confirmation recorded the restricted bridge runs', async () => {
+  const w = world([[A, Z, 1]], [[A, 100n]])
+  const deps = { ...w.deps(memoryStore()), providers: [asAcross(w)] }
+  const result = await runPipeline(newPipeline('main', ME, [{ from: A, to: Z, amount: '100', toAddress: ME }], ['across']), deps)
+  assert.equal(result.state, 'done')
+  assert.equal(w.sent.length, 1)
+})
