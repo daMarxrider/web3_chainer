@@ -29,4 +29,6 @@ test('a service limited to one country says so in the statement', () => {
 test('every entry names regions and its terms; Paxos Labs Transit is denied by default', () => {
   for (const [key, r] of Object.entries(GEO_RESTRICTIONS)) assert.ok(r.regions.length > 0 && r.terms && r.name, key)
   assert.ok(defaultSettings.lifi.denyBridges.includes('paxos'))
+  assert.ok(defaultSettings.lifi.denyBridges.includes('unit'))
+  assert.equal(geoKeys([q('garden')]).length, 1)
 })

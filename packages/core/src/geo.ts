@@ -50,6 +50,7 @@ export const GEO_RESTRICTIONS: Record<string, GeoRestriction> = {
     note: 'The terms also forbid VPNs to get around this.',
     terms: 'Uneven Labs Terms of Use, 9 Nov 2026',
   },
+  // Denied by default (operator-run, not permissionless); kept so the list stays correct if it is ever enabled.
   unit: { name: 'Unit', regions: ['United States', 'sanctioned countries listed in the terms'], note: 'Enforced by IP geofencing and VPN blocking.', terms: 'Hyperunit Terms of Service, Nov 2024' },
   eco: { name: 'Eco', regions: SANCTIONED, note: LISTS, terms: 'Eco, Inc. Terms of Service, 23 Jul 2026' },
   superset: { name: 'Superset', regions: SANCTIONED, note: LISTS, terms: 'Superset Terms, 20 Apr 2026' },
@@ -68,7 +69,7 @@ export const GEO_RESTRICTIONS: Record<string, GeoRestriction> = {
 }
 
 /** Bridges excluded from the default route search (see the terms review in docs/PLAN.md). */
-export const DEFAULT_DENIED_BRIDGES = ['paxos']
+export const DEFAULT_DENIED_BRIDGES = ['paxos', 'unit']
 
 export interface GeoNotice extends GeoRestriction {
   /** LI.FI bridge keys behind this service that the route uses. */
