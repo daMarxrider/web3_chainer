@@ -1,0 +1,161 @@
+https://0g-beacon-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://0g-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x4115","id":1}
+https://akash-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://analog-rpc.publicnode.com {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}
+https://arbitrum-nova-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xa4ba","id":1}
+https://arbitrum-one-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xa4b1","id":1}
+https://arbitrum-sepolia-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x66eee","id":1}
+https://arc-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x13b2","id":1}
+https://arc-testnet-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x4cef52","id":1}
+https://atomone-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://avail-rpc.publicnode.com {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}
+https://avail-turing-rpc.publicnode.com {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}
+https://avalanche-c-chain-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xa86a","id":1}
+https://avalanche-fuji-c-chain-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xa869","id":1}
+https://avalanche-fuji-p-chain-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xa869","id":1}
+https://avalanche-fuji-x-chain-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xa869","id":1}
+https://avalanche-p-chain-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xa86a","id":1}
+https://avalanche-x-chain-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xa86a","id":1}
+https://axelar-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://babylon-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://base-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x2105","id":1}
+https://base-sepolia-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x14a34","id":1}
+https://berachain-beacon-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://berachain-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x138de","id":1}
+https://bitcoin-rpc.publicnode.com {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}
+https://bitcoin-signet-rpc.publicnode.com {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}
+https://bitcoin-testnet-rpc.publicnode.com {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}
+https://bsc-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x38","id":1}
+https://bsc-testnet-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x61","id":1}
+https://bsv-rpc.publicnode.com {"result":null,"error":{"code":-32601,"message":"Method not found"},"id":1}
+https://celer-rpc.publicnode.com {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32601,
+    "message": "Method not found"
+  }
+}
+https://celestia-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://celo-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xa4ec","id":1}
+https://cheqd-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://chiliz-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x15b38","id":1}
+https://chiliz-spicy-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x15b32","id":1}
+https://cosmos-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://cronos-evm-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x19","id":1}
+https://cronos-pos-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://cronos-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://dash-rpc.publicnode.com {"result":null,"error":{"code":-32601,"message":"Method not found"},"id":1}
+https://defichain-rpc.publicnode.com {"result":null,"error":{"code":-32601,"message":"Method not found"},"id":1}
+https://dora-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://dydx-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://elysium-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x1863d","id":1}
+https://ethereum-hoodi-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x88bb0","id":1}
+https://ethereum-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x1","id":1}
+https://ethereum-sepolia-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xaa36a7","id":1}
+https://fetch-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://firo-rpc.publicnode.com {"result":null,"error":{"code":-32601,"message":"Method not found"},"id":1}
+https://fraxtal-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xfc","id":1}
+https://gnosis-chiado-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x27d8","id":1}
+https://gnosis-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x64","id":1}
+https://haqq-evm-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x2be3","id":1}
+https://haqq-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://hyperliquid-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x3e7","id":1}
+https://injective-evm-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"result":"0x6f0"}
+https://injective-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://injective-testnet-evm-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"result":"0x59f"}
+https://injective-testnet-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://ink-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xdef1","id":1}
+https://ink-sepolia-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xba5ed","id":1}
+https://juno-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://kava-evm-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x8ae","id":1}
+https://kava-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://kusama-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://linea-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xe708","id":1}
+https://linea-sepolia-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xe705","id":1}
+https://lumera-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://mantle-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x1388","id":1}
+https://medibloc-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://metis-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x440","id":1}
+https://metis-sepolia-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xe9fe","id":1}
+https://opbnb-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xcc","id":1}
+https://opbnb-testnet-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x15eb","id":1}
+https://optimism-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xa","id":1}
+https://optimism-sepolia-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xaa37dc","id":1}
+https://oraichain-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://osmosis-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://peaq-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xd0a","id":1}
+https://pivx-rpc.publicnode.com {"result":null,"error":{"code":-32601,"message":"Method not found: eth_chainId"},"id":1}
+https://polkadot-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://polygon-amoy-bor-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x13882","id":1}
+https://polygon-amoy-heimdall-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://polygon-bor-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x89","id":1}
+https://polygon-heimdall-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://pulsechain-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x171","id":1}
+https://pulsechain-testnet-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x3af","id":1}
+https://robinhood-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x1237","id":1}
+https://robinhood-sepolia-rpc.publicnode.com {"jsonrpc":"2.0","result":"0xb626","id":1}
+https://saga-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://scroll-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x82750","id":1}
+https://sei-evm-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x531","id":1}
+https://sei-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found","data":"method eth_chainId not found"}}
+https://sentinel-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://solana-rpc.publicnode.com {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}
+https://solana-testnet-rpc.publicnode.com {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}
+https://somnia-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x13a7","id":1}
+https://soneium-minato-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x79a","id":1}
+https://soneium-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x74c","id":1}
+https://sonic-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x92","id":1}
+https://stable-evm-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x3dc","id":1}
+https://stable-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://stable-testnet-evm-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"result":"0x899"}
+https://stable-testnet-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://starknet-rpc.publicnode.com {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method Not Found"},"id":1}
+https://starknet-sepolia-rpc.publicnode.com {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method Not Found"},"id":1}
+https://story-consensus-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://story-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x5ea","id":1}
+https://syscoin-evm-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x39","id":1}
+https://syscoin-tanenbaum-evm-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x1644","id":1}
+https://taiko-hoodi-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x28c65","id":1}
+https://taiko-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x28c58","id":1}
+https://tempo-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x1079","id":1}
+https://terra-classic-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://terra-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://tron-evm-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x2b6653dc","id":1}
+https://tron-rpc.publicnode.com <html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+<title>Error 405 HTTP method POST is not supported by this URL</title>
+</head>
+<body><h2>HTTP ERROR 405 HTTP method POST is not supported by this URL</h2>
+<table>
+<tr><th>URI:</th><td>/</td></tr>
+<tr><th>STATUS:</th><td>405</td></tr>
+<tr><th>MESSAGE:</th><td>HTTP method POST is not supported by this URL</td></tr>
+<tr><th>SERVLET:</th><td>org.eclipse.jetty.servlet.ServletHandler$Default404Servlet-48038067</td></tr>
+</table>
+<hr/><a href="https://jetty.org/">Powered by Jetty:// 9.4.58.v20250814</a><hr/>
+
+</body>
+</html>
+https://tron-solidity-rpc.publicnode.com <html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+<title>Error 405 HTTP method POST is not supported by this URL</title>
+</head>
+<body><h2>HTTP ERROR 405 HTTP method POST is not supported by this URL</h2>
+<table>
+<tr><th>URI:</th><td>/</td></tr>
+<tr><th>STATUS:</th><td>405</td></tr>
+<tr><th>MESSAGE:</th><td>HTTP method POST is not supported by this URL</td></tr>
+<tr><th>SERVLET:</th><td>org.eclipse.jetty.servlet.ServletHandler$Default404Servlet-2be5e4f5</td></tr>
+</table>
+<hr/><a href="https://jetty.org/">Powered by Jetty:// 9.4.58.v20250814</a><hr/>
+
+</body>
+</html>
+https://tx-chain-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://unichain-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x82","id":1}
+https://unichain-sepolia-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x515","id":1}
+https://xpla-evm-rpc.publicnode.com {"jsonrpc":"2.0","result":"0x25","id":1}
+https://xpla-rpc.publicnode.com {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}

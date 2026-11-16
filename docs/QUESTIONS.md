@@ -13,5 +13,5 @@ Still open:
 
 ## Legal work postponed to the next session (as agreed)
 
-7. Default RPC endpoints (EVM and Solana) terms; which LI.FI document governs the keyless API; the LI.FI email (needs your yes and the name to sign with).
+7. LI.FI email and the remaining RPC gap. RPC terms are done (16 Nov 2026, see PLAN.md "RPC endpoints"); the SDK is not needed since LI.FI's docs allow keyless API use. Still open: (a) the LI.FI email (needs your yes and the name to sign with), now optional since the docs answer the main question, though the Relay and NEAR Intents downstream-distributor question remains; (b) seven small chains (Vana, Ronin, Morph, Etherlink, XDC, Flow EVM, Plasma) still use their own operator's endpoint, terms unread: keep, or read their terms too?
 8. litecoinspace.org's served terms could not be read (script-rendered page); it stays as the default Litecoin API under your "no terms means no restriction" rule.

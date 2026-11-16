@@ -1,0 +1,58 @@
+https://akash.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://arb-one.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xa4b1"}
+https://arb-sepolia-testnet.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x66eee"}
+https://atomone.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://avax.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xa86a"}
+https://base.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x2105"}
+https://base-sepolia-testnet.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x14a34"}
+https://bera.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x138de"}
+https://blast.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x13e31"}
+https://boba.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32600,"data":{"available_services":["akash","arb-one","arb-sepolia-testnet","atomone","avax","base","base-sepolia-testnet","bera","blast","bsc","celo","cheqd","chihuahua","cosmoshub","eth","eth-beacon","eth-sepolia-testnet","fantom","fetch","fraxtal","fuse","giwa-sepolia-testnet","gnosis","hyperliquid","ink","iotex","jackal","juno","kaia","kava","linea","manta","mantle","metis","moonbeam","moonriver","near","oasys","op","op-sepolia-testnet","opbnb","osmosis","persistence","pocket","poly","poly-amoy-testnet","poly-zkevm","provenance","robinhood","scroll","seda","sei","shentu","solana","sonic","sui","taiko","taiko-hekla-testnet","tron","unichain","xrplevm","xrplevm-testnet","zklink-nova","zksync-era"]},"message":"service \"boba\" is not configured"}}
+https://bsc.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x38"}
+https://celo.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xa4ec"}
+https://cheqd.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://chihuahua.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://eth.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x1"}
+https://eth-sepolia-testnet.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xaa36a7"}
+https://fantom.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xfa"}
+https://fetch.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://fraxtal.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xfc"}
+https://fuse.api.pocket.network {"jsonrpc":"2.0","result":"0x7a","id":1}
+https://giwa-sepolia-testnet.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x164ce"}
+https://gnosis.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x64"}
+https://harmony.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32600,"data":{"available_services":["akash","arb-one","arb-sepolia-testnet","atomone","avax","base","base-sepolia-testnet","bera","blast","bsc","celo","cheqd","chihuahua","cosmoshub","eth","eth-beacon","eth-sepolia-testnet","fantom","fetch","fraxtal","fuse","giwa-sepolia-testnet","gnosis","hyperliquid","ink","iotex","jackal","juno","kaia","kava","linea","manta","mantle","metis","moonbeam","moonriver","near","oasys","op","op-sepolia-testnet","opbnb","osmosis","persistence","pocket","poly","poly-amoy-testnet","poly-zkevm","provenance","robinhood","scroll","seda","sei","shentu","solana","sonic","sui","taiko","taiko-hekla-testnet","tron","unichain","xrplevm","xrplevm-testnet","zklink-nova","zksync-era"]},"message":"service \"harmony\" is not configured"}}
+https://hyperliquid.api.pocket.network {"jsonrpc":"2.0","result":"0x3e7","id":1}
+https://ink.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xdef1"}
+https://iotex.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x1251"}
+https://juno.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://kaia.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x2019"}
+https://kava.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x8ae"}
+https://linea.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xe708"}
+https://metis.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x440"}
+https://moonbeam.api.pocket.network {"id":1,"jsonrpc":"2.0","result":"0x504"}
+https://moonriver.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x505"}
+https://near.api.pocket.network {"jsonrpc":"2.0","error":{"name":"REQUEST_VALIDATION_ERROR","cause":{"name":"METHOD_NOT_FOUND","info":{"method_name":"eth_chainId"}},"code":-32601,"message":"Method not found","data":"eth_chainId"},"id":1}
+https://oasys.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xf8"}
+https://op.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xa"}
+https://opbnb.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xcc"}
+https://op-sepolia-testnet.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0xaa37dc"}
+https://osmosis.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://persistence.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://pocket.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://poly-amoy-testnet.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x13882"}
+https://poly.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x89"}
+https://poly-zkevm.api.pocket.network {"id":1,"jsonrpc":"2.0","result":"0x44d"}
+https://scroll.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x82750"}
+https://seda.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://sei.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x531"}
+https://shentu.api.pocket.network {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+https://solana.api.pocket.network {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}
+https://sonic.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x92"}
+https://sui.api.pocket.network {"jsonrpc":"2.0","error":{"code":-32603,"message":"protocol error: no endpoint available for service"},"id":1}
+https://taiko.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x28c58"}
+https://tron.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x2b6653dc"}
+https://unichain.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x82"}
+https://xrplevm.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x15f900"}
+https://xrplevm-testnet.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x161c28"}
+https://zklink-nova.api.pocket.network {"jsonrpc":"2.0","result":"0xc5cc4","id":1}
+https://zksync-era.api.pocket.network {"jsonrpc":"2.0","id":1,"result":"0x144"}

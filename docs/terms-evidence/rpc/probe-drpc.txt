@@ -1,0 +1,105 @@
+https://0g-mainnet.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x4115"}
+https://abcore.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x9018"}
+https://abstract.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xab5"}
+https://adi.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x9024"}
+https://algorand.drpc.org {"id":1,"jsonrpc":"2.0","error":{"message":"method is not available","code":-32601}}
+https://apechain.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x8173"}
+https://arbitrum.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xa4b1"}
+https://arbitrum-nova.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xa4ba"}
+https://arc.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x13b2"}
+https://astar.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x250"}
+https://aurora.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x4e454152"}
+https://avalanche.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xa86a"}
+https://aztec-mainnet.drpc.org {"id":1,"jsonrpc":"2.0","error":{"message":"method is not available","code":-32601}}
+https://base.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x2105"}
+https://berachain.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x138de"}
+https://bitlayer.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x310c5"}
+https://bittorrent.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xc7"}
+https://blog.drpc.org 
+https://boba-eth.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x120"}
+https://bob.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xed88"}
+https://bsc.drpc.org {"id":1,"jsonrpc":"2.0","error":{"message":"You reached Public endpoint rate limit, please upgrade to paid plan","code":15}}
+https://bsquared.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xdf"}
+https://celo.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xa4ec"}
+https://core.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x45c"}
+https://cosmos-hub.drpc.org {"id":1,"jsonrpc":"2.0","error":{"message":"method is not available","code":-32601}}
+https://creditcoin.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x18e8e"}
+https://cronos.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x19"}
+https://cronos-zkevm.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x184"}
+https://dogecoin.drpc.org {"id":1,"jsonrpc":"2.0","error":{"message":"method is not available","code":-32601}}
+https://dogeos-testnet.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x5fdaf3"}
+https://doma.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x17cc5"}
+https://dymension.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x44c"}
+https://elysium.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x1863d"}
+https://eth.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x1"}
+https://ethereum-classic.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x3d"}
+https://fantom.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xfa"}
+https://filecoin.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x13a"}
+https://flare.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xe"}
+https://fraxtal.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xfc"}
+https://fuse.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x7a"}
+https://gnosis.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x64"}
+https://goat-mainnet-alpha.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x929"}
+https://haqq.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x2be3"}
+https://hashkey.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xb1"}
+https://hemi.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xa867"}
+https://hyperliquid.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x3e7"}
+https://immutable-zkevm.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x343b"}
+https://injective.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x6f0"}
+https://ink.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xdef1"}
+https://katana.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xb67d2"}
+https://kava.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x8ae"}
+https://kite.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x93e"}
+https://kusama.drpc.org {"id":1,"jsonrpc":"2.0","error":{"message":"method is not available","code":-32601}}
+https://lens.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xe8"}
+https://linea.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xe708"}
+https://lisk.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x46f"}
+https://manta-pacific.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xa9"}
+https://mantle.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x1388"}
+https://megaeth.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x10e6"}
+https://merlin.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x1068"}
+https://metall2.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x6d6"}
+https://metis.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x440"}
+https://mezo.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x7b7c"}
+https://moca.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x8f0"}
+https://mode.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x868b"}
+https://monad-mainnet.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x8f"}
+https://moonriver.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x505"}
+https://morph.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xB02"}
+https://mova-mainnet-v2.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xf1cd"}
+https://near.drpc.org {"id":1,"jsonrpc":"2.0","error":{"message":"method is not available","code":-32601}}
+https://neo-x.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xba93"}
+https://oktc.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x42"}
+https://opbnb.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xcc"}
+https://optimism.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xa"}
+https://peaq.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xd0a"}
+https://pharos.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x688"}
+https://playnance.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x725"}
+https://plume.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x18232"}
+https://polygon.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x89"}
+https://polygon-zkevm.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x44d"}
+https://robinhood.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x1237"}
+https://rootstock.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x1e"}
+https://scroll.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x82750"}
+https://sei.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x531"}
+https://soneium.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x74c"}
+https://sonic.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x92"}
+https://stable.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x3dc"}
+https://status.drpc.org 
+https://support.drpc.org 
+https://swell.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x783"}
+https://tac.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xef"}
+https://taiko.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x28c58"}
+https://tea.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x17ea"}
+https://telos.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x28"}
+https://tempo-mainnet.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x1079"}
+https://tron.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x2b6653dc"}
+https://unichain.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x82"}
+https://viction.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x58"}
+https://wemix.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x457"}
+https://worldchain.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x1e0"}
+https://xlayer.drpc.org {"id":1,"jsonrpc":"2.0","result":"0xc4"}
+https://xrpl.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x15f900"}
+https://zeta-chain.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x1b58"}
+https://zksync.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x144"}
+https://zora.drpc.org {"id":1,"jsonrpc":"2.0","result":"0x76adf1"}

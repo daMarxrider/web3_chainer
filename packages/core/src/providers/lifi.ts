@@ -1,5 +1,6 @@
 import { builtinNativeToken, UTXO_COINS } from '../chains/utxo-coins.ts'
 import { fetchJson } from '../http.ts'
+import { defaultRpcUrls } from '../rpc.ts'
 import type { Settings } from '../settings.ts'
 import { isNative } from '../tokens.ts'
 import type { Action, BridgeProvider, Chain, ChainFamily, FetchFn, Quote, QuoteRequest, Token, TransferStatus } from '../types.ts'
@@ -65,6 +66,8 @@ export async function lifiChains(fetchFn: FetchFn): Promise<Chain[]> {
     const family = FAMILY[c.chainType]
     // UTXO chains need a coin definition here (address format, key path); others are left out.
     if (!family || (family === 'bitcoin' && !UTXO_COINS[c.key])) return []
+    // LI.FI lists JSON-RPC nodes for UTXO chains; this app reads them through Esplora instead.
+    const rpcUrls = family === 'bitcoin' ? UTXO_COINS[c.key]!.endpoints : defaultRpcUrls({ family, id: c.id }, c.metamask.rpcUrls)
     return [
       {
         family,
@@ -73,8 +76,7 @@ export async function lifiChains(fetchFn: FetchFn): Promise<Chain[]> {
         name: c.name,
         nativeSymbol: c.nativeToken.symbol,
         nativePriceUsd: c.nativeToken.priceUSD ? Number(c.nativeToken.priceUSD) : undefined,
-        // LI.FI lists JSON-RPC nodes for UTXO chains; this app reads them through Esplora instead.
-        rpcUrls: family === 'bitcoin' ? UTXO_COINS[c.key]!.endpoints : c.metamask.rpcUrls,
+        rpcUrls,
         multicall: c.multicallAddress,
         testnet: !c.mainnet,
       },
