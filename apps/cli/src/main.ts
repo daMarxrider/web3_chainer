@@ -19,6 +19,7 @@ import {
   geoStatement,
   lifiChains,
   lifiProvider,
+  sdkStatus,
   cctpProvider,
   lifiToken,
   lifiTokens,
@@ -70,6 +71,7 @@ Usage:
   chainer pipeline run <plan.yaml>            Run a chain of transfers, each starting when
                                               the previous one has arrived
   chainer geo                                 List bridges with geo restrictions and where they apply
+  chainer providers                           List route sources, and which optional SDKs are installed
   chainer status [<id>]                       List runs, or show one in detail
   chainer resume <id>                         Continue a run that stopped or failed
   chainer config show
@@ -326,6 +328,15 @@ async function geoAcceptance(route: Route): Promise<string[] | undefined> {
   const notices = geoNotices(route.legs)
   const keys = geoKeys(route.legs)
   return (await geoForm(notices, 'This route uses:')) ? keys : undefined
+}
+
+async function providersCommand(): Promise<void> {
+  const sdks = await sdkStatus()
+  if (opts.json) return printJson({ builtIn: ['lifi', 'cctp', 'thorchain', 'maya'], optional: sdks })
+  out('Built in: lifi, cctp, thorchain, maya')
+  for (const s of sdks) {
+    out(`${s.provider}: ${s.installed ? 'installed' : s.error ? `broken (${s.error})` : `not installed, ${s.gives} is not offered; add it with "npm install ${s.pkg}"`}`)
+  }
 }
 
 function geoCommand(): void {
@@ -665,6 +676,8 @@ async function main(): Promise<void> {
       return pipelineCommand(rest[0], rest[1])
     case 'geo':
       return geoCommand()
+    case 'providers':
+      return providersCommand()
     case 'status':
       return statusCommand(rest[0])
     case 'resume':

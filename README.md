@@ -129,6 +129,7 @@ chainer config set maxHops 3                    # most legs an automatic route m
 chainer config avoid add USDT                   # never route through or into this token
 chainer config rpc arbitrum https://my-node...  # use your own RPC node ("default" to undo)
 chainer geo                                     # bridges with geo restrictions, and where
+chainer providers                               # route sources, and which optional SDKs are installed
 ```
 
 ### Scripting
