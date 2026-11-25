@@ -571,8 +571,8 @@ interface StopTopUp {
  * wallet goes there first, sized from the next leg's own quoted cost (times the multiplier, or
  * the fixed value). Nothing is returned for stop-overs that already have gas or hold the coin.
  */
-async function stopOverTopUps(route: Route, sourceBalance: bigint, mainAmount: bigint): Promise<StopTopUp[]> {
-  const setting = gasSetting()
+async function stopOverTopUps(route: Route, sourceBalance: bigint, mainAmount: bigint, override?: string): Promise<StopTopUp[]> {
+  const setting = override ? parseGasTopUp(override, settings.gasTopUp) : gasSetting()
   if (setting.mode === 'off') return []
   const chains = await allChains()
   const first = route.legs[0]!.request
@@ -596,6 +596,8 @@ async function stopOverTopUps(route: Route, sourceBalance: bigint, mainAmount: b
     let candidates: Route[]
     try {
       candidates = await search({ request: { ...first, to: native, amount, toAddress: stop.address }, fromChain: chains.find((c) => c.key === first.from.chainKey)!, toChain: chain, wallet: await walletNameFor(first.fromAddress) })
+    } catch (err) {
+      throw new Error(`Cannot send gas ahead to ${chain.name}: ${(err as Error).message}. Turn the gas top-up off (--gas-topup off) or get some ${chain.nativeSymbol} there first.`)
     } finally {
       transitPool = keep
     }
@@ -1041,6 +1043,27 @@ async function pipelineCommand(sub: string | undefined, file: string | undefined
     out(`Plan with ${legs.length} leg${legs.length === 1 ? '' : 's'}, wallet ${account.name}${opts.testnet ? ', on test networks' : ''}:`)
     record.legs.forEach((leg, i) => out(`  ${i + 1}. ${legText(leg)}`))
   }
+  // Gas for the chains the plan stops on: needs a fixed first amount to size the extra against.
+  let stops: StopTopUp[] = []
+  const firstLeg = record.legs[0]!
+  if (record.legs.length > 1 && firstLeg.amount !== 'all') {
+    const chains = await allChains()
+    const [balance] = await adapterFor(chains.find((c) => c.key === firstLeg.from.chainKey)!).getBalances(firstLeg.fromAddress ?? record.fromAddress, [firstLeg.from])
+    // The legs are not quoted yet, so the next leg's cost is unknown and the node's gas estimate is used.
+    const asRoute = {
+      legs: record.legs.map((l) => ({
+        request: { from: l.from, to: l.to, amount: l.amount === 'all' ? 0n : BigInt(l.amount), fromAddress: l.fromAddress ?? record.fromAddress, toAddress: l.toAddress, slippage: settings.slippage },
+        costUsd: 0,
+      })),
+    } as unknown as Route
+    try {
+      stops = await stopOverTopUps(asRoute, balance!, BigInt(firstLeg.amount), plan.gasTopUp)
+      printStopOvers(stops)
+    } catch (err) {
+      if (!opts['dry-run']) throw err
+      out(`Note: ${(err as Error).message}`)
+    }
+  }
   if (opts['dry-run']) {
     // Quote each leg with what the one before it would deliver at worst.
     const { providers } = await runDeps()
@@ -1059,9 +1082,10 @@ async function pipelineCommand(sub: string | undefined, file: string | undefined
     }
     return out('Dry run: nothing was signed or sent.')
   }
-  if (!opts.yes && !(await confirm('Run this plan? Each leg starts by itself once the previous one has arrived.'))) return out('Cancelled.')
+  if (!opts.yes && !(await confirm(`Run this plan${stops.length ? ' and send the gas for the stop-overs first' : ''}? Each leg starts by itself once the previous one has arrived.`))) return out('Cancelled.')
   // The bridges are picked while the plan runs, so the form covers every geo-restricted bridge it might use.
   record.geoAccepted = await askGeoForPlan()
+  await runStopOverTopUps(stops, account.name, record.geoAccepted)
   // Gas for the last chain: only when the first leg has a fixed amount to base it on.
   const [first, last] = [record.legs[0]!, record.legs.at(-1)!]
   let topUp: Route | undefined

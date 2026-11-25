@@ -138,7 +138,7 @@ chainer config set gasTopUpFixedUsd 5          # 0.10 to 50
 chainer send 100 USDC arbitrum base --gas-topup 3x    # for one run: off, 3x or $5
 ```
 
-In a plan file add `gasTopUp: 3x` (or `off`, `$5`) next to `wallet:` to set it for that plan. The extra is skipped, with the reason shown, when the recipient already has gas, when the transfer is too small to carry it, when the wallet cannot pay it on top, or (in multiplier mode) when the chain's gas price is unknown. It never exceeds $50, and a failure of the extra never affects the main transfer. In a plan file it covers the last chain only, and only when the first leg has a fixed amount. Stop-over chains of routes found by `send` and saved-route runs are handled as described under Transit wallets; plan files list their legs by hand, so their stop-overs are not topped up.
+In a plan file add `gasTopUp: 3x` (or `off`, `$5`) next to `wallet:` to set it for that plan. The extra is skipped, with the reason shown, when the recipient already has gas, when the transfer is too small to carry it, when the wallet cannot pay it on top, or (in multiplier mode) when the chain's gas price is unknown. It never exceeds $50, and a failure of the extra never affects the main transfer. In a plan file it covers the last chain only, and only when the first leg has a fixed amount. The chains a route or plan stops on are handled as described under Transit wallets (for plans, sized from the node's gas estimate, because the legs are not quoted until they run; this too needs a fixed first amount, so a plan that starts with `all` gets no stop-over gas).
 
 ### Transit wallets
 
