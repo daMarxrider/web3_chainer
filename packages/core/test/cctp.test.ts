@@ -33,7 +33,8 @@ test('quotes a fast and a standard transfer, fees taken out of the amount', asyn
   // 10 USDC burned: forward fee 0.057543 + 1.3 bps of 10 USDC (0.0013)
   assert.equal(quotes[0]!.toAmount, 10_000_000n - 57_543n - 1_300n)
   assert.equal(quotes[1]!.toAmount, 10_000_000n - 57_543n)
-  assert.equal(quotes[0]!.toAmountMin, quotes[0]!.toAmount)
+  // the worst case is priced at the "high" forwarding fee level: 0.059052 + 0.0013
+  assert.equal(quotes[0]!.toAmountMin, 10_000_000n - 59_052n - 1_300n)
 })
 
 test('offers nothing for other tokens, same chain, mixed testnet and mainnet, or amounts below the fee', async () => {

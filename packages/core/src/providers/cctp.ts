@@ -121,15 +121,17 @@ export function cctpProvider(fetchFn: FetchFn, chains: Chain[]): BridgeProvider 
         // The burned amount is what the wallet sends; the fees come out of it on the destination chain.
         const maxFee = BigInt(fee.forwardFee.med) + protocolFee(request.amount, fee.minimumFee)
         if (request.amount <= maxFee) continue
+        const worstFee = BigInt(fee.forwardFee.high) + protocolFee(request.amount, fee.minimumFee)
         const received = request.amount - maxFee
         const fast = fee.finalityThreshold === FAST
         quotes.push({
           provider: 'cctp',
           tool: fast ? 'cctp-fast' : 'cctp-standard',
           request,
-          // Circle takes at most maxFee, so the minimum equals the expected amount: no slippage.
+          // Circle takes at most maxFee, so a transfer never gets less than the expected amount for the same quote. The forwarding fee moves between
+          // quotes, though, so the worst case a run guards against is priced at Circle's "high" fee level.
           toAmount: received,
-          toAmountMin: received,
+          toAmountMin: request.amount > worstFee ? request.amount - worstFee : received,
           toAmountUsd: Number(received) / 1e6,
           // Gas of the approval and the burn on the source chain; the forwarding fee is already inside maxFee.
           costUsd: gasUsd,
