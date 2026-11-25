@@ -2,6 +2,7 @@ import { geoKeys, geoNotices, geoStatement, parseUnits, resolveRecipient, routeE
 import { amount, duration, h, replace, shortAddress, usd } from '../dom.ts'
 import { engine } from '../engine.ts'
 import { icon } from '../icons.ts'
+import { askText } from './confirm.ts'
 import { showJob } from './job.ts'
 
 interface Form {
@@ -116,6 +117,17 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
     let chosen = 0
     const detail = h('div', { class: 'route-detail' })
     const send = h('button', { class: 'btn primary', type: 'button' }, 'Review and send')
+    const save = h('button', { class: 'btn', type: 'button' }, 'Save as route')
+    save.addEventListener('click', async () => {
+      const name = await askText(sheet, 'Save route', 'Name', 'weekly-usdc')
+      if (!name) return
+      try {
+        await engine.saveRoute({ kind: 'transfer', name, createdAt: new Date().toISOString(), wallet: engine.requireSession().walletName, from: `${req.from.symbol}@${req.fromChain.key}`, to: `${req.to.symbol}@${req.toChain.key}`, amount: req.amount.toString(), recipient: recipient.value.trim() || undefined, via: routeVia(routes[chosen]!), fallback: false })
+        results.prepend(h('p', { class: 'banner ok' }, `Saved "${name}". Find it under Saved routes.`))
+      } catch (e) {
+        formError.textContent = (e as Error).message
+      }
+    })
     const draw = () => {
       const r = routes[chosen]!
       const notices = geoNotices(r.legs)
@@ -152,7 +164,7 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
       h('div', { class: 'table-wrap' }, h('table', { class: 'data routes' }, h('caption', { class: 'sr-only' }, 'Routes ranked by what arrives'), h('thead', {}, h('tr', {}, h('th', {}, h('span', { class: 'sr-only' }, 'Choose')), h('th', { scope: 'col' }, 'Via'), h('th', { scope: 'col', class: 'num' }, 'You receive'), h('th', { scope: 'col', class: 'num' }, 'At worst'), h('th', { scope: 'col', class: 'num' }, 'Gas + fees'), h('th', { scope: 'col', class: 'num' }, 'Net value'), h('th', { scope: 'col', class: 'num' }, 'Time'))), body)),
       errors.length ? h('p', { class: 'hint' }, `Some sources did not answer: ${errors.join('; ')}`) : null,
       detail,
-      h('div', { class: 'actions' }, send),
+      h('div', { class: 'actions' }, save, send),
     )
     draw()
   }

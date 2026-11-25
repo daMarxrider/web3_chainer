@@ -28,6 +28,11 @@ export interface SweepInput {
   holdings: Holding[]
   /** The token to receive for a held token, or undefined when the destination has none. */
   target(token: Token): Token | undefined
+  /**
+   * Whether a token is the chain's gas coin. Defaults to the native coin; chains whose gas token also
+   * exists as a token (USDC on Arc) must say so, or a sweep would send the gas away with everything else.
+   */
+  isGasCoin?(token: Token): boolean
   /** Best route for one transfer, or undefined when there is none. */
   findRoute(from: Token, to: Token, amount: bigint): Promise<Route | undefined>
 }
@@ -45,8 +50,9 @@ const GAS_MARGIN = 2
  */
 export async function planSweep(input: SweepInput): Promise<SweepPlan> {
   const held = input.holdings.filter((h) => h.balance > 0n)
-  const tokens = held.filter((h) => !isNative(h.token)).sort((a, b) => (valueUsd(b.token, b.balance) ?? 0) - (valueUsd(a.token, a.balance) ?? 0))
-  const native = held.find((h) => isNative(h.token))
+  const gas = input.isGasCoin ?? ((t: Token) => isNative(t))
+  const tokens = held.filter((h) => !gas(h.token)).sort((a, b) => (valueUsd(b.token, b.balance) ?? 0) - (valueUsd(a.token, a.balance) ?? 0))
+  const native = held.find((h) => gas(h.token))
   const items: SweepItem[] = []
   const skipped: SweepSkip[] = []
 

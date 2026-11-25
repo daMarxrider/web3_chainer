@@ -13,8 +13,29 @@ import {
   loadKeystore,
   loadSettings,
   mayaProvider,
+  addAddress,
+  chooseSaved,
   listPipelines,
+  listRoutes,
+  listSchedules,
+  loadRoute,
+  newPipeline,
+  parseUnits,
   pipelineFromRoute,
+  planSweep,
+  removeAddress,
+  removeRoute,
+  removeSchedule,
+  resolveRecipient,
+  saveRoute,
+  saveSchedule,
+  isNative,
+  type SavedRoute,
+  type SavedSweep,
+  type SavedTransfer,
+  type Schedule,
+  type SweepPlan,
+  type PipelineLeg,
   runPipeline,
   saveSettings,
   solanaAdapter,
@@ -206,15 +227,14 @@ class Engine {
     return (await listPipelines(this.runStore)).filter((r) => r.state !== 'done' && r.wallet === this.session?.walletName).reverse()
   }
 
-  /** Continues a run from where its journal says it stopped. */
-  async resume(record: PipelineRecord, onEvent: (record: PipelineRecord, legIndex: number, message: string) => void): Promise<PipelineRecord> {
+  /** Checks the wallet matches the run, then runs it; used by new runs and resumed ones. */
+  private async execute(record: PipelineRecord, onEvent: (record: PipelineRecord, legIndex: number, message: string) => void): Promise<PipelineRecord> {
     const session = this.requireSession()
     const chains = await this.chains()
     for (const leg of record.legs) {
       const chain = chains.find((c) => c.key === leg.from.chainKey)
       if (chain && chainAddress(session.signer, chain) !== (leg.fromAddress ?? record.fromAddress)) throw new Error('The wallet no longer matches the address this run was created for')
     }
-    record.state = 'running'
     return runPipeline(record, {
       store: this.runStore,
       settings: this.settings,
@@ -225,23 +245,127 @@ class Engine {
     })
   }
 
+  /** Continues a run from where its journal says it stopped. */
+  async resume(record: PipelineRecord, onEvent: (record: PipelineRecord, legIndex: number, message: string) => void): Promise<PipelineRecord> {
+    record.state = 'running'
+    return this.execute(record, onEvent)
+  }
+
   /** Starts the chosen route as a run and reports every step; resolves with the finished record. */
-  async run(route: Route, geoAccepted: string[], onEvent: (record: PipelineRecord, legIndex: number, message: string) => void): Promise<PipelineRecord> {
+  async run(route: Route, geoAccepted: string[], onEvent: (record: PipelineRecord, legIndex: number, message: string) => void, options: { wholeBalance?: boolean } = {}): Promise<PipelineRecord> {
+    const record = pipelineFromRoute(route, this.requireSession().walletName, geoAccepted)
+    if (options.wholeBalance) record.legs[0]!.amount = 'all'
+    return this.execute(record, onEvent)
+  }
+
+  /** Runs a hand-written list of legs; each leg takes the best route when it starts. */
+  async runPlan(legs: Omit<PipelineLeg, 'state'>[], geoAccepted: string[], onEvent: (record: PipelineRecord, legIndex: number, message: string) => void): Promise<PipelineRecord> {
     const session = this.requireSession()
-    const chains = await this.chains()
-    const record = pipelineFromRoute(route, session.walletName, geoAccepted)
-    for (const leg of record.legs) {
-      const chain = chains.find((c) => c.key === leg.from.chainKey)
-      if (chain && chainAddress(session.signer, chain) !== (leg.fromAddress ?? record.fromAddress)) throw new Error('The wallet no longer matches the address this route was made for')
-    }
-    return runPipeline(record, {
-      store: this.runStore,
-      settings: this.settings,
-      signer: session.signer,
-      providers: await this.providers(),
-      adapterFor: (key) => this.adapterFor(chains.find((c) => c.key === key)!),
-      onEvent,
+    const record = newPipeline(session.walletName, legs[0]!.fromAddress!, legs, geoAccepted)
+    return this.execute(record, onEvent)
+  }
+
+  // ---- tokens and addresses by name ----
+
+  /** "USDC@arbitrum": resolved on the current network mode. */
+  async resolveSpec(spec: string): Promise<{ chain: Chain; token: Token }> {
+    const [symbol, chainQuery] = spec.split('@')
+    if (!symbol || !chainQuery) throw new Error(`"${spec}" should look like TOKEN@chain`)
+    const chain = await this.resolveChain(chainQuery)
+    return { chain, token: await lifiToken(withTimeout, chain, symbol) }
+  }
+
+  /** The recipient for a destination chain: the wallet's own address, or an address book label or address. */
+  recipientOn(chain: Chain, typed?: string): string {
+    const own = this.ownAddress(chain)
+    const to = typed?.trim() ? resolveRecipient(this.settings, typed.trim(), chain.key) : own
+    if (!this.adapterFor(chain).validateAddress(to)) throw new Error(`"${to}" is not a valid address on ${chain.name}`)
+    return to
+  }
+
+  async addressBook(): Promise<Settings['addressBook']> {
+    return this.settings.addressBook
+  }
+  async addAddress(label: string, chainKey: string, address: string): Promise<void> {
+    const chain = (await this.chains()).find((c) => c.key === chainKey)!
+    await this.saveSettings(addAddress(this.settings, { label, chainKey, address }, (a) => this.adapterFor(chain).validateAddress(a)))
+  }
+  async removeAddress(label: string, chainKey?: string): Promise<void> {
+    await this.saveSettings(removeAddress(this.settings, label, chainKey))
+  }
+
+  // ---- history ----
+
+  async history(): Promise<PipelineRecord[]> {
+    return (await listPipelines(this.runStore)).reverse()
+  }
+
+  // ---- sweep ----
+
+  /** Plans moving the chosen tokens of one chain to another, one transfer per token. */
+  async planSweep(fromChain: Chain, toChain: Chain, symbols: string[] | undefined, targetSymbol: string | undefined, recipient?: string): Promise<{ plan: SweepPlan; toAddress: string }> {
+    const toAddress = this.recipientOn(toChain, recipient)
+    const wanted = symbols?.map((x) => x.toLowerCase())
+    const sourceTokens = (await this.tokens(fromChain)).filter((t) => !wanted || wanted.includes(t.symbol.toLowerCase()))
+    const balances = await this.adapterFor(fromChain).getBalances(this.ownAddress(fromChain), sourceTokens)
+    const holdings = sourceTokens.map((token, i) => ({ token, balance: balances[i]! }))
+    const destTokens = await this.tokens(toChain)
+    const chosen = targetSymbol ? await lifiToken(withTimeout, toChain, targetSymbol) : undefined
+    const target = (t: Token): Token | undefined => chosen ?? destTokens.find((d) => (isNative(t) ? isNative(d) : d.symbol.toLowerCase() === t.symbol.toLowerCase()))
+    const plan = await planSweep({
+      holdings,
+      target,
+      // On chains like Arc the gas coin is also a token; it must keep some back like the native coin does.
+      isGasCoin: (t) => isNative(t) || t.symbol.toLowerCase() === fromChain.nativeSymbol.toLowerCase(),
+      findRoute: async (from, to, amount) => (await this.findRoutes(from, to, amount, toAddress)).routes[0],
     })
+    return { plan, toAddress }
+  }
+
+  // ---- saved routes and schedules ----
+
+  async savedRoutes(): Promise<SavedRoute[]> {
+    return listRoutes(this.store)
+  }
+  async saveRoute(route: SavedRoute): Promise<void> {
+    await saveRoute(this.store, route)
+  }
+  async removeRoute(name: string): Promise<void> {
+    await removeRoute(this.store, name)
+  }
+  async loadRoute(name: string): Promise<SavedRoute> {
+    return loadRoute(this.store, name)
+  }
+
+  /** Quotes a saved transfer again along its saved path (or the best route if it allows that) and checks its minimum. */
+  async prepareSaved(saved: SavedTransfer) {
+    const [a, b] = await Promise.all([this.resolveSpec(saved.from), this.resolveSpec(saved.to)])
+    const toAddress = this.recipientOn(b.chain, saved.recipient)
+    const [balance] = await this.adapterFor(a.chain).getBalances(this.ownAddress(a.chain), [a.token])
+    const amount = saved.amount === 'all' ? balance! : BigInt(saved.amount)
+    if (amount <= 0n || amount > balance!) throw new Error(`The wallet holds ${balance} (smallest units) of ${a.token.symbol} on ${a.chain.name}, not enough for this saved route`)
+    const { routes, errors } = await this.findRoutes(a.token, b.token, amount, toAddress)
+    if (routes.length === 0) throw new Error(`No route found${errors.length ? `: ${errors.join('; ')}` : ''}`)
+    const choice = chooseSaved(saved, routes)
+    return { ...choice, from: a.token, to: b.token, fromChain: a.chain, toChain: b.chain, amount, toAddress, wholeBalance: saved.amount === 'all' }
+  }
+
+  async schedules(): Promise<Schedule[]> {
+    return listSchedules(this.store)
+  }
+  async saveSchedule(s: Schedule): Promise<void> {
+    await saveSchedule(this.store, s)
+  }
+  async removeSchedule(id: string): Promise<void> {
+    await removeSchedule(this.store, id)
+  }
+
+  /** Parses an amount the way the forms do. */
+  parseAmount(text: string, token: Token): bigint {
+    if (!/^\d+(\.\d+)?$/.test(text.trim())) throw new Error(`"${text}" is not a valid amount`)
+    const v = parseUnits(text.trim(), token.decimals)
+    if (v === 0n) throw new Error('The amount must be greater than zero')
+    return v
   }
 }
 

@@ -378,6 +378,29 @@ input.narrow {
   gap: 12px;
   padding: 6px 0;
 }
+.row-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+.leg-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) auto minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(0, 0.8fr);
+  gap: 8px;
+  align-items: center;
+}
+.leg-arrow {
+  color: var(--text-dim);
+}
+.job-sections h2 {
+  margin: 14px 0 4px;
+}
+.state[data-state='done'] {
+  color: var(--ok);
+}
+.state[data-state='failed'],
+.state[data-state='running'] {
+  color: var(--err);
+}
 .mono {
   font-family: var(--mono);
   word-break: break-all;
@@ -537,6 +560,10 @@ input.narrow {
 .err-text {
   color: var(--err);
 }
+.err-text.block {
+  display: block;
+  white-space: normal;
+}
 
 /* ---- first launch ---- */
 
@@ -682,6 +709,17 @@ input.narrow {
   }
   .theme-picker {
     grid-template-columns: 1fr;
+  }
+  .leg-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sheetlist {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+  .sheet-item {
+    flex: none;
+    min-width: 72px;
   }
   .statusbar {
     flex-wrap: wrap;

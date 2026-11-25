@@ -690,7 +690,7 @@ async function sweepCommand(args: string[]): Promise<void> {
 
   out(`Looking up routes for ${holdings.filter((h) => h.balance > 0n).length} token(s) on ${fromChain.name}...`)
   const holdingOf = (t: Token) => holdings.find((h) => h.token.address === t.address)?.balance ?? 0n
-  const plan = await planSweep({ holdings, target, findRoute })
+  const plan = await planSweep({ holdings, target, findRoute, isGasCoin: (t) => isNative(t) || t.symbol.toLowerCase() === fromChain.nativeSymbol.toLowerCase() })
   if (opts.json) return printJson({ items: plan.items.map((i) => ({ from: i.from.symbol, to: i.to.symbol, amount: i.amount.toString(), via: routeVia(i.route), netUsd: routeNetUsd(i.route) })), skipped: plan.skipped.map((s) => ({ token: s.token.symbol, reason: s.reason })) })
   if (plan.items.length > 0) {
     table([

@@ -63,6 +63,18 @@ test('a coin balance too small for the gas of the other transfers is skipped', a
   assert.match(plan.skipped[0]!.reason, /too small/)
 })
 
+test('a token that is also the chain gas coin goes last with gas held back', async () => {
+  const ARC_USDC = tok('USDC', 'arc', 1)
+  const plan = await planSweep({
+    holdings: [{ token: ARC_USDC, balance: 20_000_000n }],
+    target: (t) => ({ ...t, chainKey: 'bas', address: 'b-USDC' }),
+    isGasCoin: (t) => t.symbol === 'USDC',
+    findRoute: async (from, to, amount) => route(from, to, amount, 0.5),
+  })
+  // own transfer cost $0.5 x 2 held back
+  assert.equal(plan.items[0]!.amount, 20_000_000n - 1_000_000n)
+})
+
 test('empty balances are ignored', async () => {
   const plan = await planSweep({ holdings: [{ token: USDC, balance: 0n }], target: dest, findRoute: async () => undefined })
   assert.deepEqual(plan, { items: [], skipped: [] })
