@@ -19,6 +19,12 @@ import {
   geoStatement,
   lifiChains,
   addAddress,
+  chooseSaved,
+  listRoutes,
+  loadRoute,
+  removeRoute,
+  saveRoute,
+  type SavedRoute,
   removeAddress,
   resolveRecipient,
   isNative,
@@ -76,6 +82,10 @@ Usage:
                                               Send over the best route and follow it live
   chainer sweep <from-chain> <to-chain> [--tokens USDC,DAI] [--target USDC]
                                               Move a whole wallet's tokens to another chain, one transfer per token
+  chainer route save <name> <amount|all> <token> <chain> [<to-token>] <to-chain> [--min <amount>] [--fallback]
+  chainer route save-sweep <name> <from-chain> <to-chain> [--tokens ...] [--target ...]
+  chainer route list | show <name> | remove <name> | run <name>
+                                              Keep a route under a name and run it later (re-quoted along the saved path)
   chainer pipeline run <plan.yaml>            Run a chain of transfers, each starting when
                                               the previous one has arrived
   chainer geo                                 List bridges with geo restrictions and where they apply
@@ -129,6 +139,8 @@ const { values: opts, positionals } = parseArgs({
     prefer: { type: 'string' },
     'max-hops': { type: 'string' },
     tokens: { type: 'string' },
+    min: { type: 'string' },
+    fallback: { type: 'boolean' },
     target: { type: 'string' },
     to: { type: 'string' },
     testnet: { type: 'boolean' },
@@ -532,6 +544,116 @@ async function sweepCommand(args: string[]): Promise<void> {
   }
 }
 
+// ---- saved routes ---------------------------------------------------------
+
+const savedSummary = (r: SavedRoute) =>
+  r.kind === 'transfer' ? `${r.amount === 'all' ? 'all' : 'fixed amount'} ${r.from} -> ${r.to} via ${r.via}${r.fallback ? ' (best route if gone)' : ''}${r.minReceive ? `, min ${r.minReceive}` : ''}` : `sweep ${r.fromChain} -> ${r.toChain}${r.tokens ? ` of ${r.tokens.join(',')}` : ''}${r.target ? ` as ${r.target}` : ''}`
+
+async function routeCommand(args: string[]): Promise<void> {
+  const [sub, name, ...rest] = args
+  if (sub === 'list' || sub === undefined) {
+    const all = await listRoutes(store)
+    if (opts.json) return printJson(all)
+    if (all.length === 0) return out('No saved routes. Save one with "chainer route save <name> ...".')
+    return table([['NAME', 'WHAT'], ...all.map((r) => [r.name, savedSummary(r)])])
+  }
+  if (!name) throw new Error('Use: chainer route save | save-sweep | list | show | remove | run')
+  if (sub === 'show') return printJson(await loadRoute(store, name))
+  if (sub === 'remove') {
+    await removeRoute(store, name)
+    return out(`Removed "${name}".`)
+  }
+
+  if (sub === 'save') {
+    if (opts.testnet) throw new Error('Save routes without --testnet (they use the main networks); test one with "chainer route run <name> --testnet"')
+    const [amountText, tokenSymbol, fromChainQuery] = rest
+    if (!amountText || rest.length < 4) throw new Error('Use: chainer route save <name> <amount|all> <token> <chain> [<to-token>] <to-chain>')
+    let planArgs = rest
+    if (amountText === 'all') {
+      // The plan needs a number to quote; the saved route keeps "all".
+      const [chain, token] = await Promise.all([resolveChain(fromChainQuery!), resolveChain(fromChainQuery!).then((c) => lifiToken(fetchFn, c, tokenSymbol!))])
+      const account = findAccount(await loadKeystore(store), opts.wallet)
+      const [balance] = await adapterFor(chain).getBalances(ownAddress(account, chain), [token])
+      if (!balance) throw new Error(`The wallet holds no ${token.symbol} on ${chain.name} to base the route on`)
+      planArgs = [formatUnits(balance, token.decimals), ...rest.slice(1)]
+    }
+    const plan = await buildPlan(planArgs)
+    const best = (await search(plan))[0]!
+    const saved: SavedRoute = {
+      kind: 'transfer',
+      name,
+      createdAt: new Date().toISOString(),
+      wallet: opts.wallet,
+      from: `${plan.request.from.symbol}@${plan.fromChain.key}`,
+      to: `${plan.request.to.symbol}@${plan.toChain.key}`,
+      amount: amountText === 'all' ? 'all' : plan.request.amount.toString(),
+      recipient: opts.to,
+      via: routeVia(best),
+      minReceive: opts.min ? parseAmount(opts.min, plan.request.to).toString() : undefined,
+      fallback: !!opts.fallback,
+    }
+    await saveRoute(store, saved)
+    return out(`Saved "${name}": ${savedSummary(saved)}`)
+  }
+
+  if (sub === 'save-sweep') {
+    if (opts.testnet) throw new Error('Save routes without --testnet')
+    const [fromChain, toChain] = rest
+    if (!fromChain || !toChain) throw new Error('Use: chainer route save-sweep <name> <from-chain> <to-chain> [--tokens ...] [--target ...]')
+    const chains = await allChains()
+    const saved: SavedRoute = {
+      kind: 'sweep',
+      name,
+      createdAt: new Date().toISOString(),
+      wallet: opts.wallet,
+      fromChain: findChain(chains, fromChain).key,
+      toChain: findChain(chains, toChain).key,
+      tokens: opts.tokens?.split(',').map((t) => t.trim()),
+      target: opts.target,
+      recipient: opts.to,
+    }
+    await saveRoute(store, saved)
+    return out(`Saved "${name}": ${savedSummary(saved)}`)
+  }
+
+  if (sub === 'run') {
+    const saved = await loadRoute(store, name)
+    opts.wallet ??= saved.wallet
+    opts.to ??= saved.recipient
+    if (saved.kind === 'sweep') {
+      opts.tokens ??= saved.tokens?.join(',')
+      opts.target ??= saved.target
+      return sweepCommand([saved.fromChain, saved.toChain])
+    }
+    // Amounts are worked out now: "all" is whatever the wallet holds at this moment.
+    const [from, to] = await Promise.all([resolveToken(saved.from), resolveToken(saved.to)])
+    const [fromChain, toChain] = await Promise.all([resolveChain(saved.from.split('@')[1]!), resolveChain(saved.to.split('@')[1]!)])
+    const account = findAccount(await loadKeystore(store), opts.wallet)
+    const fromAddress = ownAddress(account, fromChain)
+    const toAddress = saved.recipient ? resolveRecipient(settings, saved.recipient, toChain.key) : ownAddress(account, toChain)
+    if (!adapterFor(toChain).validateAddress(toAddress)) throw new Error(`"${toAddress}" is not a valid address on ${toChain.name}`)
+    const [balance] = await adapterFor(fromChain).getBalances(fromAddress, [from])
+    const amount = saved.amount === 'all' ? balance! : BigInt(saved.amount)
+    if (amount <= 0n || amount > balance!) throw new Error(`The wallet holds ${fmt(balance!, from)} on ${fromChain.name}, not enough for this saved route`)
+    checkLimit(amount, from)
+    const plan: Plan = { request: { from, to, amount, fromAddress, toAddress, slippage: settings.slippage }, fromChain, toChain, wallet: account.name }
+    const choice = chooseSaved(saved, await search(plan))
+    if (choice.usedFallback) out(`The saved path "${saved.via}" is gone; using the best route now: ${routeVia(choice.route)}`)
+    printRoutes(plan, [choice.route])
+    out()
+    out(`Route:     ${routeVia(choice.route)}`)
+    out(`Recipient: ${toAddress}`)
+    if (opts['dry-run']) return out('Dry run: nothing was signed or sent.')
+    if (!opts.yes && !(await confirm(`Run "${saved.name}" now?`))) return out('Cancelled.')
+    const accepted = await geoAcceptance(choice.route)
+    if (!accepted) return out('Cancelled: the location confirmation was not given. Nothing was sent.')
+    const record = pipelineFromRoute(choice.route, account.name, accepted)
+    if (saved.amount === 'all') record.legs[0]!.amount = 'all'
+    return execute(record)
+  }
+  throw new Error('Use: chainer route save | save-sweep | list | show | remove | run')
+}
+
 // ---- pipelines ----------------------------------------------------------
 
 const MARK = { waiting: '·', running: '▶', done: '✔', failed: '✘' }
@@ -772,6 +894,8 @@ async function main(): Promise<void> {
       return quoteCommand(rest)
     case 'send':
       return sendCommand(rest)
+    case 'route':
+      return routeCommand(rest)
     case 'sweep':
       return sweepCommand(rest)
     case 'pipeline':

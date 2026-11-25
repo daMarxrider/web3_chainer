@@ -109,6 +109,19 @@ chainer pipeline run plan.yaml --dry-run   # check it first
 chainer pipeline run plan.yaml
 ```
 
+### Saved routes
+
+```sh
+chainer route save weekly all USDC arbitrum base --min 95 --fallback   # keep a transfer under a name
+chainer route save-sweep payday arbitrum base --target USDC            # or a whole-wallet sweep
+chainer route list
+chainer route run weekly --dry-run        # re-quotes along the saved path, sends nothing
+chainer route run weekly --testnet        # try it on test networks first
+chainer route remove weekly
+```
+
+A saved route keeps what you meant (wallet, tokens, chains, recipient, amount rule) and, for a transfer, the path that was best when you saved it, for example `lifi/stargateV2`. It does not keep prices: they are quoted again when it runs, and `all` means whatever the wallet holds then. If the saved path is no longer offered the run stops and says so, unless you saved it with `--fallback`, which uses the best route at that moment. `--min` sets the least you accept at worst case; a result below it always stops the run. Save routes without `--testnet`.
+
 ### Address book
 
 ```sh
@@ -164,6 +177,7 @@ chainer geo                                     # bridges with geo restrictions,
 chainer providers                               # route sources, and which optional SDKs are installed
 chainer sweep <from-chain> <to-chain>           # whole-wallet transfer, see above
 chainer book list                               # named recipient addresses
+chainer route list                              # saved routes, see above
 ```
 
 ### Scripting
