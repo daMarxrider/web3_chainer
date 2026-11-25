@@ -126,6 +126,21 @@ export interface ProviderTraits {
   needsApiKey: boolean
 }
 
+/** What the engine hands a self-driving provider (one that runs a multi-step swap itself). */
+export interface RunContext {
+  signer: Signer
+  adapterFor(chainKey: string): ChainAdapter
+  /** Progress the provider saved earlier for this transfer; set when resuming. */
+  state?: Record<string, unknown>
+  /**
+   * Writes progress to the journal. A `txId` means money has left (or is about to leave) the
+   * wallet and moves the transfer to "submitted", so it can be resumed after a crash. Call it
+   * with the id before sending, not after.
+   */
+  checkpoint(patch: { txId?: string; state?: Record<string, unknown> }): Promise<void>
+  say(message: string): void
+}
+
 export interface BridgeProvider {
   name: string
   traits: ProviderTraits
@@ -133,6 +148,13 @@ export interface BridgeProvider {
   /** Turns a quote into the transactions to sign. Called only when the quote is executed. */
   buildActions(quote: Quote): Promise<Action[]>
   getStatus(txId: string, statusRef: Quote['statusRef']): Promise<TransferStatus>
+  /**
+   * Self-driving providers (SDK swaps with several steps over time: open, pay, wait, claim or
+   * refund) run the whole transfer here instead of through buildActions and getStatus.
+   */
+  run?(quote: Quote, ctx: RunContext): Promise<TransferStatus>
+  /** Continues a run that stopped after its first checkpoint with a txId; `ctx.state` holds what `run` saved. */
+  resume?(ctx: RunContext): Promise<TransferStatus>
 }
 
 /**

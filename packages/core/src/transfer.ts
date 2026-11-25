@@ -1,4 +1,4 @@
-import type { BridgeProvider, ChainAdapter, Quote, Signer, Store, Token } from './types.ts'
+import type { BridgeProvider, ChainAdapter, Quote, RunContext, Signer, Store, Token, TransferStatus } from './types.ts'
 
 /**
  * Journal entry for one transfer. Written before and after every on-chain step so a crash
@@ -26,6 +26,8 @@ export interface TransferRecord {
   destTxId?: string
   receivedAmount?: string
   error?: string
+  /** What a self-driving provider saved so it can resume (see RunContext). */
+  providerState?: Record<string, unknown>
 }
 
 export type TransferEvent = (record: TransferRecord, message: string) => void
@@ -53,6 +55,37 @@ export interface TransferDeps {
   pollMs?: number
   /** Journal id chosen by the caller, so it can be recorded before the transfer starts. */
   id?: string
+  /** Needed by self-driving providers, which sign several steps and may touch other chains. */
+  signer?: Signer
+  adapterFor?(chainKey: string): ChainAdapter
+}
+
+function runContext(record: TransferRecord, deps: TransferDeps): RunContext {
+  if (!deps.signer || !deps.adapterFor) throw new Error(`${record.provider} runs the whole transfer itself and needs the wallet signer and chain access`)
+  return {
+    signer: deps.signer,
+    adapterFor: deps.adapterFor,
+    state: record.providerState,
+    say: (message) => deps.onEvent(record, message),
+    async checkpoint(patch) {
+      if (patch.state) record.providerState = { ...record.providerState, ...patch.state }
+      if (patch.txId) {
+        record.txId = patch.txId
+        record.state = 'submitted'
+      }
+      await save(deps.store, record)
+    },
+  }
+}
+
+/** Writes the end state of a self-driving run into the record. */
+async function finishRun(record: TransferRecord, status: TransferStatus, store: Store): Promise<TransferRecord> {
+  record.state = status.state === 'pending' ? 'submitted' : status.state
+  record.destTxId = status.destTxId
+  record.receivedAmount = status.receivedAmount?.toString()
+  if (status.state === 'failed') record.error = status.detail ?? 'The swap failed'
+  await save(store, record)
+  return record
 }
 
 /** Signs and sends a quote's transaction, then follows it until the funds arrive. */
@@ -74,6 +107,18 @@ export async function executeQuote(quote: Quote, wallet: string, signer: Signer,
     state: 'created',
   }
   await save(store, record)
+
+  if (deps.provider.run) {
+    try {
+      return await finishRun(record, await deps.provider.run(quote, runContext(record, deps)), store)
+    } catch (err) {
+      // Before the first checkpoint with a txId nothing left the wallet; after it the run can be resumed.
+      if (record.state === 'created') record.state = 'failed'
+      record.error = (err as Error).message
+      await save(store, record)
+      throw err
+    }
+  }
 
   try {
     for (const action of await deps.provider.buildActions(quote)) {
@@ -101,6 +146,17 @@ export async function executeQuote(quote: Quote, wallet: string, signer: Signer,
 export async function trackTransfer(record: TransferRecord, deps: TransferDeps): Promise<TransferRecord> {
   const { store, provider, adapter, onEvent, pollMs = 10_000 } = deps
   if (record.state !== 'submitted' || !record.txId) return record
+
+  if (provider.resume && record.providerState) {
+    onEvent(record, 'Resuming the swap')
+    try {
+      return await finishRun(record, await provider.resume(runContext(record, deps)), store)
+    } catch (err) {
+      record.error = (err as Error).message
+      await save(store, record)
+      throw err
+    }
+  }
 
   onEvent(record, 'Waiting for confirmation on the source chain')
   if (!(await adapter.waitForConfirmation(record.txId))) {

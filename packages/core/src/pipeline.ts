@@ -196,7 +196,7 @@ async function runLeg(record: PipelineRecord, i: number, deps: PipelineDeps): Pr
   const transferDeps = (providerName: string, id?: string) => {
     const provider = providers.find((p) => p.name === providerName)
     if (!provider) throw new Error(`Route source "${providerName}" is not available`)
-    return { store, provider, adapter, pollMs: deps.pollMs, id, onEvent: (_: TransferRecord, message: string) => say(message) }
+    return { store, provider, adapter, signer, adapterFor: deps.adapterFor, pollMs: deps.pollMs, id, onEvent: (_: TransferRecord, message: string) => say(message) }
   }
   const finish = async (t: TransferRecord) => {
     if (t.state !== 'done') throw new Error(t.error ?? `The transfer ended as "${t.state}"`)
