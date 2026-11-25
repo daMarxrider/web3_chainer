@@ -18,6 +18,9 @@ import {
   geoNotices,
   geoStatement,
   lifiChains,
+  addAddress,
+  removeAddress,
+  resolveRecipient,
   isNative,
   lifiProvider,
   planSweep,
@@ -79,6 +82,8 @@ Usage:
   chainer providers                           List route sources, and which optional SDKs are installed
   chainer status [<id>]                       List runs, or show one in detail
   chainer resume <id>                         Continue a run that stopped or failed
+  chainer book list | add <label> <chain> <address> | remove <label> [<chain>]
+                                              Named recipient addresses; use the label after --to
   chainer config show
   chainer config set <prefer|slippage|maxUsdPerTransfer|maxHops|blockcypher> <value>   (blockcypher on|off: Dogecoin and Dash data, off by default)
   chainer config rpc <chain> <url|default>    Use your own RPC node for a chain
@@ -388,7 +393,7 @@ async function buildPlan(args: string[]): Promise<Plan> {
   const [fromChain, toChain] = await Promise.all([resolveChain(fromChainQuery), resolveChain(args.at(-1)!)])
   const [from, to] = await Promise.all([lifiToken(fetchFn, fromChain, fromSymbol), lifiToken(fetchFn, toChain, toSymbol)])
   const amount = parseAmount(amountText, from)
-  const toAddress = opts.to ?? ownAddress(account, toChain)
+  const toAddress = opts.to ? resolveRecipient(settings, opts.to, toChain.key) : ownAddress(account, toChain)
   if (!adapterFor(toChain).validateAddress(toAddress)) throw new Error(`"${toAddress}" is not a valid address on ${toChain.name}`)
   checkLimit(amount, from)
   return { request: { from, to, amount, fromAddress: ownAddress(account, fromChain), toAddress, slippage: settings.slippage }, fromChain, toChain, wallet: account.name }
@@ -469,7 +474,7 @@ async function sweepCommand(args: string[]): Promise<void> {
   const account = findAccount(await loadKeystore(store), opts.wallet)
   const [fromChain, toChain] = await Promise.all([resolveChain(args[0]!), resolveChain(args[1]!)])
   const fromAddress = ownAddress(account, fromChain)
-  const toAddress = opts.to ?? ownAddress(account, toChain)
+  const toAddress = opts.to ? resolveRecipient(settings, opts.to, toChain.key) : ownAddress(account, toChain)
   if (!adapterFor(toChain).validateAddress(toAddress)) throw new Error(`"${toAddress}" is not a valid address on ${toChain.name}`)
 
   const wanted = opts.tokens ? opts.tokens.split(',').map((s) => s.trim().toLowerCase()) : undefined
@@ -616,7 +621,7 @@ async function pipelineCommand(sub: string | undefined, file: string | undefined
     if (amount !== 'all') checkLimit(BigInt(amount), from)
     const chains = await allChains()
     const [fromChain, toChain] = [chains.find((c) => c.key === from.chainKey)!, chains.find((c) => c.key === to.chainKey)!]
-    const toAddress = spec.recipient ?? ownAddress(account, toChain)
+    const toAddress = spec.recipient ? resolveRecipient(settings, spec.recipient, toChain.key) : ownAddress(account, toChain)
     if (!adapterFor(toChain).validateAddress(toAddress)) throw new Error(`Leg ${i + 1}: "${toAddress}" is not a valid address on ${toChain.name}`)
     if (i < plan.legs.length - 1 && toAddress !== ownAddress(account, toChain)) throw new Error(`Leg ${i + 1} sends to another address, so the next leg would have nothing to continue with`)
     legs.push({ from, to, amount, fromAddress: ownAddress(account, fromChain), toAddress })
@@ -690,6 +695,27 @@ async function resumeCommand(id: string | undefined): Promise<void> {
 
 // ---- config -------------------------------------------------------------
 
+async function bookCommand(args: string[]): Promise<void> {
+  const [sub, label, chainQuery, address] = args
+  if (sub === 'list' || sub === undefined) {
+    if (opts.json) return printJson(settings.addressBook)
+    if (settings.addressBook.length === 0) return out('The address book is empty. Add one with "chainer book add <label> <chain> <address>".')
+    return table([['LABEL', 'CHAIN', 'ADDRESS'], ...settings.addressBook.map((e) => [e.label, e.chainKey, e.address])])
+  }
+  if (sub === 'add' && label && chainQuery && address) {
+    const chain = findChain(await allChains(), chainQuery)
+    const next = addAddress(settings, { label, chainKey: chain.key, address }, (a) => adapterFor(chain).validateAddress(a))
+    await saveSettings(store, next)
+    return out(`Saved "${label}" on ${chain.name}.`)
+  }
+  if (sub === 'remove' && label) {
+    const chain = chainQuery ? findChain(await allChains(), chainQuery) : undefined
+    await saveSettings(store, removeAddress(settings, label, chain?.key))
+    return out(`Removed "${label}"${chain ? ` on ${chain.name}` : ''}.`)
+  }
+  throw new Error('Use: chainer book list | add <label> <chain> <address> | remove <label> [<chain>]')
+}
+
 async function configCommand(args: string[]): Promise<void> {
   const [sub, a, b] = args
   const next: Settings = structuredClone(settings)
@@ -758,6 +784,8 @@ async function main(): Promise<void> {
       return statusCommand(rest[0])
     case 'resume':
       return resumeCommand(rest[0])
+    case 'book':
+      return bookCommand(rest)
     case 'config':
       return configCommand(rest)
     default:

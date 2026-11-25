@@ -109,6 +109,17 @@ chainer pipeline run plan.yaml --dry-run   # check it first
 chainer pipeline run plan.yaml
 ```
 
+### Address book
+
+```sh
+chainer book add cold ethereum 0x...        # saved only if the address is valid on that chain
+chainer book list
+chainer send 100 USDC arbitrum ethereum --to cold
+chainer book remove cold [ethereum]
+```
+
+A label is tied to a chain, so the same name can hold a different address on each chain; `--to cold` (and `recipient:` in plan files) uses the one saved for the destination chain, and says so if there is none. Labels cannot look like addresses or contain spaces.
+
 ### Move a whole wallet
 
 ```sh
@@ -152,6 +163,7 @@ chainer config rpc arbitrum https://my-node...  # use your own RPC node ("defaul
 chainer geo                                     # bridges with geo restrictions, and where
 chainer providers                               # route sources, and which optional SDKs are installed
 chainer sweep <from-chain> <to-chain>           # whole-wallet transfer, see above
+chainer book list                               # named recipient addresses
 ```
 
 ### Scripting

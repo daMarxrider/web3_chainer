@@ -18,6 +18,14 @@ export interface Settings {
   disabledProviders: string[]
   /** Use BlockCypher (Dogecoin, Dash) whose docs ask for an API token on broadcasts. Off until the user turns it on. */
   blockcypher: boolean
+  /** Named recipient addresses; each is tied to the chain it was checked against. */
+  addressBook: AddressBookEntry[]
+}
+
+export interface AddressBookEntry {
+  label: string
+  chainKey: string
+  address: string
 }
 
 export const defaultSettings: Settings = {
@@ -30,6 +38,7 @@ export const defaultSettings: Settings = {
   lifi: { allowBridges: [], denyBridges: [...DEFAULT_DENIED_BRIDGES] },
   disabledProviders: [],
   blockcypher: false,
+  addressBook: [],
 }
 
 const KEY = 'settings.json'
