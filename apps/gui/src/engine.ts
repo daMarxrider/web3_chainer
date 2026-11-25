@@ -89,7 +89,16 @@ export function localStore(prefix = 'chainer/'): Store {
   }
 }
 
-const withTimeout: typeof fetch = (input, init) => fetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(30_000) })
+/**
+ * Network requests. In the browser this is fetch; in the Tauri shell it is the HTTP plugin,
+ * because the webview does not let the app call other origins directly.
+ */
+type TauriFetch = typeof fetch
+let tauriFetch: Promise<TauriFetch> | undefined
+const inTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+const platformFetch: typeof fetch = inTauri ? async (input, init) => (await (tauriFetch ??= import('@tauri-apps/plugin-http').then((m) => m.fetch as TauriFetch)))(input, init) : (input, init) => fetch(input, init)
+
+const withTimeout: typeof fetch = (input, init) => platformFetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(30_000) })
 
 export interface Session {
   walletName: string

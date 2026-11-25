@@ -236,6 +236,15 @@ npm install
 npm run dev -w @chainer/gui        # opens on http://127.0.0.1:5173
 ```
 
+**Desktop app (Tauri).** On Linux, `./scripts/install-linux.sh --desktop` also installs Rust and the libraries the shell needs (Arch, Debian, Ubuntu and Fedora package names; this option has not been run on those systems yet). Then:
+
+```sh
+npm run desktop:dev -w @chainer/gui      # opens the app in its own window, with live reload
+npm run desktop:build -w @chainer/gui    # builds the packaged app under apps/gui/src-tauri/target/release/bundle
+```
+
+In the desktop app the network requests go through Tauri's HTTP plugin (the window itself may not call other origins) and a content security policy limits the page to its own files. The wallet and journal stay in the app's own storage on this machine.
+
 1. **First launch.** Choose a look, read and accept the disclaimer, then create a wallet (a seed phrase is shown once; write it down) or import one. The wallet is encrypted with your password and stored on this device only.
 2. **Unlock** with the password. **Lock** is at the bottom of the screen list.
 3. **Balances.** Pick a chain to see what the wallet holds and its address on that chain (with a Copy button, for funding it).

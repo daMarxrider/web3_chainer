@@ -2,10 +2,13 @@
 # Installs everything chainer needs on Linux and checks that it works.
 # Supports pacman (Arch), apt (Debian, Ubuntu) and dnf (Fedora). Safe to run again.
 #
-#   ./scripts/install-linux.sh
+#   ./scripts/install-linux.sh              the command-line tool
+#   ./scripts/install-linux.sh --desktop    also the Rust toolchain and libraries needed to build the desktop app
 set -euo pipefail
 
 NODE_MAJOR=24
+with_desktop=false
+for arg in "$@"; do [ "$arg" = --desktop ] && with_desktop=true; done
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 say() { printf '\n==> %s\n' "$*"; }
@@ -83,6 +86,25 @@ if [ "$(node_major)" -lt "$NODE_MAJOR" ]; then
 fi
 echo "Node.js $(node --version), npm $(npm --version)"
 
+# ---- desktop app (optional) -----------------------------------------------
+
+if $with_desktop; then
+  say "Installing what the desktop app needs (Rust, the WebKitGTK libraries and build tools)"
+  if command -v pacman >/dev/null 2>&1; then
+    as_root pacman -S --needed --noconfirm rust webkit2gtk-4.1 base-devel openssl librsvg libayatana-appindicator
+  elif command -v apt-get >/dev/null 2>&1; then
+    as_root apt-get install -y build-essential pkg-config libssl-dev libwebkit2gtk-4.1-dev librsvg2-dev libayatana-appindicator3-dev rustc cargo
+  elif command -v dnf >/dev/null 2>&1; then
+    as_root dnf install -y gcc gcc-c++ pkgconf-pkg-config openssl-devel webkit2gtk4.1-devel librsvg2-devel libappindicator-gtk3-devel rust cargo
+  fi
+  # The desktop shell needs Rust 1.77 or newer; some distributions ship an older one.
+  if ! command -v cargo >/dev/null 2>&1; then
+    echo "Rust (cargo) is still missing. Install it with rustup (https://rustup.rs), then run this script again." >&2
+    exit 1
+  fi
+  echo "$(rustc --version), $(cargo --version)"
+fi
+
 # ---- project --------------------------------------------------------------
 
 say "Installing the project's packages"
@@ -98,6 +120,7 @@ ln -sf "$repo/apps/cli/bin/chainer.js" "$HOME/.local/bin/chainer"
 "$HOME/.local/bin/chainer" --help >/dev/null
 
 say "Done. chainer is installed."
+if $with_desktop; then echo "Build the desktop app with: npm run desktop:build -w @chainer/gui   (or try it with: npm run desktop:dev -w @chainer/gui)"; fi
 case ":$PATH:" in
   *":$HOME/.local/bin:"*) echo "Try it: chainer --help" ;;
   *) echo "$HOME/.local/bin is not on your PATH. Add it, or run: $HOME/.local/bin/chainer --help" ;;
