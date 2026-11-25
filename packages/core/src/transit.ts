@@ -61,12 +61,12 @@ export class TransitPool {
 }
 
 /**
- * Whether a route may pass through transit wallets: what arrives on a stop-over chain must be
- * that chain's own coin, so the transit wallet can always pay for the next leg itself. (Topping
- * up gas on stop-over chains is not built, so no other asset is allowed to wait there.)
+ * Whether a route may pass through transit wallets. What waits on a stop-over chain must either
+ * be that chain's own coin, so the wallet can pay for the next leg itself, or gas must be sent
+ * ahead (`gasSentAhead`, true when the gas top-up setting is on; see gastopup.ts stopOvers).
  */
-export function transitAllowed(route: Route, pool: TransitPool): boolean {
-  return route.legs.slice(0, -1).every((q) => !pool.isTransit(q.request.toAddress) || isNative(q.request.to))
+export function transitAllowed(route: Route, pool: TransitPool, gasSentAhead = false): boolean {
+  return gasSentAhead || route.legs.slice(0, -1).every((q) => !pool.isTransit(q.request.toAddress) || isNative(q.request.to))
 }
 
 /**

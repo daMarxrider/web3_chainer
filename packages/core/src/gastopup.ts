@@ -100,3 +100,37 @@ export function planGasTopUp(setting: GasTopUpSetting, input: GasTopUpInput): { 
   if (input.mainAmount + amount > input.sourceBalance) return { why: 'the wallet cannot pay the extra amount on top of the transfer' }
   return { topUp: { from: input.source, to: input.destNative, amount, usd } }
 }
+
+// ---- stop-over chains --------------------------------------------------------
+
+/** A chain where a route stops and the next leg starts, and so needs gas at that address. */
+export interface StopOver {
+  chainKey: string
+  /** The address that holds the funds there and pays for the next leg. */
+  address: string
+  /** What arrives there. */
+  arriving: Token
+  /** Quoted gas and fees of the leg that leaves from there: what the extra gas has to cover. */
+  nextCostUsd: number
+}
+
+/**
+ * The stop-over chains of a route that need gas sent ahead: every chain between two legs where
+ * the arriving token is not the chain's own coin (that one pays for the next leg by itself).
+ */
+export function stopOvers(route: { legs: { request: { from: Token; to: Token; toAddress: string }; costUsd: number }[] }): StopOver[] {
+  const found: StopOver[] = []
+  route.legs.slice(0, -1).forEach((q, i) => {
+    if (isNative(q.request.to)) return
+    found.push({ chainKey: q.request.to.chainKey, address: q.request.toAddress, arriving: q.request.to, nextCostUsd: route.legs[i + 1]!.costUsd })
+  })
+  return found
+}
+
+/**
+ * The value of the gas to send ahead for one stop-over: the multiplier (or fixed value) of the
+ * next leg's own quoted cost, falling back to the node estimate when the quote carries none.
+ */
+export function stopOverUsd(setting: GasTopUpSetting, stop: StopOver, estimatedGasUsd: number | undefined): { usd?: number; why?: string } {
+  return gasTopUpUsd(setting, stop.nextCostUsd > 0 ? stop.nextCostUsd : estimatedGasUsd)
+}

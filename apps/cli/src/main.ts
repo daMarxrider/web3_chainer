@@ -47,6 +47,9 @@ import {
   parseGasTopUp,
   persistTransit,
   planGasTopUp,
+  stopOverUsd,
+  stopOvers,
+  type StopOver,
   planSweep,
   sdkStatus,
   cctpProvider,
@@ -465,7 +468,7 @@ async function search(plan: Plan): Promise<Route[]> {
   }
   const found = await findPipelineRoutes(plan.request, providers, settings, { prefer: preference(), hubs: hubTokens, maxHops: maxHops(), addressOn })
   const { errors } = found
-  const routes = found.routes.filter((r) => transitAllowed(r, pool))
+  const routes = found.routes.filter((r) => transitAllowed(r, pool, gasSetting().mode !== 'off'))
   if (routes.length === 0) {
     if (found.routes.length > 0) throw new Error('The only routes stop on a chain where this wallet has no address, with a token other than that chain\'s own coin. Import a seed phrase wallet, or give another route.')
     throw new Error(errors.length ? `No route found. ${errors.join('; ')}` : 'No route found, also not through other chains.')
@@ -553,6 +556,76 @@ async function runGasTopUp(route: Route | undefined, wallet: string): Promise<vo
   }
 }
 
+/** The gas top-up setting for this run: the saved one, or --gas-topup. */
+const gasSetting = () => (opts['gas-topup'] ? parseGasTopUp(opts['gas-topup'], settings.gasTopUp) : settings.gasTopUp)
+
+interface StopTopUp {
+  stop: StopOver
+  route: Route
+  usd: number
+}
+
+/**
+ * Gas for the chains a route stops on. A stop-over holding a token other than the chain's coin
+ * needs some of that coin to pay for the next leg, so a small extra transfer from the source
+ * wallet goes there first, sized from the next leg's own quoted cost (times the multiplier, or
+ * the fixed value). Nothing is returned for stop-overs that already have gas or hold the coin.
+ */
+async function stopOverTopUps(route: Route, sourceBalance: bigint, mainAmount: bigint): Promise<StopTopUp[]> {
+  const setting = gasSetting()
+  if (setting.mode === 'off') return []
+  const chains = await allChains()
+  const first = route.legs[0]!.request
+  const found: StopTopUp[] = []
+  let spent = mainAmount
+  for (const stop of stopOvers(route)) {
+    const chain = chains.find((c) => c.key === stop.chainKey)!
+    const native = await lifiToken(fetchFn, chain, chain.nativeSymbol)
+    const [have] = await adapterFor(chain).getBalances(stop.address, [native])
+    if (have! > 0n) continue
+    const estimated = stop.nextCostUsd > 0 || setting.mode !== 'multiplier' ? undefined : await estimateGasUsd(chain, fetchFn)
+    const { usd, why } = stopOverUsd(setting, stop, estimated)
+    if (!usd) throw new Error(`Cannot send gas ahead to ${chain.name}: ${why ?? 'no amount'}`)
+    const price = first.from.priceUsd
+    if (!price) throw new Error(`Cannot send gas ahead to ${chain.name}: the price of ${first.from.symbol} is unknown`)
+    const amount = BigInt(Math.ceil((usd / price) * 10 ** first.from.decimals))
+    if (spent + amount > sourceBalance) throw new Error(`The wallet cannot pay the gas for ${chain.name} (about ${usd.toFixed(2)} USD) on top of the transfer; send a smaller amount, or turn the gas top-up off`)
+    spent += amount
+    // The transfer to the stop-over address must be one leg, or it would need stop-overs of its own.
+    const keep = transitPool
+    let candidates: Route[]
+    try {
+      candidates = await search({ request: { ...first, to: native, amount, toAddress: stop.address }, fromChain: chains.find((c) => c.key === first.from.chainKey)!, toChain: chain, wallet: await walletNameFor(first.fromAddress) })
+    } finally {
+      transitPool = keep
+    }
+    const direct = candidates.find((r) => r.legs.length === 1)
+    if (!direct) throw new Error(`No direct route to send gas ahead to ${chain.name}; turn the gas top-up off or use a seed phrase wallet`)
+    found.push({ stop, route: direct, usd })
+  }
+  return found
+}
+
+/** Name of the wallet that owns an address. */
+async function walletNameFor(address: string): Promise<string> {
+  const owner = (await loadKeystore(store)).accounts.find((a) => Object.values(a.addresses).includes(address))
+  if (!owner) throw new Error('The sending address does not belong to a wallet here')
+  return owner.name
+}
+
+function printStopOvers(stops: StopTopUp[]): void {
+  for (const s of stops) out(`Gas ahead: about ${usd(s.usd)} of ${s.route.legs[0]!.request.from.symbol} -> ${s.route.legs[0]!.request.to.symbol} on ${s.stop.chainKey} (needed for the next leg), via ${routeVia(s.route)}`)
+}
+
+/** Sends the stop-over gas before the main route starts; if one fails the main route is never started. */
+async function runStopOverTopUps(stops: StopTopUp[], wallet: string, accepted: string[]): Promise<void> {
+  for (const s of stops) {
+    out()
+    out(`Sending gas to ${s.stop.chainKey} first`)
+    await execute(await buildPipeline(s.route, wallet, accepted))
+  }
+}
+
 async function sendCommand(args: string[]): Promise<void> {
   const plan = await buildPlan(args)
   const { request } = plan
@@ -570,12 +643,15 @@ async function sendCommand(args: string[]): Promise<void> {
     out(`Route:     ${routeVia(routes[0]!)}`)
     out(`Recipient: ${request.toAddress}`)
   }
-  const topUp = await gasTopUpRoute(plan, balance!)
+  const stops = await stopOverTopUps(routes[0]!, balance!, request.amount)
+  printStopOvers(stops)
+  const topUp = await gasTopUpRoute(plan, balance! - stops.reduce((s, t) => s + t.route.legs[0]!.request.amount, 0n))
   if (topUp) out(`Extra:     ${fmt(topUp.legs[0]!.request.amount, request.from)} for gas as ${topUp.legs.at(-1)!.request.to.symbol} on ${plan.toChain.name} (the recipient has none), via ${routeVia(topUp)}`)
   if (opts['dry-run']) return out('Dry run: nothing was signed or sent.')
-  if (!opts.yes && !(await confirm(`Send ${fmt(request.amount, request.from)}${topUp ? ' and the gas top-up' : ''} over this route?`))) return out('Cancelled.')
-  const accepted = await geoAcceptance(routes[0]!)
+  if (!opts.yes && !(await confirm(`Send ${fmt(request.amount, request.from)}${stops.length ? ', the gas for the stop-overs' : ''}${topUp ? ' and the gas top-up' : ''} over this route?`))) return out('Cancelled.')
+  const accepted = await geoAcceptance({ legs: [...stops.flatMap((s) => s.route.legs), ...routes[0]!.legs] })
   if (!accepted) return out('Cancelled: the location confirmation was not given. Nothing was sent.')
+  await runStopOverTopUps(stops, plan.wallet, accepted)
   await execute(await buildPipeline(routes[0]!, plan.wallet, accepted))
   await runGasTopUp(topUp, plan.wallet)
 }
@@ -611,6 +687,7 @@ async function sweepCommand(args: string[]): Promise<void> {
   }
 
   out(`Looking up routes for ${holdings.filter((h) => h.balance > 0n).length} token(s) on ${fromChain.name}...`)
+  const holdingOf = (t: Token) => holdings.find((h) => h.token.address === t.address)?.balance ?? 0n
   const plan = await planSweep({ holdings, target, findRoute })
   if (opts.json) return printJson({ items: plan.items.map((i) => ({ from: i.from.symbol, to: i.to.symbol, amount: i.amount.toString(), via: routeVia(i.route), netUsd: routeNetUsd(i.route) })), skipped: plan.skipped.map((s) => ({ token: s.token.symbol, reason: s.reason })) })
   if (plan.items.length > 0) {
@@ -644,6 +721,9 @@ async function sweepCommand(args: string[]): Promise<void> {
     out()
     out(`[${n + 1}/${plan.items.length}] ${item.from.symbol}`)
     try {
+      const stops = await stopOverTopUps(item.route, holdingOf(item.from), item.amount)
+      printStopOvers(stops)
+      await runStopOverTopUps(stops, account.name, accepted)
       await execute(await buildPipeline(item.route, account.name, accepted))
     } catch (err) {
       out(`${item.from.symbol} stopped: ${(err as Error).message}`)
@@ -838,12 +918,15 @@ async function routeCommand(args: string[]): Promise<void> {
     out()
     out(`Route:     ${routeVia(choice.route)}`)
     out(`Recipient: ${toAddress}`)
-    const topUp = await gasTopUpRoute(plan, balance!)
+    const stops = await stopOverTopUps(choice.route, balance!, amount)
+    printStopOvers(stops)
+    const topUp = await gasTopUpRoute(plan, balance! - stops.reduce((s, t) => s + t.route.legs[0]!.request.amount, 0n))
     if (topUp) out(`Extra:     ${fmt(topUp.legs[0]!.request.amount, from)} for gas on ${toChain.name} via ${routeVia(topUp)}`)
     if (opts['dry-run']) return out('Dry run: nothing was signed or sent.')
-    if (!opts.yes && !(await confirm(`Run "${saved.name}" now${topUp ? ', with the gas top-up' : ''}?`))) return out('Cancelled.')
-    const accepted = await geoAcceptance(choice.route)
+    if (!opts.yes && !(await confirm(`Run "${saved.name}" now${stops.length ? ', with the stop-over gas' : ''}${topUp ? ' and the gas top-up' : ''}?`))) return out('Cancelled.')
+    const accepted = await geoAcceptance({ legs: [...stops.flatMap((s) => s.route.legs), ...choice.route.legs] })
     if (!accepted) return out('Cancelled: the location confirmation was not given. Nothing was sent.')
+    await runStopOverTopUps(stops, account.name, accepted)
     const record = await buildPipeline(choice.route, account.name, accepted)
     if (saved.amount === 'all') record.legs[0]!.amount = 'all'
     await execute(record)

@@ -52,3 +52,30 @@ test('the estimate is the node gas price times the onward gas units times the co
   assert.ok(Math.abs(usd! - 0.3) < 1e-9)
   assert.equal(await estimateGasUsd({ ...chain, nativePriceUsd: undefined }, fetchFn), undefined)
 })
+
+import { stopOverUsd, stopOvers, transitAllowed, TransitPool } from '../src/index.ts'
+
+const leg = (from: Token, to: Token, toAddress: string, costUsd: number) => ({ request: { from, to, toAddress }, costUsd })
+const SOLNAT: Token = { chainKey: 'sol', address: '11111111111111111111111111111111', symbol: 'SOL', decimals: 9, priceUsd: 100 }
+const SPL: Token = { chainKey: 'sol', address: 'EPjF', symbol: 'USDC', decimals: 6, priceUsd: 1 }
+
+test('stop-overs are the chains between legs where something other than the coin waits', () => {
+  const route = { legs: [leg(USDC, SPL, 'solAddr', 1), leg(SPL, OUT, 'me', 0.04)] }
+  assert.deepEqual(stopOvers(route), [{ chainKey: 'sol', address: 'solAddr', arriving: SPL, nextCostUsd: 0.04 }])
+  assert.deepEqual(stopOvers({ legs: [leg(USDC, SOLNAT, 'solAddr', 1), leg(SOLNAT, OUT, 'me', 0.04)] }), [])
+  assert.deepEqual(stopOvers({ legs: [leg(USDC, OUT, 'me', 1)] }), [])
+})
+test('the stop-over gas is the multiplier of the next leg cost, or the estimate when the quote has none, or the fixed value', () => {
+  const stop = { chainKey: 'sol', address: 'a', arriving: SPL, nextCostUsd: 0.04 }
+  assert.equal(stopOverUsd(mult(2), stop, 9).usd, 0.08)
+  assert.equal(stopOverUsd(mult(2), { ...stop, nextCostUsd: 0 }, 0.25).usd, 0.5)
+  assert.equal(stopOverUsd(fixed(1), stop, undefined).usd, 1)
+  assert.match(stopOverUsd(mult(2), { ...stop, nextCostUsd: 0 }, undefined).why!, /unknown/)
+})
+test('a transit wallet may hold another token only when gas is sent ahead', () => {
+  const pool = new TransitPool([])
+  const stop = pool.addressOn({ family: 'solana', key: 'sol' })
+  const route = { legs: [{ request: { from: USDC, to: SPL, fromAddress: 'a', toAddress: stop, amount: 1n, slippage: 0 }, costUsd: 0 }, { request: { from: SPL, to: OUT, fromAddress: stop, toAddress: 'b', amount: 1n, slippage: 0 }, costUsd: 0 }] } as never
+  assert.equal(transitAllowed(route, pool), false)
+  assert.equal(transitAllowed(route, pool, true), true)
+})
