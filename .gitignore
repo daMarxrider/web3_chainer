@@ -3,3 +3,5 @@ dist/
 target/
 *.log
 .env
+apps/gui/.impeccable/review/
+apps/gui/.impeccable/hook.cache.json
