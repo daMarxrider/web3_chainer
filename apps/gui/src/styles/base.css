@@ -563,6 +563,8 @@ input.narrow {
 .err-text.block {
   display: block;
   white-space: normal;
+  max-width: 70ch;
+  overflow-wrap: anywhere;
 }
 
 /* ---- first launch ---- */

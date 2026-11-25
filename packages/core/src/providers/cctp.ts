@@ -1,4 +1,5 @@
 import { encodeFunctionData, pad, type Address, type Hex } from 'viem'
+import { estimateGasUsd } from '../gastopup.ts'
 import { fetchJson } from '../http.ts'
 import type { Action, BridgeProvider, Chain, FetchFn, Quote, QuoteRequest, TransferStatus } from '../types.ts'
 
@@ -109,6 +110,9 @@ export function cctpProvider(fetchFn: FetchFn, chains: Chain[]): BridgeProvider 
       if (!same(request.from.address, from.usdc) || !same(request.to.address, to.usdc)) return []
 
       const host = from.testnet ? IRIS.testnet : IRIS.mainnet
+      // Approval plus burn on the source chain: about 250 000 gas used, 300 000 assumed, at the node's current price.
+      const sourceChain = chains.find((c) => c.key === request.from.chainKey)
+      const gasUsd = (sourceChain && (await estimateGasUsd(sourceChain, fetchFn, 300_000n))) || 0
       const fees = await fetchJson<FeeEntry[]>(fetchFn, `${host}/v2/burn/USDC/fees/${from.domain}/${to.domain}?forward=true`)
 
       const quotes: Quote[] = []
@@ -127,8 +131,8 @@ export function cctpProvider(fetchFn: FetchFn, chains: Chain[]): BridgeProvider 
           toAmount: received,
           toAmountMin: received,
           toAmountUsd: Number(received) / 1e6,
-          // Source-chain gas is not estimated here; the forwarding fee is already inside maxFee.
-          costUsd: 0,
+          // Gas of the approval and the burn on the source chain; the forwarding fee is already inside maxFee.
+          costUsd: gasUsd,
           etaSeconds: fast ? 30 : 1200,
           viaSymbols: ['USDC'],
           raw: { fromId: from.id, toId: to.id, maxFee: maxFee.toString(), threshold: fee.finalityThreshold },

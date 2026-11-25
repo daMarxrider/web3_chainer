@@ -39,8 +39,8 @@ export interface SweepInput {
 
 const valueUsd = (token: Token, amount: bigint) => (token.priceUsd === undefined ? undefined : (Number(amount) / 10 ** token.decimals) * token.priceUsd)
 const firstLegCost = (route: Route) => route.legs[0]!.costUsd
-/** Gas can rise between quote and send, so the amount held back is twice the quoted cost. */
-const GAS_MARGIN = 2
+/** Gas can rise between quote and send, so the amount held back is three times the quoted cost. */
+const GAS_MARGIN = 3
 
 /**
  * Plans a whole-wallet transfer: every held token becomes its own transfer. Tokens with no

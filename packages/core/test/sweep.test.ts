@@ -27,8 +27,8 @@ test('tokens go by value, the chain coin goes last with gas held back for the re
     findRoute: async (from, to, amount) => route(from, to, amount, from.symbol === 'ETH' ? 1 : 0.5),
   })
   assert.deepEqual(plan.items.map((i) => i.from.symbol), ['USDC', 'DAI', 'ETH'])
-  // two token transfers cost 0.5 each, margin x2 = $2 -> 0.001 ETH; its own cost $1 x2 = $2 -> 0.001 ETH
-  assert.equal(plan.items[2]!.amount, eth(1) - eth(0.002))
+  // two token transfers cost 0.5 each, margin x3 = $3 -> 0.0015 ETH; its own cost $1 x3 = $3 -> 0.0015 ETH
+  assert.equal(plan.items[2]!.amount, eth(1) - eth(0.003))
   assert.deepEqual(plan.skipped, [])
 })
 
@@ -71,8 +71,8 @@ test('a token that is also the chain gas coin goes last with gas held back', asy
     isGasCoin: (t) => t.symbol === 'USDC',
     findRoute: async (from, to, amount) => route(from, to, amount, 0.5),
   })
-  // own transfer cost $0.5 x 2 held back
-  assert.equal(plan.items[0]!.amount, 20_000_000n - 1_000_000n)
+  // own transfer cost $0.5 x 3 held back
+  assert.equal(plan.items[0]!.amount, 20_000_000n - 1_500_000n)
 })
 
 test('empty balances are ignored', async () => {
