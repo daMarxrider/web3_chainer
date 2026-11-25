@@ -124,7 +124,21 @@ A saved route keeps what you meant (wallet, tokens, chains, recipient, amount ru
 
 ### Gas top-up
 
-A recipient with no gas coin on the destination chain cannot move what arrives. Turn on an automatic extra transfer with `chainer config set gasTopUpUsd 2` (0.5 to 10 US dollars, `off` to disable; it is off by default). When a `send` or a saved-route run delivers a token to an address that holds none of the destination chain's own coin, the same source token is also sent into that coin, after the main transfer. The extra transfer is shown and confirmed together with the main one, is skipped when the recipient already has gas, when the transfer is too small to carry it, or when the wallet cannot pay it on top, and a failure of the extra never affects the main transfer.
+A recipient with no gas coin on the destination chain cannot move what arrives. By default, when a `send`, a saved-route run or a plan delivers a token to an address that holds none of the destination chain's own coin, the same source token is also sent into that coin, after the main transfer. The extra transfer is shown and confirmed together with the main one.
+
+How much is up to you, with two modes:
+
+- **multiplier** (default, 2x): that many times the estimated gas cost of what has to be done on the destination, worked out from the chain's current gas price for one onward transaction (a bridge deposit or swap).
+- **fixed**: always the same value in US dollars.
+
+```sh
+chainer config set gasTopUpMode fixed          # off | multiplier | fixed
+chainer config set gasTopUpMultiplier 3        # 0.5 to 20
+chainer config set gasTopUpFixedUsd 5          # 0.10 to 50
+chainer send 100 USDC arbitrum base --gas-topup 3x    # for one run: off, 3x or $5
+```
+
+In a plan file add `gasTopUp: 3x` (or `off`, `$5`) next to `wallet:` to set it for that plan. The extra is skipped, with the reason shown, when the recipient already has gas, when the transfer is too small to carry it, when the wallet cannot pay it on top, or (in multiplier mode) when the chain's gas price is unknown. It never exceeds $50, and a failure of the extra never affects the main transfer. For a plan it covers the last chain only, and only when the first leg has a fixed amount; stop-over chains in the middle of a multi-leg plan are not topped up.
 
 ### Schedules and the daemon
 

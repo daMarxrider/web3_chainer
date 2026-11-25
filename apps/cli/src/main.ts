@@ -40,6 +40,8 @@ import {
   resolveRecipient,
   isNative,
   lifiProvider,
+  estimateGasUsd,
+  parseGasTopUp,
   planGasTopUp,
   planSweep,
   sdkStatus,
@@ -110,7 +112,7 @@ Usage:
   chainer book list | add <label> <chain> <address> | remove <label> [<chain>]
                                               Named recipient addresses; use the label after --to
   chainer config show
-  chainer config set <prefer|slippage|maxUsdPerTransfer|maxHops|gasTopUpUsd|blockcypher> <value>   (blockcypher on|off: Dogecoin and Dash data, off by default)
+  chainer config set <prefer|slippage|maxUsdPerTransfer|maxHops|gasTopUpMode|gasTopUpMultiplier|gasTopUpFixedUsd|blockcypher> <value>   (blockcypher on|off: Dogecoin and Dash data, off by default)
   chainer config rpc <chain> <url|default>    Use your own RPC node for a chain
   chainer config avoid <add|remove> <token>   Tokens never to route through or into
 
@@ -120,6 +122,7 @@ Options:
   --max-hops <n>             Most legs an automatic route may have (default: from config)
   --to <address>             Recipient (default: your own address)
   --testnet                  Run on the test networks of the named chains, with test funds
+  --gas-topup <off|2x|$3>    Gas sent ahead to a recipient with none: off, a multiple of the estimated gas cost, or a fixed value
   --dry-run                  Stop before signing
   --yes                      Do not ask for confirmation (the location confirmation for
                              geo-restricted bridges is always asked)
@@ -162,6 +165,7 @@ const { values: opts, positionals } = parseArgs({
     'check-every': { type: 'string' },
     repeat: { type: 'boolean' },
     once: { type: 'boolean' },
+    'gas-topup': { type: 'string' },
     poll: { type: 'string' },
     fallback: { type: 'boolean' },
     target: { type: 'string' },
@@ -488,12 +492,17 @@ async function quoteCommand(args: string[]): Promise<void> {
 }
 
 /** The extra transfer that gives a gas-less recipient some of the destination coin, if the setting asks for one. */
-async function gasTopUpRoute(plan: Plan, sourceBalance: bigint): Promise<Route | undefined> {
-  if (!(settings.gasTopUpUsd > 0)) return undefined
+async function gasTopUpRoute(plan: Plan, sourceBalance: bigint, override?: string): Promise<Route | undefined> {
+  // --gas-topup, or the plan file's gasTopUp, overrides the saved setting for this run.
+  const text = override ?? opts['gas-topup']
+  const setting = text ? parseGasTopUp(text, settings.gasTopUp) : settings.gasTopUp
+  if (setting.mode === 'off') return undefined
   const { request, toChain } = plan
   const destNative = await lifiToken(fetchFn, toChain, toChain.nativeSymbol)
   const [have] = await adapterFor(toChain).getBalances(request.toAddress, [destNative])
-  const { topUp, why } = planGasTopUp(settings, { source: request.from, destination: request.to, destNative, destNativeBalance: have!, mainAmount: request.amount, sourceBalance })
+  // Twice (by default) what one onward transaction costs at the destination's current gas price.
+  const estimatedGasUsd = setting.mode === 'multiplier' ? await estimateGasUsd(toChain, fetchFn) : undefined
+  const { topUp, why } = planGasTopUp(setting, { source: request.from, destination: request.to, destNative, destNativeBalance: have!, mainAmount: request.amount, sourceBalance, estimatedGasUsd })
   if (!topUp) {
     if (why) out(`No gas top-up: ${why}.`)
     return undefined
@@ -881,6 +890,8 @@ async function execute(record: PipelineRecord): Promise<void> {
 
 interface PlanFile {
   wallet?: string
+  /** Overrides the saved gas top-up setting for this plan: off, 3x (times the estimated gas cost) or $5 (fixed). */
+  gasTopUp?: string
   legs?: { amount?: number | string; from?: string; to?: string; recipient?: string }[]
 }
 
@@ -940,7 +951,18 @@ async function pipelineCommand(sub: string | undefined, file: string | undefined
   if (!opts.yes && !(await confirm('Run this plan? Each leg starts by itself once the previous one has arrived.'))) return out('Cancelled.')
   // The bridges are picked while the plan runs, so the form covers every geo-restricted bridge it might use.
   record.geoAccepted = await askGeoForPlan()
+  // Gas for the last chain: only when the first leg has a fixed amount to base it on.
+  const [first, last] = [record.legs[0]!, record.legs.at(-1)!]
+  let topUp: Route | undefined
+  if (first.amount !== 'all' && (plan.gasTopUp ?? opts['gas-topup'] ?? settings.gasTopUp.mode) !== 'off') {
+    const chains = await allChains()
+    const [fromChain, toChain] = [chains.find((c) => c.key === first.from.chainKey)!, chains.find((c) => c.key === last.to.chainKey)!]
+    const [balance] = await adapterFor(fromChain).getBalances(first.fromAddress ?? record.fromAddress, [first.from])
+    const topUpPlan: Plan = { request: { from: first.from, to: last.to, amount: BigInt(first.amount), fromAddress: first.fromAddress ?? record.fromAddress, toAddress: last.toAddress, slippage: settings.slippage }, fromChain, toChain, wallet: account.name }
+    topUp = await gasTopUpRoute(topUpPlan, balance!, plan.gasTopUp)
+  }
   await execute(record)
+  await runGasTopUp(topUp, account.name)
 }
 
 async function findRun(id: string | undefined): Promise<PipelineRecord> {
@@ -1024,10 +1046,13 @@ async function configCommand(args: string[]): Promise<void> {
       const n = Number(b)
       if (!Number.isInteger(n) || n < 1 || n > 5) throw new Error('maxHops must be a whole number from 1 to 5')
       next.maxHops = n
-    } else if (a === 'gasTopUpUsd') {
-      const n = b === 'off' ? 0 : Number(b)
-      if (!(n === 0 || (n >= 0.5 && n <= 10))) throw new Error('gasTopUpUsd is a value in USD from 0.5 to 10, or "off"')
-      next.gasTopUpUsd = n
+    } else if (a === 'gasTopUpMode') {
+      if (b !== 'off' && b !== 'multiplier' && b !== 'fixed') throw new Error('gasTopUpMode must be "off", "multiplier" or "fixed"')
+      next.gasTopUp.mode = b
+    } else if (a === 'gasTopUpMultiplier') {
+      next.gasTopUp = parseGasTopUp(b + 'x', next.gasTopUp)
+    } else if (a === 'gasTopUpFixedUsd') {
+      next.gasTopUp = parseGasTopUp('$' + b, next.gasTopUp)
     } else if (a === 'blockcypher') {
       if (b !== 'on' && b !== 'off') throw new Error('blockcypher must be "on" or "off"')
       next.blockcypher = b === 'on'
