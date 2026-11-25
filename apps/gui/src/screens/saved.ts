@@ -22,6 +22,7 @@ export async function runSaved(sheet: HTMLElement, saved: SavedRoute, back: () =
     }
     const prep = await engine.prepareSaved(saved)
     const last = prep.route.legs.at(-1)!
+    const gas = await engine.planGas(prep.route, prep.amount, prep.balance)
     const accepted = await confirmRun(sheet, {
       title: `Run "${saved.name}"`,
       rows: [
@@ -32,14 +33,16 @@ export async function runSaved(sheet: HTMLElement, saved: SavedRoute, back: () =
         ['Route', prep.route.legs.map((q) => `${q.provider}/${q.tool}`).join(' > ')],
         ['Time', `about ${duration(routeEta(prep.route))}`],
         ['Recipient', prep.toAddress],
+        ...gas.stops.map((t): [string, string] => ['Gas ahead', `${amount(t.route.legs[0]!.request.amount, prep.from)} ${prep.from.symbol} into ${t.stop.chainKey}'s coin first, via ${t.route.legs.map((q) => `${q.provider}/${q.tool}`).join(' > ')}`]),
+        ...(gas.topUp ? ([['Gas top-up', `${amount(gas.topUp.legs[0]!.request.amount, prep.from)} ${prep.from.symbol} into ${prep.toChain.name}'s coin after the transfer`]] as [string, string][]) : []),
       ],
-      routes: [prep.route],
+      routes: [prep.route, ...engine.gasRoutes(gas)],
       confirmLabel: 'Run now',
       notes: prep.usedFallback ? [`The saved path "${saved.via}" is no longer offered; this uses the best route now.`] : [],
     })
     if (!accepted) return back()
     const names = (key: string) => (key === prep.fromChain.key ? prep.fromChain.name : key === prep.toChain.key ? prep.toChain.name : key)
-    await showJob(sheet, `Running "${saved.name}"`, names, (onEvent) => engine.run(prep.route, accepted, onEvent, { wholeBalance: prep.wholeBalance }), back)
+    await showJob(sheet, `Running "${saved.name}"`, names, (onEvent) => engine.runWithGas(prep.route, accepted, onEvent, gas, { wholeBalance: prep.wholeBalance }), back)
   } catch (e) {
     replace(sheet, h('h1', { class: 'sheet-title' }, saved.name), h('p', { class: 'form-error', role: 'alert' }, (e as Error).message), h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'button', onClick: back }, 'Back')))
   }

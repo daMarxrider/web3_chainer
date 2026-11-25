@@ -58,7 +58,7 @@ async function runOne(s: Schedule, mode: 'run' | 'check'): Promise<Schedule> {
     if (saved.kind === 'transfer') {
       const prep = await engine.prepareSaved(saved)
       routes.push(prep.route)
-      start = async () => failIfStopped(await engine.run(prep.route, geoKeys(prep.route.legs), (_r, i, m) => say(`leg ${i + 1}: ${m}`), { wholeBalance: prep.wholeBalance }))
+      start = async () => failIfStopped(await engine.runAuto(prep.route, s.geoAccepted, (_r, i, m) => say(`leg ${i + 1}: ${m}`), { wholeBalance: prep.wholeBalance }))
     } else {
       const [fc, tc] = await Promise.all([engine.resolveChain(saved.fromChain), engine.resolveChain(saved.toChain)])
       const { plan } = await engine.planSweep(fc, tc, saved.tokens, saved.target, saved.recipient)
@@ -67,7 +67,7 @@ async function runOne(s: Schedule, mode: 'run' | 'check'): Promise<Schedule> {
         const stopped: string[] = []
         for (const item of plan.items) {
           try {
-            failIfStopped(await engine.run(item.route, geoKeys(item.route.legs), (_r, i, m) => say(`${item.from.symbol}, leg ${i + 1}: ${m}`)))
+            failIfStopped(await engine.runAuto(item.route, s.geoAccepted, (_r, i, m) => say(`${item.from.symbol}, leg ${i + 1}: ${m}`)))
           } catch (e) {
             stopped.push(`${item.from.symbol}: ${(e as Error).message}`)
           }

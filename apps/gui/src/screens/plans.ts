@@ -111,17 +111,18 @@ export async function plansScreen(sheet: HTMLElement): Promise<void> {
     run.disabled = true
     try {
       const { legs, tokens } = await build()
+      const gas = await engine.planGasForLegs(legs)
       const ok = await confirmRun(sheet, {
         title: 'Run plan',
         rows: legs.map((l, i): [string, string] => [`Leg ${i + 1}`, `${i === 0 ? amount(l.amount, tokens[i]!.from) : 'all'} ${tokens[i]!.from.symbol} on ${tokens[i]!.fromChain.name} to ${tokens[i]!.to.symbol} on ${tokens[i]!.toChain.name}`]).concat([['Recipient', legs.at(-1)!.toAddress]]),
         routes: [],
         confirmLabel: 'Continue',
-        notes: ['The best route for each leg is picked when that leg starts, so the exact bridges are not known yet.'],
+        notes: ['The best route for each leg is picked when that leg starts, so the exact bridges are not known yet.', ...gas.stops.map((t) => `Gas ahead: about ${usd(t.usd)} into ${byKey(t.stop.chainKey)?.name ?? t.stop.chainKey}'s coin before the first leg.`), ...(gas.topUp ? [`Gas top-up for the recipient after the last leg.`] : [])],
       })
       if (!ok) return
       const geo = await askLocation(sheet, 'This plan picks its bridges while it runs and may use any of these:')
       const name = (key: string) => byKey(key)?.name ?? key
-      await showJob(sheet, 'Plan in progress', name, (onEvent) => engine.runPlan(legs, geo, onEvent), () => void plansScreen(sheet))
+      await showJob(sheet, 'Plan in progress', name, (onEvent) => engine.runPlan(legs, geo, onEvent, gas), () => void plansScreen(sheet))
     } catch (e) {
       err.textContent = (e as Error).message
     } finally {

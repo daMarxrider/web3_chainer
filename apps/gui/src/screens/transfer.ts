@@ -1,8 +1,8 @@
 import { geoKeys, geoNotices, geoStatement, parseUnits, resolveRecipient, routeEta, routeNetUsd, type Chain, type PipelineRecord, type Route, type Token } from '@chainer/core'
 import { amount, duration, h, replace, shortAddress, usd } from '../dom.ts'
-import { engine } from '../engine.ts'
+import { engine, type GasPlan } from '../engine.ts'
 import { icon } from '../icons.ts'
-import { askText } from './confirm.ts'
+import { askText, confirmRun } from './confirm.ts'
 import { showJob } from './job.ts'
 
 interface Form {
@@ -172,51 +172,41 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
 
   // ---- one confirmation, then the job ----
 
-  const confirm = (req: Awaited<ReturnType<typeof readForm>>, route: Route, balance: bigint) => {
+  const confirm = async (req: Awaited<ReturnType<typeof readForm>>, route: Route, balance: bigint) => {
     if (balance < req.amount) {
       results.prepend(h('p', { class: 'form-error', role: 'alert' }, `The wallet holds ${amount(balance, req.from)} ${req.from.symbol} on ${req.fromChain.name}, less than you want to send.`))
       return
     }
-    const notices = engine.testMode ? [] : geoNotices(route.legs)
-    const ok = h('input', { type: 'checkbox', id: 'geo-ok' })
-    const go = h('button', { class: 'btn primary', type: 'button', disabled: notices.length > 0 }, 'Send now')
-    ok.addEventListener('change', () => (go.disabled = !ok.checked))
-    const dlg = h(
-      'dialog',
-      { class: 'window dialog', 'aria-labelledby': 'dlg-title' },
-      h('header', { class: 'titlebar' }, h('span', { class: 'title', id: 'dlg-title' }, 'Confirm transfer')),
-      h(
-        'div',
-        { class: 'dialog-body' },
-        engine.testMode ? h('p', { class: 'banner test' }, 'Test networks: this moves test funds only.') : h('p', { class: 'banner real' }, 'Real networks: this moves real money and cannot be undone.'),
-        h(
-          'dl',
-          { class: 'summary' },
-          h('dt', {}, 'You send'), h('dd', { class: 'strong' }, `${amount(req.amount, req.from)} ${req.from.symbol} from ${req.fromChain.name}`),
-          h('dt', {}, 'You receive'), h('dd', { class: 'strong' }, `${amount(route.legs.at(-1)!.toAmount, req.to)} ${req.to.symbol} on ${req.toChain.name}`),
-          h('dt', {}, 'At worst'), h('dd', {}, `${amount(route.legs.at(-1)!.toAmountMin, req.to)} ${req.to.symbol}`),
-          h('dt', {}, 'Gas and fees'), h('dd', {}, usd(route.legs.reduce((s, q) => s + q.costUsd, 0))),
-          h('dt', {}, 'Route'), h('dd', {}, routeVia(route)),
-          h('dt', {}, 'Time'), h('dd', {}, `about ${duration(routeEta(route))}`),
-          h('dt', {}, 'Recipient'), h('dd', { class: 'mono' }, req.toAddress),
-        ),
-        notices.length
-          ? h('div', { class: 'geo' }, h('h3', {}, icon('warn'), ' Restricted services'), h('ul', {}, notices.map((n) => h('li', {}, h('strong', {}, n.name), ` is ${n.onlyIn ? 'only available in' : 'not available in'}: ${n.regions.join(', ')}. `, n.note ?? '', h('span', { class: 'via' }, ` Source: ${n.terms}`)))), h('label', { class: 'check', for: 'geo-ok' }, ok, h('span', {}, geoStatement(notices))))
-          : null,
-        h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'button', onClick: () => dlg.close() }, 'Cancel'), go),
-      ),
-    )
-    dlg.addEventListener('close', () => dlg.remove())
-    go.addEventListener('click', () => {
-      dlg.close()
-      void start(route, geoKeys(route.legs))
+    // Gas for chains the route stops on, and for a recipient with none, is worked out before the one confirmation.
+    let gas: GasPlan
+    try {
+      gas = await engine.planGas(route, req.amount, balance)
+    } catch (err) {
+      results.prepend(h('p', { class: 'form-error', role: 'alert' }, (err as Error).message))
+      return
+    }
+    const last = route.legs.at(-1)!
+    const rows: [string, string][] = [
+      ['You send', `${amount(req.amount, req.from)} ${req.from.symbol} from ${req.fromChain.name}`],
+      ['You receive', `${amount(last.toAmount, req.to)} ${req.to.symbol} on ${req.toChain.name}`],
+      ['At worst', `${amount(last.toAmountMin, req.to)} ${req.to.symbol}`],
+      ['Gas and fees', usd(route.legs.reduce((s, q) => s + q.costUsd, 0))],
+      ['Route', routeVia(route)],
+      ['Time', `about ${duration(routeEta(route))}`],
+      ['Recipient', req.toAddress],
+      ...gas.stops.map((t): [string, string] => ['Gas ahead', `${amount(t.route.legs[0]!.request.amount, req.from)} ${req.from.symbol} into ${byName(t.stop.chainKey)}'s coin first (the next leg needs it), via ${routeVia(t.route)}`]),
+      ...(gas.topUp ? ([['Gas top-up', `${amount(gas.topUp.legs[0]!.request.amount, req.from)} ${req.from.symbol} into ${byName(req.toChain.key)}'s coin after the transfer (the recipient has none there)`]] as [string, string][]) : []),
+    ]
+    const accepted = await confirmRun(sheet, {
+      title: 'Confirm transfer',
+      rows,
+      routes: [route, ...engine.gasRoutes(gas)],
+      confirmLabel: 'Send now',
+      notes: gas.topUpNote && engine.settings.gasTopUp.mode !== 'off' ? [`No gas top-up: ${gas.topUpNote}.`] : [],
     })
-    sheet.append(dlg)
-    dlg.showModal()
+    if (!accepted) return
+    void showJob(sheet, 'Transfer in progress', byName, (onEvent) => engine.runWithGas(route, accepted, onEvent, gas), () => void transferScreen(sheet))
   }
-
-  const start = (route: Route, accepted: string[]) =>
-    showJob(sheet, 'Transfer in progress', byName, (onEvent) => engine.run(route, accepted, onEvent), () => void transferScreen(sheet))
 
   // Runs the journal says are not finished, with a way to pick them up again.
   const unfinishedBox = h('section', { class: 'unfinished' })

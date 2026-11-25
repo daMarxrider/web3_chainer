@@ -52,7 +52,7 @@ export async function settingsScreen(sheet: HTMLElement): Promise<void> {
     h('label', { class: 'row', for: 's-hops' }, h('span', { class: 'label' }, 'Most legs per route'), hops),
     h('label', { class: 'row', for: 's-limit' }, h('span', { class: 'label' }, 'Limit per transfer, USD'), limit),
     h('label', { class: 'row', for: 's-avoid' }, h('span', { class: 'label' }, 'Never route through'), avoid),
-    h('p', { class: 'hint' }, 'Gas top-up: when a recipient has none of the destination chain’s own coin, a small extra amount is sent into it after the transfer (shown and confirmed with it; not yet part of the GUI’s transfers).'),
+    h('p', { class: 'hint' }, 'Gas: a small extra transfer is sent ahead to a chain a route stops on when its next leg would have no coin to pay with, and after a transfer to a recipient who has none of the destination chain’s coin. Both are shown and confirmed with the transfer.'),
     h('label', { class: 'row', for: 's-gasmode' }, h('span', { class: 'label' }, 'Gas top-up'), gasMode),
     h('label', { class: 'row', for: 's-gasmult' }, h('span', { class: 'label' }, 'Multiplier'), gasMult),
     h('label', { class: 'row', for: 's-gasfixed' }, h('span', { class: 'label' }, 'Fixed value, USD'), gasFixed),

@@ -13,12 +13,21 @@ import {
   loadKeystore,
   loadSettings,
   mayaProvider,
+  TransitPool,
   addAddress,
   chooseSaved,
+  estimateGasUsd,
+  persistTransit,
+  planGasTopUp,
+  stopOverUsd,
+  stopOvers,
+  transitAllowed,
+  type StopOver,
   listPipelines,
   listRoutes,
   listSchedules,
   loadRoute,
+  geoKeys,
   newPipeline,
   parseUnits,
   pipelineFromRoute,
@@ -104,7 +113,26 @@ export interface Session {
   walletName: string
   signer: Signer
   account: AccountRecord
+  /** Kept in memory while unlocked: transit wallets are stored encrypted under it and unlocked with it. */
+  password: string
 }
+
+/** A small transfer that puts gas on a chain the main route stops on, sent before the route starts. */
+export interface StopTopUp {
+  stop: StopOver
+  route: Route
+  usd: number
+}
+
+/** The extra transfers around a main route: gas for its stop-over chains (before) and for the recipient (after). */
+export interface GasPlan {
+  stops: StopTopUp[]
+  topUp?: Route
+  /** Why no top-up was planned, when it was wanted but not possible or not needed. */
+  topUpNote?: string
+}
+
+type RunEvent = (record: PipelineRecord, legIndex: number, message: string) => void
 
 class Engine {
   readonly store: Store = localStore()
@@ -113,6 +141,8 @@ class Engine {
   testMode = false
   session?: Session
   private chainList?: Promise<Chain[]>
+  /** Transit wallets made for the last route search; stored when a route that uses them runs. */
+  private pool?: TransitPool
 
   /** Journal and runs of test mode are kept apart from real ones. */
   get runStore(): Store {
@@ -138,7 +168,7 @@ class Engine {
     const account = walletName ? accounts.find((a) => a.name === walletName) : accounts[0]
     if (!account) throw new Error('No wallet found')
     const signer = await unlock(this.store, account.name, password)
-    this.session = { walletName: account.name, signer, account }
+    this.session = { walletName: account.name, signer, account, password }
     return this.session
   }
   lock(): void {
@@ -217,18 +247,108 @@ class Engine {
 
   /** Ranked routes for a transfer, direct or through other chains. */
   async findRoutes(from: Token, to: Token, amount: bigint, toAddress: string): Promise<{ routes: Route[]; errors: string[] }> {
+    const session = this.requireSession()
     const chains = await this.chains()
     const fromChain = chains.find((c) => c.key === from.chainKey)!
     const fromAddress = this.ownAddress(fromChain)
     const providers = await this.providers()
-    const addressOn = (chainKey: string) => this.ownAddress(chains.find((c) => c.key === chainKey)!)
-    const { routes, errors } = await findPipelineRoutes({ from, to, amount, fromAddress, toAddress, slippage: this.settings.slippage }, providers, this.settings, {
+    // A wallet with no address on a stop-over chain (a single private key) gets a transit wallet for it.
+    const pool = (this.pool = new TransitPool(await this.accounts()))
+    const addressOn = (chainKey: string) => {
+      const chain = chains.find((c) => c.key === chainKey)!
+      return session.account.addresses[addressSlot(chain)] ?? pool.addressOn(chain)
+    }
+    const found = await findPipelineRoutes({ from, to, amount, fromAddress, toAddress, slippage: this.settings.slippage }, providers, this.settings, {
       prefer: this.settings.prefer,
       hubs: () => this.hubs(),
       maxHops: this.settings.maxHops,
       addressOn,
     })
-    return { routes, errors }
+    const routes = found.routes.filter((r) => transitAllowed(r, pool, this.settings.gasTopUp.mode !== 'off'))
+    if (routes.length === 0 && found.routes.length > 0) throw new Error("The only routes stop on a chain where this wallet has no address, with a token other than that chain's own coin. Import a seed phrase wallet, or choose another route.")
+    return { routes, errors: found.errors }
+  }
+
+  // ---- gas: for stop-over chains and for the recipient ----
+
+  /**
+   * Gas for the chains a route stops on. A stop-over holding a token other than the chain's coin
+   * needs some of that coin to pay for the next leg, so a small transfer from the source wallet goes
+   * there first, sized from the next leg's own quoted cost (times the multiplier, or the fixed value).
+   */
+  private async stopOverTopUps(route: Route, sourceBalance: bigint, mainAmount: bigint): Promise<StopTopUp[]> {
+    const setting = this.settings.gasTopUp
+    if (setting.mode === 'off') return []
+    const chains = await this.chains()
+    const first = route.legs[0]!.request
+    const found: StopTopUp[] = []
+    let spent = mainAmount
+    for (const stop of stopOvers(route)) {
+      const chain = chains.find((c) => c.key === stop.chainKey)!
+      const native = await lifiToken(withTimeout, chain, chain.nativeSymbol)
+      const [have] = await this.adapterFor(chain).getBalances(stop.address, [native])
+      if (have! > 0n) continue
+      const estimated = stop.nextCostUsd > 0 || setting.mode !== 'multiplier' ? undefined : await estimateGasUsd(chain, withTimeout)
+      const { usd, why } = stopOverUsd(setting, stop, estimated)
+      if (!usd) throw new Error(`Cannot send gas ahead to ${chain.name}: ${why ?? 'no amount'}`)
+      const price = first.from.priceUsd
+      if (!price) throw new Error(`Cannot send gas ahead to ${chain.name}: the price of ${first.from.symbol} is unknown`)
+      const amount = BigInt(Math.ceil((usd / price) * 10 ** first.from.decimals))
+      if (spent + amount > sourceBalance) throw new Error(`The wallet cannot pay the gas for ${chain.name} (about ${usd.toFixed(2)} USD) on top of the transfer; send a smaller amount, or turn the gas top-up off in Settings`)
+      spent += amount
+      // The transfer to the stop-over address has to be one leg, or it would need stop-overs of its own.
+      const keep = this.pool
+      let candidates: Route[]
+      try {
+        candidates = (await this.findRoutes(first.from, native, amount, stop.address)).routes
+      } catch (err) {
+        throw new Error(`Cannot send gas ahead to ${chain.name}: ${(err as Error).message}. Turn the gas top-up off in Settings or get some ${chain.nativeSymbol} there first.`)
+      } finally {
+        this.pool = keep
+      }
+      const direct = candidates.find((r) => r.legs.length === 1)
+      if (!direct) throw new Error(`No direct route to send gas ahead to ${chain.name}; turn the gas top-up off in Settings or use a seed phrase wallet`)
+      found.push({ stop, route: direct, usd })
+    }
+    return found
+  }
+
+  /** The extra transfer that gives a recipient with no gas some of the destination coin, if the setting asks for one. */
+  private async recipientTopUp(route: Route, mainAmount: bigint, sourceBalance: bigint): Promise<{ route?: Route; note?: string }> {
+    const setting = this.settings.gasTopUp
+    if (setting.mode === 'off') return {}
+    const chains = await this.chains()
+    const first = route.legs[0]!.request
+    const last = route.legs.at(-1)!.request
+    const toChain = chains.find((c) => c.key === last.to.chainKey)!
+    const destNative = await lifiToken(withTimeout, toChain, toChain.nativeSymbol)
+    const [have] = await this.adapterFor(toChain).getBalances(last.toAddress, [destNative])
+    const estimatedGasUsd = setting.mode === 'multiplier' ? await estimateGasUsd(toChain, withTimeout) : undefined
+    const { topUp, why } = planGasTopUp(setting, { source: first.from, destination: last.to, destNative, destNativeBalance: have!, mainAmount, sourceBalance, estimatedGasUsd })
+    if (!topUp) return { note: why }
+    const keep = this.pool
+    try {
+      const routes = (await this.findRoutes(first.from, destNative, topUp.amount, last.toAddress)).routes
+      return { route: routes[0], note: routes[0] ? undefined : 'no route for it' }
+    } catch (err) {
+      return { note: `no route for it (${(err as Error).message})` }
+    } finally {
+      this.pool = keep
+    }
+  }
+
+  /** Everything extra that a route needs: gas for its stop-over chains, and optionally a top-up for the recipient. */
+  async planGas(route: Route, mainAmount: bigint, sourceBalance: bigint, options: { recipientTopUp?: boolean } = { recipientTopUp: true }): Promise<GasPlan> {
+    const stops = await this.stopOverTopUps(route, sourceBalance, mainAmount)
+    const spentOnStops = stops.reduce((sum, t) => sum + t.route.legs[0]!.request.amount, 0n)
+    if (!options.recipientTopUp) return { stops }
+    const top = await this.recipientTopUp(route, mainAmount, sourceBalance - spentOnStops)
+    return { stops, topUp: top.route, topUpNote: top.note }
+  }
+
+  /** Every route the plan may use, for the location confirmation. */
+  gasRoutes(plan: GasPlan): Route[] {
+    return [...plan.stops.map((t) => t.route), ...(plan.topUp ? [plan.topUp] : [])]
   }
 
   /** Runs that were started and have not finished (the app was closed, crashed or a leg failed). */
@@ -240,14 +360,19 @@ class Engine {
   private async execute(record: PipelineRecord, onEvent: (record: PipelineRecord, legIndex: number, message: string) => void): Promise<PipelineRecord> {
     const session = this.requireSession()
     const chains = await this.chains()
+    // Legs that start on a stop-over chain are signed by that chain's transit wallet.
+    const others = new Map<string, Signer>()
+    for (const name of new Set(record.legs.flatMap((l) => (l.wallet ? [l.wallet] : [])))) others.set(name, await unlock(this.store, name, session.password))
     for (const leg of record.legs) {
       const chain = chains.find((c) => c.key === leg.from.chainKey)
-      if (chain && chainAddress(session.signer, chain) !== (leg.fromAddress ?? record.fromAddress)) throw new Error('The wallet no longer matches the address this run was created for')
+      const legSigner = leg.wallet ? others.get(leg.wallet)! : session.signer
+      if (chain && chainAddress(legSigner, chain) !== (leg.fromAddress ?? record.fromAddress)) throw new Error('The wallet no longer matches the address this run was created for')
     }
     return runPipeline(record, {
       store: this.runStore,
       settings: this.settings,
       signer: session.signer,
+      signerFor: (name) => others.get(name)!,
       providers: await this.providers(),
       adapterFor: (key) => this.adapterFor(chains.find((c) => c.key === key)!),
       onEvent,
@@ -261,17 +386,86 @@ class Engine {
   }
 
   /** Starts the chosen route as a run and reports every step; resolves with the finished record. */
-  async run(route: Route, geoAccepted: string[], onEvent: (record: PipelineRecord, legIndex: number, message: string) => void, options: { wholeBalance?: boolean } = {}): Promise<PipelineRecord> {
-    const record = pipelineFromRoute(route, this.requireSession().walletName, geoAccepted)
+  async run(route: Route, geoAccepted: string[], onEvent: RunEvent, options: { wholeBalance?: boolean } = {}): Promise<PipelineRecord> {
+    const session = this.requireSession()
+    // Transit wallets the route passes through are stored (encrypted) before anything is sent to them.
+    const walletOf = this.pool ? await persistTransit(this.store, this.pool, route, async () => session.password) : undefined
+    const record = pipelineFromRoute(route, session.walletName, geoAccepted, walletOf)
     if (options.wholeBalance) record.legs[0]!.amount = 'all'
     return this.execute(record, onEvent)
   }
 
+  /** The gas transfers of a plan are only allowed to use restricted services the user confirmed. */
+  private checkGeo(plan: GasPlan, accepted: string[]): void {
+    if (this.testMode) return
+    const needed = [...new Set(this.gasRoutes(plan).flatMap((r) => geoKeys(r.legs)))]
+    const missing = needed.filter((k) => !accepted.includes(k))
+    if (missing.length) throw new Error(`The gas transfers would use a restricted service that was not confirmed (${missing.join(', ')}); nothing was sent`)
+  }
+
+  /** Runs the plan's gas transfers first; the main route never starts if one of them fails. */
+  private async runStops(plan: GasPlan, geo: string[], onEvent: RunEvent): Promise<void> {
+    this.checkGeo(plan, geo)
+    for (const t of plan.stops) {
+      const done = await this.run(t.route, geo, (r, i, m) => onEvent(r, i, `Gas for ${t.stop.chainKey}: ${m}`))
+      if (done.state !== 'done') throw new Error(`The gas for ${t.stop.chainKey} did not arrive, so the main transfer was not started`)
+    }
+  }
+
+  /** The recipient's gas top-up runs after the main transfer and never undoes or hides it. */
+  private async runTopUp(plan: GasPlan, geo: string[], onEvent: RunEvent, main: PipelineRecord): Promise<void> {
+    if (!plan.topUp || main.state !== 'done') return
+    try {
+      await this.run(plan.topUp, geo, (r, i, m) => onEvent(r, i, `Gas top-up: ${m}`))
+    } catch (err) {
+      onEvent(main, main.legs.length - 1, `The gas top-up stopped: ${(err as Error).message}`)
+    }
+  }
+
+  /** Runs a route together with the gas transfers planned for it (see planGas). */
+  async runWithGas(route: Route, geoAccepted: string[], onEvent: RunEvent, plan: GasPlan, options: { wholeBalance?: boolean } = {}): Promise<PipelineRecord> {
+    await this.runStops(plan, geoAccepted, onEvent)
+    const main = await this.run(route, geoAccepted, onEvent, options)
+    await this.runTopUp(plan, geoAccepted, onEvent, main)
+    return main
+  }
+
+  /**
+   * Like runWithGas, but the stop-over gas is worked out now, at run time (sweeps, schedules): the wallet
+   * balance is read here, and the recipient top-up is left out. Never starts when the gas cannot be arranged.
+   */
+  async runAuto(route: Route, geoAccepted: string[], onEvent: RunEvent, options: { wholeBalance?: boolean } = {}): Promise<PipelineRecord> {
+    const first = route.legs[0]!.request
+    const chain = (await this.chains()).find((c) => c.key === first.from.chainKey)!
+    const [balance] = await this.adapterFor(chain).getBalances(first.fromAddress, [first.from])
+    const plan = await this.planGas(route, first.amount, balance!, { recipientTopUp: false })
+    return this.runWithGas(route, geoAccepted, onEvent, plan, options)
+  }
+
   /** Runs a hand-written list of legs; each leg takes the best route when it starts. */
-  async runPlan(legs: Omit<PipelineLeg, 'state'>[], geoAccepted: string[], onEvent: (record: PipelineRecord, legIndex: number, message: string) => void): Promise<PipelineRecord> {
+  async runPlan(legs: Omit<PipelineLeg, 'state'>[], geoAccepted: string[], onEvent: RunEvent, plan?: GasPlan): Promise<PipelineRecord> {
     const session = this.requireSession()
+    if (plan) await this.runStops(plan, geoAccepted, onEvent)
     const record = newPipeline(session.walletName, legs[0]!.fromAddress!, legs, geoAccepted)
-    return this.execute(record, onEvent)
+    const main = await this.execute(record, onEvent)
+    if (plan) await this.runTopUp(plan, geoAccepted, onEvent, main)
+    return main
+  }
+
+  /** Gas for a hand-written plan: stop-overs and the last chain, sized from the node's estimate because the legs are not quoted yet. Needs a fixed first amount. */
+  async planGasForLegs(legs: Omit<PipelineLeg, 'state'>[]): Promise<GasPlan> {
+    const first = legs[0]!
+    if (first.amount === 'all' || legs.length < 1) return { stops: [] }
+    const chains = await this.chains()
+    const fromChain = chains.find((c) => c.key === first.from.chainKey)!
+    const [balance] = await this.adapterFor(fromChain).getBalances(first.fromAddress!, [first.from])
+    const pseudo = {
+      legs: legs.map((l) => ({
+        request: { from: l.from, to: l.to, amount: l.amount === 'all' ? 0n : BigInt(l.amount), fromAddress: l.fromAddress!, toAddress: l.toAddress, slippage: this.settings.slippage },
+        costUsd: 0,
+      })),
+    } as unknown as Route
+    return this.planGas(pseudo, BigInt(first.amount), balance!, { recipientTopUp: true })
   }
 
   // ---- tokens and addresses by name ----
@@ -356,7 +550,7 @@ class Engine {
     const { routes, errors } = await this.findRoutes(a.token, b.token, amount, toAddress)
     if (routes.length === 0) throw new Error(`No route found${errors.length ? `: ${errors.join('; ')}` : ''}`)
     const choice = chooseSaved(saved, routes)
-    return { ...choice, from: a.token, to: b.token, fromChain: a.chain, toChain: b.chain, amount, toAddress, wholeBalance: saved.amount === 'all' }
+    return { ...choice, from: a.token, to: b.token, fromChain: a.chain, toChain: b.chain, amount, balance: balance!, toAddress, wholeBalance: saved.amount === 'all' }
   }
 
   async schedules(): Promise<Schedule[]> {

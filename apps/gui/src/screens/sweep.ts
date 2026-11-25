@@ -26,7 +26,7 @@ export async function reviewAndRunSweep(sheet: HTMLElement, plan: SweepPlan, toA
   })
   if (!accepted) return
   const name = (key: string) => (key === fromChain.key ? fromChain.name : key === toChain.key ? toChain.name : key)
-  await showJobs(sheet, 'Bridge wallet in progress', name, plan.items.map((i) => ({ label: i.from.symbol, run: (onEvent) => engine.run(i.route, accepted, onEvent) })), back)
+  await showJobs(sheet, 'Bridge wallet in progress', name, plan.items.map((i) => ({ label: i.from.symbol, run: (onEvent) => engine.runAuto(i.route, accepted, onEvent) })), back)
 }
 
 function skippedList(plan: SweepPlan): HTMLElement {

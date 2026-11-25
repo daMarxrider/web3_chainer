@@ -227,7 +227,7 @@ Every command takes `--json`. `--yes` skips the confirmation, and the `CHAINER_P
 
 ## Using the graphical app
 
-The graphical app has the same functions as the command line, in a window that also works on a phone-sized screen: first launch, wallet, Balances, Transfer, Bridge wallet (whole-wallet sweeps), Pipelines (hand-written multi-leg plans), Saved routes, Schedules, Address book, History and Settings. It runs in a browser window today; the Tauri desktop shell is next and the Android build after it. Gas top-up, stop-over gas and transit wallets are not part of the GUI's transfers yet (the command line has them).
+The graphical app has the same functions as the command line, in a window that also works on a phone-sized screen: first launch, wallet, Balances, Transfer, Bridge wallet (whole-wallet sweeps), Pipelines (hand-written multi-leg plans), Saved routes, Schedules, Address book, History and Settings. It runs in a browser window today; the Tauri desktop shell is next and the Android build after it.
 
 Run it from the repository:
 
