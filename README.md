@@ -227,7 +227,7 @@ Every command takes `--json`. `--yes` skips the confirmation, and the `CHAINER_P
 
 ## Using the graphical app
 
-The graphical app is being built (milestone 6). The first slice works in a browser window today: first launch, wallet, Balances, Transfer with ranked routes, confirmation and live progress, resuming interrupted transfers, and Settings. Whole-wallet bridging, the pipeline builder, saved routes, schedules, the address book, history, the Tauri desktop shell and the Android build are still to come, and the command line remains the complete tool until then.
+The graphical app has the same functions as the command line, in a window that also works on a phone-sized screen: first launch, wallet, Balances, Transfer, Bridge wallet (whole-wallet sweeps), Pipelines (hand-written multi-leg plans), Saved routes, Schedules, Address book, History and Settings. It runs in a browser window today; the Tauri desktop shell is next and the Android build after it. Gas top-up, stop-over gas and transit wallets are not part of the GUI's transfers yet (the command line has them).
 
 Run it from the repository:
 
@@ -239,9 +239,13 @@ npm run dev -w @chainer/gui        # opens on http://127.0.0.1:5173
 1. **First launch.** Choose a look, read and accept the disclaimer, then create a wallet (a seed phrase is shown once; write it down) or import one. The wallet is encrypted with your password and stored on this device only.
 2. **Unlock** with the password. **Lock** is at the bottom of the screen list.
 3. **Balances.** Pick a chain to see what the wallet holds and its address on that chain (with a Copy button, for funding it).
-4. **Transfer.** Choose the chain and token to send and where to, press Find routes, pick a route from the ranked table (what you receive, the worst case, gas and fees, net value, time; a `region` tag marks services with location restrictions), then Review and send. The confirmation window shows the amounts, route and recipient, and asks for your location if a restricted service is used. Progress is shown step by step. **The route you choose is the route that runs.**
-5. **Unfinished transfers.** If the app is closed or crashes during a transfer, it shows up at the top of the Transfer screen after unlocking, with a Resume button. A step that already went out is never sent twice.
-6. **Test networks.** Click the network button in the status strip (bottom) to switch between real and test networks. In test mode everything runs on test networks with test funds, and the confirmation says so. See [docs/TESTNET.md](docs/TESTNET.md) for free test funds.
+4. **Transfer.** Choose the chain and token to send and where to, press Find routes, pick a route from the ranked table (what you receive, the worst case, gas and fees, net value, time; a `region` tag marks services with location restrictions), then Review and send. The confirmation window shows the amounts, route and recipient, and asks for your location if a restricted service is used. Progress is shown step by step. **The route you choose is the route that runs.** Save as route keeps it under a name.
+5. **Unfinished transfers.** If the app is closed or crashes during a transfer, it shows up at the top of the Transfer screen and in History after unlocking, with a Resume button. A step that already went out is never sent twice.
+6. **Bridge wallet.** Pick two chains, press Show tokens, tick the tokens to move (there is a select-all box), optionally choose one token to receive everything as, and Plan the sweep. Each token becomes its own transfer, biggest value first, and the chain's own coin goes last with gas held back. Skipped tokens are listed with the reason. After one confirmation they run one after another; one failing does not stop the others.
+7. **Pipelines.** Write a chain of legs yourself (the first has an amount, later legs send "all" of what arrived, starting where the last ended), Dry run to see what each leg would deliver, then Review and run.
+8. **Saved routes and Schedules.** Saved routes are re-quoted along their saved path when they run. A schedule (once, repeating, or when gas and fees are low) runs a saved route while the app is open and the wallet unlocked; the location form is answered once when you create the schedule.
+9. **Address book and History.** Saved addresses are validated against their chain and can be typed as the recipient; History lists every run, with the reason when one stopped.
+10. **Test networks.** Click the network button in the status strip (bottom) to switch between real and test networks. In test mode everything runs on test networks with test funds, and the confirmation says so. See [docs/TESTNET.md](docs/TESTNET.md) for free test funds.
 
 The browser build keeps the wallet and journal in the browser's local storage; the desktop shell will keep them in a data folder like the command line does.
 
@@ -251,6 +255,8 @@ The app asks for a theme on first launch, and the choice can be changed later in
 
 - **Retro** (the default): an original early-2000s desktop look, designed for this project and not a copy of any operating system's interface
 - **Modern**: the same layout, flat, light or dark with your system
+- **Smoked glass**: near-black smoked glass panels with amber instrument accents and mono readouts
+- **Night glass**: a translucent frame with a diagonal sheen around a dark pane, cyan accent
 
 One screenshot per theme will be added here when the app is finished.
 
