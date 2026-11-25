@@ -140,6 +140,14 @@ chainer send 100 USDC arbitrum base --gas-topup 3x    # for one run: off, 3x or 
 
 In a plan file add `gasTopUp: 3x` (or `off`, `$5`) next to `wallet:` to set it for that plan. The extra is skipped, with the reason shown, when the recipient already has gas, when the transfer is too small to carry it, when the wallet cannot pay it on top, or (in multiplier mode) when the chain's gas price is unknown. It never exceeds $50, and a failure of the extra never affects the main transfer. For a plan it covers the last chain only, and only when the first leg has a fixed amount; stop-over chains in the middle of a multi-leg plan are not topped up.
 
+### Transit wallets
+
+A wallet made from a seed phrase has an address on every chain. A wallet made from one EVM private key has none on Solana or Bitcoin, so a route that stops there needs somewhere to wait. In that case the app makes a wallet for that chain (a transit wallet), writes its key to the encrypted keystore before anything is sent to it, and signs the next leg with it. They show up in `chainer wallet list` as `transit (<chain>)`.
+
+- Only that chain's own coin (SOL, BTC, ...) may wait on a transit wallet, so it can always pay for the next leg itself. Routes that would leave another token there are not offered.
+- Transit wallets are made only for the route you actually run, are reused for the same chain, and are never deleted. To move leftovers out, use them like any wallet: `chainer sweep solana ethereum --wallet transit-sol-1 --to main-address`.
+- Seed phrase wallets never need them.
+
 ### Schedules and the daemon
 
 ```sh

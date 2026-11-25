@@ -16,6 +16,8 @@ export interface AccountRecord {
   addresses: Record<string, string> & { evm: string }
   iv: Hex
   data: Hex
+  /** Set on wallets the app made itself to hold funds on a stop-over chain (see transit.ts). */
+  transit?: { chainKey: string; createdAt: string }
 }
 
 export interface Keystore {
@@ -83,7 +85,7 @@ export function normalizeSecret(input: string): string {
 }
 
 /** Encrypts a seed phrase or private key under the keystore password and saves it. */
-export async function addAccount(store: Store, name: string, secretInput: string, password: string): Promise<AccountRecord> {
+export async function addAccount(store: Store, name: string, secretInput: string, password: string, transit?: AccountRecord['transit']): Promise<AccountRecord> {
   const keystore = await loadKeystore(store)
   if (keystore.accounts.some((a) => a.name === name)) throw new Error(`A wallet named "${name}" already exists`)
   // One password for the whole keystore: check it against an existing account.
@@ -101,6 +103,7 @@ export async function addAccount(store: Store, name: string, secretInput: string
     addresses: walletAddresses(signer) as AccountRecord['addresses'],
     iv: bytesToHex(iv),
     data: bytesToHex(new Uint8Array(data)),
+    ...(transit ? { transit } : {}),
   }
   keystore.accounts.push(record)
   await store.set(KEY, JSON.stringify(keystore, null, 2))

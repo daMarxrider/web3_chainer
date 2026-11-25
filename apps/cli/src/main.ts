@@ -36,12 +36,16 @@ import {
   removeRoute,
   saveRoute,
   type SavedRoute,
+  type Signer,
+  TransitPool,
+  transitAllowed,
   removeAddress,
   resolveRecipient,
   isNative,
   lifiProvider,
   estimateGasUsd,
   parseGasTopUp,
+  persistTransit,
   planGasTopUp,
   planSweep,
   sdkStatus,
@@ -299,7 +303,7 @@ async function walletCommand(sub: string | undefined): Promise<void> {
     if (opts.json) return printJson(keystore.accounts.map(({ name, type, addresses }) => ({ name, type, addresses })))
     if (keystore.accounts.length === 0) return out('No wallets yet. Create one with "chainer wallet init".')
     const shown = ['evm', 'sol', 'btc', 'ltc', 'doge', 'bch', 'dash']
-    return table([['NAME', 'TYPE', ...shown.map((k) => k.toUpperCase())], ...keystore.accounts.map((a) => [a.name, a.type, ...shown.map((k) => a.addresses[k] ?? '-')])])
+    return table([['NAME', 'TYPE', ...shown.map((k) => k.toUpperCase())], ...keystore.accounts.map((a) => [a.name, a.transit ? `transit (${a.transit.chainKey})` : a.type, ...shown.map((k) => a.addresses[k] ?? '-')])])
   }
   if (sub === 'refresh') {
     const record = await refreshAddresses(store, opts.wallet, await askPassword())
@@ -451,12 +455,32 @@ async function search(plan: Plan): Promise<Route[]> {
   const { providers } = await runDeps()
   const chains = await allChains()
   const account = findAccount(await loadKeystore(store), plan.wallet)
-  // Stop-over funds wait in the wallet's own address on whichever chain the route passes through.
-  const addressOn = (chainKey: string) => ownAddress(account, chains.find((c) => c.key === chainKey)!)
-  const { routes, errors } = await findPipelineRoutes(plan.request, providers, settings, { prefer: preference(), hubs: hubTokens, maxHops: maxHops(), addressOn })
-  if (routes.length === 0) throw new Error(errors.length ? `No route found. ${errors.join('; ')}` : 'No route found, also not through other chains.')
+  // Stop-over funds wait in the wallet's own address on whichever chain the route passes through;
+  // a wallet with no address there (a single private key) gets a transit wallet for that chain.
+  transitPool = new TransitPool((await loadKeystore(store)).accounts)
+  const pool = transitPool
+  const addressOn = (chainKey: string) => {
+    const chain = chains.find((c) => c.key === chainKey)!
+    return account.addresses[addressSlot(chain)] ?? pool.addressOn(chain)
+  }
+  const found = await findPipelineRoutes(plan.request, providers, settings, { prefer: preference(), hubs: hubTokens, maxHops: maxHops(), addressOn })
+  const { errors } = found
+  const routes = found.routes.filter((r) => transitAllowed(r, pool))
+  if (routes.length === 0) {
+    if (found.routes.length > 0) throw new Error('The only routes stop on a chain where this wallet has no address, with a token other than that chain\'s own coin. Import a seed phrase wallet, or give another route.')
+    throw new Error(errors.length ? `No route found. ${errors.join('; ')}` : 'No route found, also not through other chains.')
+  }
   for (const e of errors) console.error(`Note: ${e}`)
   return routes
+}
+
+/** The transit wallets of the last route search; stored when a route that uses them is about to run. */
+let transitPool: TransitPool | undefined
+
+/** Turns the chosen route into a run. Transit wallets it passes through are stored (encrypted) first. */
+async function buildPipeline(route: Route, wallet: string, accepted: string[]): Promise<PipelineRecord> {
+  const walletOf = transitPool ? await persistTransit(store, transitPool, route, () => askPassword()) : undefined
+  return pipelineFromRoute(route, wallet, accepted, walletOf)
 }
 
 const routeVia = (route: Route) => route.legs.map((q) => `${q.provider}/${q.tool}`).join(' > ')
@@ -523,7 +547,7 @@ async function runGasTopUp(route: Route | undefined, wallet: string): Promise<vo
   const accepted = await geoAcceptance(route)
   if (!accepted) return out('Skipped: the location confirmation was not given.')
   try {
-    await execute(pipelineFromRoute(route, wallet, accepted))
+    await execute(await buildPipeline(route, wallet, accepted))
   } catch (err) {
     out(`The gas top-up stopped: ${(err as Error).message}`)
   }
@@ -552,7 +576,7 @@ async function sendCommand(args: string[]): Promise<void> {
   if (!opts.yes && !(await confirm(`Send ${fmt(request.amount, request.from)}${topUp ? ' and the gas top-up' : ''} over this route?`))) return out('Cancelled.')
   const accepted = await geoAcceptance(routes[0]!)
   if (!accepted) return out('Cancelled: the location confirmation was not given. Nothing was sent.')
-  await execute(pipelineFromRoute(routes[0]!, plan.wallet, accepted))
+  await execute(await buildPipeline(routes[0]!, plan.wallet, accepted))
   await runGasTopUp(topUp, plan.wallet)
 }
 
@@ -620,7 +644,7 @@ async function sweepCommand(args: string[]): Promise<void> {
     out()
     out(`[${n + 1}/${plan.items.length}] ${item.from.symbol}`)
     try {
-      await execute(pipelineFromRoute(item.route, account.name, accepted))
+      await execute(await buildPipeline(item.route, account.name, accepted))
     } catch (err) {
       out(`${item.from.symbol} stopped: ${(err as Error).message}`)
       process.exitCode = 1
@@ -820,7 +844,7 @@ async function routeCommand(args: string[]): Promise<void> {
     if (!opts.yes && !(await confirm(`Run "${saved.name}" now${topUp ? ', with the gas top-up' : ''}?`))) return out('Cancelled.')
     const accepted = await geoAcceptance(choice.route)
     if (!accepted) return out('Cancelled: the location confirmation was not given. Nothing was sent.')
-    const record = pipelineFromRoute(choice.route, account.name, accepted)
+    const record = await buildPipeline(choice.route, account.name, accepted)
     if (saved.amount === 'all') record.legs[0]!.amount = 'all'
     await execute(record)
     return runGasTopUp(topUp, account.name)
@@ -864,10 +888,14 @@ function printPipeline(record: PipelineRecord): void {
 /** Unlocks the wallet and runs (or continues) a pipeline to the end, showing live status. */
 async function execute(record: PipelineRecord): Promise<void> {
   const signer = await unlock(store, record.wallet, await askPassword())
+  // Legs that start on a stop-over chain are signed by that chain's transit wallet.
+  const others = new Map<string, Signer>()
+  for (const name of new Set(record.legs.flatMap((l) => (l.wallet ? [l.wallet] : [])))) others.set(name, await unlock(store, name, await askPassword()))
   const chains = await allChains()
   for (const leg of record.legs) {
     const chain = chains.find((c) => c.key === leg.from.chainKey)
-    if (chain && chainAddress(signer, chain) !== (leg.fromAddress ?? record.fromAddress)) throw new Error('The wallet no longer matches the address this run was created for')
+    const legSigner = leg.wallet ? others.get(leg.wallet)! : signer
+    if (chain && chainAddress(legSigner, chain) !== (leg.fromAddress ?? record.fromAddress)) throw new Error('The wallet no longer matches the address this run was created for')
   }
   const deps = await runDeps()
   process.once('SIGINT', () => {
@@ -875,7 +903,7 @@ async function execute(record: PipelineRecord): Promise<void> {
     process.exit(130)
   })
   if (!opts.json) out(`Run ${record.id.slice(0, 8)}`)
-  const result = await runPipeline(record, { store: runStore, settings, signer, providers: deps.providers, adapterFor: deps.adapterFor, onEvent: liveView() })
+  const result = await runPipeline(record, { store: runStore, settings, signer, signerFor: (name) => others.get(name)!, providers: deps.providers, adapterFor: deps.adapterFor, onEvent: liveView() })
   if (opts.json) printJson(result)
   else if (result.state === 'done') {
     const last = result.legs.at(-1)!

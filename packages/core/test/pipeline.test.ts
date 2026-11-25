@@ -319,3 +319,39 @@ test('stop-over funds wait at the wallet\'s own address on the stop-over chain, 
   const record = pipelineFromRoute(routes[0]!, 'main')
   assert.deepEqual(record.legs.map((l) => l.fromAddress), ['evm-address', 'bc1-address'])
 })
+
+test('a leg that names a transit wallet is signed by that wallet, the others by the run wallet', async () => {
+  const w = world(
+    [
+      [A, HUB1, 0.9],
+      [HUB1, Z, 0.9],
+    ],
+    [[A, 5_000_000n]],
+  )
+  const { routes } = await search(w, [HUB1])
+  const record = pipelineFromRoute(routes[0]!, 'main')
+  record.legs[1]!.wallet = 'transit-h1-1'
+  const mine = { id: 'main' } as unknown as Signer
+  const transit = { id: 'transit' } as unknown as Signer
+  const seen: unknown[] = []
+  const base = w.deps(memoryStore())
+  const deps: PipelineDeps = {
+    ...base,
+    signer: mine,
+    signerFor: () => transit,
+    adapterFor: (key) => {
+      const adapter = base.adapterFor(key)
+      const send = adapter.send.bind(adapter)
+      adapter.send = async (action, signer) => (seen.push(signer), send(action, signer))
+      return adapter
+    },
+  }
+  const done = await runPipeline(record, deps)
+  assert.equal(done.state, 'done')
+  assert.deepEqual(seen, [mine, transit])
+
+  const again = pipelineFromRoute(routes[0]!, 'main')
+  again.legs[1]!.wallet = 'transit-h1-1'
+  const noSigner = await runPipeline(again, { ...base, signer: mine }).catch((e: Error) => e)
+  assert.match(String((noSigner as Error).message ?? (noSigner as { legs: { error: string }[] }).legs[1]!.error), /not available to this run/)
+})

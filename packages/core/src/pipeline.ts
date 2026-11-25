@@ -40,7 +40,7 @@ export interface RouteSearchOptions {
   /** Most legs a route may have. */
   maxHops: number
   /** The wallet's own address on a chain, where stop-over funds wait. Defaults to the sender's address (all-EVM routes). */
-  addressOn?: (chainKey: string) => string
+  addressOn?: (chainKey: string) => string | Promise<string>
 }
 
 /**
@@ -67,23 +67,23 @@ export async function findPipelineRoutes(
     return found.quotes[0]
   }
   // Stop-over funds sit in the user's own wallet; the next leg spends the worst-case amount.
-  const hop = (from: Token, to: Token, amount: bigint, final: boolean): QuoteRequest => ({
+  const hop = async (from: Token, to: Token, amount: bigint, final: boolean): Promise<QuoteRequest> => ({
     ...request,
     from,
     to,
     amount,
-    fromAddress: options.addressOn?.(from.chainKey) ?? request.fromAddress,
-    toAddress: final ? request.toAddress : (options.addressOn?.(to.chainKey) ?? request.fromAddress),
+    fromAddress: (await options.addressOn?.(from.chainKey)) ?? request.fromAddress,
+    toAddress: final ? request.toAddress : ((await options.addressOn?.(to.chainKey)) ?? request.fromAddress),
   })
 
   let frontier: Route[] = []
-  for (const q of await Promise.all(hubs.map((h) => best(hop(request.from, h, request.amount, false))))) if (q) frontier.push({ legs: [q] })
+  for (const q of await Promise.all(hubs.map(async (h) => best(await hop(request.from, h, request.amount, false))))) if (q) frontier.push({ legs: [q] })
 
   for (let legs = 2; legs <= options.maxHops && frontier.length > 0; legs++) {
     const finals = await Promise.all(
       frontier.map(async (route) => {
         const last = route.legs.at(-1)!
-        const q = await best(hop(last.request.to, request.to, last.toAmountMin, true))
+        const q = await best(await hop(last.request.to, request.to, last.toAmountMin, true))
         return q ? { legs: [...route.legs, q] } : undefined
       }),
     )
@@ -100,7 +100,7 @@ export async function findPipelineRoutes(
         return hubs
           .filter((h) => !visited.some((v) => sameToken(v, h)))
           .map(async (h) => {
-            const q = await best(hop(last.request.to, h, last.toAmountMin, false))
+            const q = await best(await hop(last.request.to, h, last.toAmountMin, false))
             if (q && q.toAmount > (next.get(h)?.legs.at(-1)!.toAmount ?? 0n)) next.set(h, { legs: [...route.legs, q] })
           })
       }),
@@ -120,6 +120,8 @@ export interface PipelineLeg {
   /** The wallet's address on the source chain. Absent in runs saved before other chain families existed: then the run's `fromAddress` applies. */
   fromAddress?: string
   toAddress: string
+  /** Wallet that signs this leg when it is not the run's own wallet (a transit wallet on a stop-over chain). */
+  wallet?: string
   /** Rate seen when the route was planned; the leg stops if a fresh quote is worse than this. */
   planned?: { amountIn: string; minOut: string }
   state: 'waiting' | 'running' | 'done' | 'failed'
@@ -159,7 +161,7 @@ export function newPipeline(wallet: string, fromAddress: string, legs: Omit<Pipe
 }
 
 /** Turns a searched route into a pipeline: the first amount is fixed, later legs forward what arrived. */
-export function pipelineFromRoute(route: Route, wallet: string, geoAccepted: string[] = []): PipelineRecord {
+export function pipelineFromRoute(route: Route, wallet: string, geoAccepted: string[] = [], walletOf: (address: string) => string | undefined = () => undefined): PipelineRecord {
   const first = route.legs[0]!.request
   return newPipeline(
     wallet,
@@ -170,6 +172,7 @@ export function pipelineFromRoute(route: Route, wallet: string, geoAccepted: str
       amount: i === 0 ? q.request.amount.toString() : 'all',
       fromAddress: q.request.fromAddress,
       toAddress: q.request.toAddress,
+      wallet: walletOf(q.request.fromAddress),
       planned: { amountIn: q.request.amount.toString(), minOut: q.toAmountMin.toString() },
     })),
     geoAccepted,
@@ -181,16 +184,22 @@ export interface PipelineDeps {
   providers: BridgeProvider[]
   settings: Settings
   signer: Signer
+  /** Signer of another wallet of the user (transit wallets), by name. */
+  signerFor?(wallet: string): Signer
   adapterFor(chainKey: string): ChainAdapter
   onEvent(record: PipelineRecord, legIndex: number, message: string): void
   pollMs?: number
 }
 
 const min = (a: bigint, b: bigint) => (a < b ? a : b)
+const failNoSigner = (wallet: string): never => {
+  throw new Error(`This leg is signed by the wallet "${wallet}", which is not available to this run`)
+}
 
 async function runLeg(record: PipelineRecord, i: number, deps: PipelineDeps): Promise<void> {
-  const { store, providers, settings, signer } = deps
+  const { store, providers, settings } = deps
   const leg = record.legs[i]!
+  const signer = leg.wallet ? (deps.signerFor?.(leg.wallet) ?? failNoSigner(leg.wallet)) : deps.signer
   const adapter = deps.adapterFor(leg.from.chainKey)
   const say = (message: string) => deps.onEvent(record, i, message)
   const transferDeps = (providerName: string, id?: string) => {
