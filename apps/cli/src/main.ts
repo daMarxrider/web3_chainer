@@ -19,6 +19,17 @@ import {
   geoStatement,
   lifiChains,
   addAddress,
+  afterRun,
+  dueState,
+  feesAcceptable,
+  listSchedules,
+  newSchedule,
+  parseDuration,
+  removeSchedule,
+  routeCostUsd,
+  saveSchedule,
+  type Schedule,
+  type Trigger,
   chooseSaved,
   listRoutes,
   loadRoute,
@@ -87,6 +98,9 @@ Usage:
   chainer route save-sweep <name> <from-chain> <to-chain> [--tokens ...] [--target ...]
   chainer route list | show <name> | remove <name> | run <name>
                                               Keep a route under a name and run it later (re-quoted along the saved path)
+  chainer schedule add <route> --at <time> | --every <1h|1d..> [--start <time>] | --when-fees-below <usd> [--check-every 30m] [--repeat]
+  chainer schedule list | remove <id>         Run a saved route later; the daemon below carries them out
+  chainer daemon [--once] [--poll 60s]        Run due schedules (needs CHAINER_PASSWORD or the password once at start)
   chainer pipeline run <plan.yaml>            Run a chain of transfers, each starting when
                                               the previous one has arrived
   chainer geo                                 List bridges with geo restrictions and where they apply
@@ -141,6 +155,14 @@ const { values: opts, positionals } = parseArgs({
     'max-hops': { type: 'string' },
     tokens: { type: 'string' },
     min: { type: 'string' },
+    at: { type: 'string' },
+    every: { type: 'string' },
+    start: { type: 'string' },
+    'when-fees-below': { type: 'string' },
+    'check-every': { type: 'string' },
+    repeat: { type: 'boolean' },
+    once: { type: 'boolean' },
+    poll: { type: 'string' },
     fallback: { type: 'boolean' },
     target: { type: 'string' },
     to: { type: 'string' },
@@ -350,10 +372,19 @@ async function geoForm(notices: GeoNotice[], intro: string): Promise<boolean> {
   return /^yes$/i.test(await ask('Type "yes" to confirm, anything else cancels: '))
 }
 
+/**
+ * Set while the daemon runs a schedule: nobody is there to answer, so only the location
+ * confirmations given when the schedule was created count, and an optional fee limit applies.
+ */
+let unattended: { geoAccepted: string[]; feesBelowUsd?: number } | undefined
+/** Why the last saved-route run did not send anything, when the reason was the fee limit. */
+let waitingForFees = false
+
 /** Bridge keys the run may use for restricted services, or undefined if the user declined. */
 async function geoAcceptance(route: Route): Promise<string[] | undefined> {
   const notices = geoNotices(route.legs)
   const keys = geoKeys(route.legs)
+  if (unattended) return keys.every((k) => unattended!.geoAccepted.includes(k)) ? keys : undefined
   return (await geoForm(notices, 'This route uses:')) ? keys : undefined
 }
 
@@ -561,6 +592,13 @@ async function sweepCommand(args: string[]): Promise<void> {
     for (const s of plan.skipped) out(`  ${s.token.symbol}: ${s.reason}`)
   }
   if (plan.items.length === 0) return out('Nothing to send.')
+  if (unattended?.feesBelowUsd !== undefined) {
+    const total = plan.items.reduce((sum, i) => sum + routeCostUsd(i.route), 0)
+    if (total > unattended.feesBelowUsd) {
+      waitingForFees = true
+      return out(`Gas and fees are ${usd(total)} in total, above the limit of ${usd(unattended.feesBelowUsd)}; waiting.`)
+    }
+  }
   out()
   out(`Recipient: ${toAddress} on ${toChain.name}`)
   if (opts['dry-run']) return out('Dry run: nothing was signed or sent.')
@@ -579,6 +617,89 @@ async function sweepCommand(args: string[]): Promise<void> {
       process.exitCode = 1
     }
   }
+}
+
+// ---- schedules and the daemon -----------------------------------------------
+
+const triggerText = (t: Trigger) =>
+  t.kind === 'at' ? `once at ${localTime(t.at)}` : t.kind === 'every' ? `every ${Math.round(t.everyMs / 60_000)} min${t.start ? ` from ${localTime(t.start)}` : ''}` : `when fees are at most ${usd(t.feesBelowUsd)} (checked every ${Math.round(t.checkEveryMs / 60_000)} min${t.repeat ? ', repeating' : ''})`
+
+function parseTime(text: string): string {
+  const d = new Date(text)
+  if (Number.isNaN(d.getTime())) throw new Error(`"${text}" is not a time; use e.g. 2026-12-01T10:00 (your local time) or 2026-12-01T10:00:00Z`)
+  return d.toISOString()
+}
+
+async function scheduleCommand(args: string[]): Promise<void> {
+  const [sub, name] = args
+  if (sub === 'list' || sub === undefined) {
+    const all = await listSchedules(store)
+    if (opts.json) return printJson(all)
+    if (all.length === 0) return out('No schedules. Add one with "chainer schedule add <route> --at <time>".')
+    return table([['ID', 'ROUTE', 'WHEN', 'LAST RUN', 'RESULT'], ...all.map((s) => [s.id.slice(0, 8), s.route, s.done ? 'done' : triggerText(s.trigger), s.lastRun ? localTime(s.lastRun) : '-', s.lastResult ?? ''])])
+  }
+  if (sub === 'remove' && name) {
+    const gone = await removeSchedule(store, name)
+    return out(`Removed the schedule for "${gone.route}".`)
+  }
+  if (sub !== 'add' || !name) throw new Error('Use: chainer schedule add <route> --at|--every|--when-fees-below ... | list | remove <id>')
+  const saved = await loadRoute(store, name)
+  if (opts.testnet) throw new Error('Schedules run on the main networks; test the saved route with "chainer route run <name> --testnet" instead')
+  const kinds = [opts.at, opts.every, opts['when-fees-below']].filter((v) => v !== undefined).length
+  if (kinds !== 1) throw new Error('Give exactly one of --at, --every or --when-fees-below')
+  const trigger: Trigger = opts.at
+    ? { kind: 'at', at: parseTime(opts.at) }
+    : opts.every
+      ? { kind: 'every', everyMs: parseDuration(opts.every), start: opts.start ? parseTime(opts.start) : undefined }
+      : { kind: 'when', feesBelowUsd: Number(opts['when-fees-below']), checkEveryMs: parseDuration(opts['check-every'] ?? '30m'), repeat: !!opts.repeat }
+  if (trigger.kind === 'when' && !(trigger.feesBelowUsd > 0)) throw new Error('--when-fees-below needs an amount in USD')
+  // Nobody answers questions during an unattended run, so the location form is answered now, once.
+  const geoAccepted = await askGeoForPlan()
+  const schedule = newSchedule(saved.name, trigger, geoAccepted)
+  await saveSchedule(store, schedule)
+  out(`Scheduled "${saved.name}" ${triggerText(trigger)} (id ${schedule.id.slice(0, 8)}). Start "chainer daemon" to carry it out; it must stay running.`)
+  out('Unattended runs sign with this wallet\'s stored key; the daemon needs the password in CHAINER_PASSWORD or typed once at start.')
+}
+
+async function runSchedule(s: Schedule, mode: 'run' | 'check'): Promise<Schedule> {
+  const now = new Date()
+  const own = { wallet: opts.wallet, to: opts.to, tokens: opts.tokens, target: opts.target, yes: opts.yes }
+  unattended = { geoAccepted: s.geoAccepted, feesBelowUsd: s.trigger.kind === 'when' ? s.trigger.feesBelowUsd : undefined }
+  waitingForFees = false
+  opts.yes = true
+  let result = 'ok'
+  try {
+    out(`[${stamp()}] ${mode === 'check' ? 'Checking' : 'Running'} "${s.route}"`)
+    await routeCommand(['run', s.route])
+    if (process.exitCode) result = 'a transfer stopped; see "chainer status"'
+  } catch (err) {
+    result = (err as Error).message
+    out(`[${stamp()}] "${s.route}" did not run: ${result}`)
+  } finally {
+    unattended = undefined
+    Object.assign(opts, own)
+    process.exitCode = undefined
+  }
+  if (waitingForFees) return { ...s, lastCheck: now.toISOString(), lastResult: 'waiting for lower fees' }
+  return afterRun(s, now, result)
+}
+
+async function daemonCommand(): Promise<void> {
+  const pollMs = opts.poll ? parseDuration(opts.poll.replace(/^(\d+)$/, '$1s')) : 60_000
+  await askPassword() // asked once up front, kept in memory
+  let stop = false
+  process.once('SIGINT', () => (stop = true))
+  out(`[${stamp()}] Daemon started${opts.once ? ' (one pass)' : `, checking every ${Math.round(pollMs / 1000)} s; Ctrl-C stops it`}`)
+  do {
+    for (const s of await listSchedules(store)) {
+      const due = dueState(s, new Date())
+      if (due === 'wait') continue
+      await saveSchedule(store, await runSchedule(s, due))
+    }
+    if (opts.once || stop) break
+    await new Promise((r) => setTimeout(r, pollMs))
+  } while (!stop)
+  out(`[${stamp()}] Daemon stopped`)
 }
 
 // ---- saved routes ---------------------------------------------------------
@@ -675,6 +796,10 @@ async function routeCommand(args: string[]): Promise<void> {
     checkLimit(amount, from)
     const plan: Plan = { request: { from, to, amount, fromAddress, toAddress, slippage: settings.slippage }, fromChain, toChain, wallet: account.name }
     const choice = chooseSaved(saved, await search(plan))
+    if (unattended?.feesBelowUsd !== undefined && !feesAcceptable(choice.route, unattended.feesBelowUsd)) {
+      waitingForFees = true
+      return out(`Gas and fees are ${usd(routeCostUsd(choice.route))}, above the limit of ${usd(unattended.feesBelowUsd)}; waiting.`)
+    }
     if (choice.usedFallback) out(`The saved path "${saved.via}" is gone; using the best route now: ${routeVia(choice.route)}`)
     printRoutes(plan, [choice.route])
     out()
@@ -938,6 +1063,10 @@ async function main(): Promise<void> {
       return quoteCommand(rest)
     case 'send':
       return sendCommand(rest)
+    case 'schedule':
+      return scheduleCommand(rest)
+    case 'daemon':
+      return daemonCommand()
     case 'route':
       return routeCommand(rest)
     case 'sweep':

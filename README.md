@@ -126,6 +126,19 @@ A saved route keeps what you meant (wallet, tokens, chains, recipient, amount ru
 
 A recipient with no gas coin on the destination chain cannot move what arrives. Turn on an automatic extra transfer with `chainer config set gasTopUpUsd 2` (0.5 to 10 US dollars, `off` to disable; it is off by default). When a `send` or a saved-route run delivers a token to an address that holds none of the destination chain's own coin, the same source token is also sent into that coin, after the main transfer. The extra transfer is shown and confirmed together with the main one, is skipped when the recipient already has gas, when the transfer is too small to carry it, or when the wallet cannot pay it on top, and a failure of the extra never affects the main transfer.
 
+### Schedules and the daemon
+
+```sh
+chainer schedule add weekly --every 7d --start 2026-12-05T09:00        # repeat, from a start time
+chainer schedule add payday --at 2026-12-31T09:00                      # once
+chainer schedule add weekly --when-fees-below 3 --check-every 30m     # when gas and fees are low enough (add --repeat to keep going)
+chainer schedule list
+chainer schedule remove <id>
+CHAINER_PASSWORD=... chainer daemon                                    # carries them out; keep it running (--once for a single pass, e.g. from cron)
+```
+
+A schedule runs a saved route (see above), so save the route first. Nobody is there to answer questions during an unattended run, so the location form is answered once when you create the schedule; a run that would need a restricted service you did not confirm is skipped. Unattended runs sign with the wallet's stored key, so the daemon needs the password (`CHAINER_PASSWORD`, or typed once at start). Times are your local time unless written with `Z`.
+
 ### Address book
 
 ```sh
