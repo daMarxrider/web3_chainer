@@ -34,6 +34,11 @@ input[type='radio'] {
   flex: none;
 }
 
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll, var(--text-dim)) transparent;
+}
+
 ::selection {
   background: var(--select);
   color: var(--select-text);
@@ -185,6 +190,12 @@ input[type='radio'] {
   font: inherit;
   color: inherit;
   cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+.seg-button:hover {
+  background: var(--hover, transparent);
 }
 .job-text {
   overflow: hidden;
@@ -721,7 +732,8 @@ input.narrow {
   }
   .sheet-item {
     flex: none;
-    min-width: 72px;
+    width: auto;
+    min-width: 78px;
   }
   .statusbar {
     flex-wrap: wrap;

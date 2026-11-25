@@ -1,0 +1,286 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-25T22:38:35.258516+00:00",
+  "title": "Design System: chainer app",
+  "extensions": {
+    "colorMeta": {
+      "retro-face": {
+        "role": "neutral",
+        "displayName": "Cool Face",
+        "canonical": "#cfd5d0",
+        "tonalRamp": [
+          "#0c0e12",
+          "#444748",
+          "#7b807f",
+          "#b3b9b5",
+          "#d4dad6",
+          "#dfe3e1",
+          "#e9edec",
+          "#f4f6f8"
+        ]
+      },
+      "retro-indigo": {
+        "role": "primary",
+        "displayName": "Indigo",
+        "canonical": "#232b66",
+        "tonalRamp": [
+          "#0c0e12",
+          "#13162a",
+          "#191f42",
+          "#20275a",
+          "#40477a",
+          "#797ea2",
+          "#b2b6ca",
+          "#ebeef3"
+        ]
+      },
+      "retro-desktop": {
+        "role": "neutral",
+        "displayName": "Mist Teal",
+        "canonical": "#4a7a80",
+        "tonalRamp": [
+          "#0c0e12",
+          "#1e2d31",
+          "#2f4c51",
+          "#416b70",
+          "#618b91",
+          "#90adb2",
+          "#bfd0d3",
+          "#edf2f4"
+        ]
+      },
+      "modern-accent-light": {
+        "role": "primary",
+        "displayName": "Signal Blue",
+        "canonical": "#2357d4",
+        "tonalRamp": [
+          "#0c0e12",
+          "#132349",
+          "#193881",
+          "#204db8",
+          "#406dd9",
+          "#7999e3",
+          "#b2c4ee",
+          "#ebf0f8"
+        ]
+      },
+      "smoked-amber": {
+        "role": "primary",
+        "displayName": "Instrument Amber",
+        "canonical": "#f0b34a",
+        "tonalRamp": [
+          "#0c0e12",
+          "#4d3d22",
+          "#8e6c32",
+          "#cf9b42",
+          "#f1bc62",
+          "#f2cf92",
+          "#f4e2c1",
+          "#f6f5f1"
+        ]
+      },
+      "night-cyan": {
+        "role": "primary",
+        "displayName": "Cyan",
+        "canonical": "#4fd1ff",
+        "tonalRamp": [
+          "#0c0e12",
+          "#1f4656",
+          "#327d99",
+          "#45b5dd",
+          "#66d6fe",
+          "#93e1fd",
+          "#c0ebfc",
+          "#eef6fa"
+        ]
+      },
+      "lamp-green": {
+        "role": "secondary",
+        "displayName": "Lamp Green",
+        "canonical": "#2fae55",
+        "tonalRamp": [
+          "#0c0e12",
+          "#163c25",
+          "#206938",
+          "#2a974b",
+          "#4ab86b",
+          "#80cc98",
+          "#b6e0c5",
+          "#ecf4f2"
+        ]
+      },
+      "lamp-amber": {
+        "role": "secondary",
+        "displayName": "Lamp Amber",
+        "canonical": "#e3a51b",
+        "tonalRamp": [
+          "#0c0e12",
+          "#493915",
+          "#876417",
+          "#c48f1a",
+          "#e6b039",
+          "#ebc776",
+          "#f0ddb2",
+          "#f5f4ef"
+        ]
+      },
+      "lamp-red": {
+        "role": "secondary",
+        "displayName": "Lamp Red",
+        "canonical": "#c8392e",
+        "tonalRamp": [
+          "#0c0e12",
+          "#421a1a",
+          "#772722",
+          "#ad332a",
+          "#ce534a",
+          "#db8781",
+          "#e7bbb8",
+          "#f4eef0"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title",
+        "purpose": "Sheet titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All working text, tabular figures."
+      },
+      "readout": {
+        "displayName": "Readout",
+        "purpose": "Addresses, hashes, run log."
+      }
+    },
+    "shadows": [
+      {
+        "name": "window-retro",
+        "value": "inset 1px 1px 0 #f7faf7, inset -1px -1px 0 #8a938f, 3px 4px 10px rgb(10 24 28 / 0.4)",
+        "purpose": "Retro window: bevel plus soft drop shadow."
+      },
+      {
+        "name": "window-modern",
+        "value": "0 6px 24px rgb(10 20 40 / 0.1)",
+        "purpose": "Modern window."
+      },
+      {
+        "name": "window-smoked",
+        "value": "0 16px 40px rgb(0 0 0 / 0.6)",
+        "purpose": "Smoked glass window."
+      },
+      {
+        "name": "window-night",
+        "value": "0 22px 55px rgb(0 0 0 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.4)",
+        "purpose": "Night glass frame with a bright top edge."
+      }
+    ],
+    "motion": [
+      {
+        "name": "press",
+        "value": "background-color 80ms ease-out",
+        "purpose": "Retro button and list hover."
+      },
+      {
+        "name": "lamp-pulse",
+        "value": "1.2s ease-in-out infinite (opacity .45 at 50%)",
+        "purpose": "Running-job lamp; off under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "760px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Retro primary button",
+      "kind": "button",
+      "description": "Retro primary button",
+      "html": "<button class=\"ds-btn-retro\">Find routes</button>",
+      "css": ".ds-btn-retro{background:#cfd5d0;color:#11171a;border:1px solid;border-color:#f7faf7 #333b38 #333b38 #f7faf7;box-shadow:inset -1px -1px 0 #8a938f;padding:3px 16px;min-height:26px;font:inherit;font-weight:700;outline:1px solid #333b38;outline-offset:1px}.ds-btn-retro:active{border-color:#333b38 #f7faf7 #f7faf7 #333b38;box-shadow:inset 1px 1px 0 #8a938f}.ds-btn-retro:focus-visible{outline:1px dotted #11171a;outline-offset:-4px}"
+    },
+    {
+      "name": "Modern primary button",
+      "kind": "button",
+      "description": "Modern primary button",
+      "html": "<button class=\"ds-btn-modern\">Find routes</button>",
+      "css": ".ds-btn-modern{background:#2357d4;color:#fff;border:1px solid #2357d4;border-radius:8px;padding:3px 16px;min-height:34px;font:inherit;font-weight:600}.ds-btn-modern:hover{filter:brightness(1.08)}.ds-btn-modern:focus-visible{outline:2px solid #2357d4;outline-offset:2px}"
+    },
+    {
+      "name": "Smoked glass primary button",
+      "kind": "button",
+      "description": "Smoked glass primary button",
+      "html": "<button class=\"ds-btn-smoked\">Find routes</button>",
+      "css": ".ds-btn-smoked{background:#f0b34a;color:#1b1203;border:1px solid #ffd28a;border-radius:3px;padding:3px 16px;min-height:30px;font:inherit;font-weight:700}.ds-btn-smoked:focus-visible{outline:1px solid #f0b34a;outline-offset:2px}"
+    },
+    {
+      "name": "Night glass primary button",
+      "kind": "button",
+      "description": "Night glass primary button",
+      "html": "<button class=\"ds-btn-night\">Find routes</button>",
+      "css": ".ds-btn-night{background:linear-gradient(#6fdcff,#2bb4ea);color:#02222e;border:1px solid #9be8ff;border-radius:7px;padding:3px 16px;min-height:32px;font:inherit;font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 3px 10px rgba(0,120,180,.4)}.ds-btn-night:focus-visible{outline:2px solid #4fd1ff;outline-offset:2px}"
+    },
+    {
+      "name": "Routes table row",
+      "kind": "custom",
+      "description": "Selected route: selection colour, right-aligned tabular numbers, region tag.",
+      "html": "<table class=\"ds-t\"><tbody><tr><th>cctp/cctp-fast <span class=\"ds-tag\">region</span></th><td>247.31 USDC</td><td>30 s</td></tr></tbody></table>",
+      "css": ".ds-t{border-collapse:collapse;width:100%;font:13px system-ui;background:#232b66;color:#fff}.ds-t th{text-align:left;padding:4px 10px}.ds-t td{text-align:right;padding:4px 10px;font-variant-numeric:tabular-nums}.ds-tag{margin-left:8px;padding:0 6px;background:#f0d98a;color:#3a2c00;border:1px solid #8a6d12;font-size:.85em}"
+    },
+    {
+      "name": "Status strip",
+      "kind": "nav",
+      "description": "Wallet, network toggle and job lamp, each state also written.",
+      "html": "<div class=\"ds-s\"><span>Wallet main</span><span><i class=\"ds-l\"></i>Test networks</span><span><i class=\"ds-l g\"></i>Transfer finished</span></div>",
+      "css": ".ds-s{display:flex;gap:3px;font:12px system-ui;background:#cfd5d0;color:#11171a}.ds-s span{display:inline-flex;align-items:center;gap:7px;padding:1px 9px;border:1px solid;border-color:#8a938f #f7faf7 #f7faf7 #8a938f}.ds-l{width:10px;height:10px;border-radius:50%;background:#e3a51b;border:1px solid #333b38}.ds-l.g{background:#2fae55}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Workstation",
+    "overview": "One window-and-sheet structure in four CSS skins (Retro, Modern, Smoked glass, Night glass); the skin changes materials and light, never layout, copy or behaviour.",
+    "keyCharacteristics": [
+      "One structure, four skins",
+      "Tabular, right-aligned numbers",
+      "State is never colour alone",
+      "Test networks announced everywhere"
+    ],
+    "rules": [
+      {
+        "name": "The Lamp-and-Word Rule",
+        "body": "A lamp never stands alone: its state is also written.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Accent Rule",
+        "body": "One accent per skin, for selection, the primary action and focus.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Numbers use tabular figures and right-align in their column.",
+        "section": "typography"
+      },
+      {
+        "name": "The Real Surface Rule",
+        "body": "Only windows, dialogs and the sheet list may be raised, translucent or recessed.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep one accent per skin",
+      "Do write state in words next to every lamp",
+      "Do keep amounts tabular and right-aligned",
+      "Do say \"Test networks\" wherever the app is in test mode"
+    ],
+    "donts": [
+      "Don't add decoration that is not a window, dialog or list",
+      "Don't use emoji or text glyphs as icons",
+      "Don't let a skin change layout, copy or behaviour",
+      "Don't copy any operating system's visual identity into Retro"
+    ]
+  }
+}
