@@ -21,6 +21,7 @@ import {
   lifiProvider,
   sdkStatus,
   cctpProvider,
+  atomiqProvider,
   lifiToken,
   lifiTokens,
   mayaProvider,
@@ -234,7 +235,9 @@ async function runDeps() {
     if (!chain) throw new Error(`Chain "${key}" is no longer listed`)
     return chain
   }
-  const providers = [lifiProvider(fetchFn, chains, settings), cctpProvider(fetchFn, chains), thorchainProvider(fetchFn, chains), mayaProvider(fetchFn, chains)].filter((p) => !settings.disabledProviders.includes(p.name))
+  // Atomiq needs its optional SDK packages; without them it is left out.
+  const atomiq = await atomiqProvider(fetchFn, chains, { dir: dataDir(), testnet: !!opts.testnet })
+  const providers = [lifiProvider(fetchFn, chains, settings), cctpProvider(fetchFn, chains), thorchainProvider(fetchFn, chains), mayaProvider(fetchFn, chains), ...(atomiq ? [atomiq] : [])].filter((p) => !settings.disabledProviders.includes(p.name))
   return { providers, adapterFor: (key: string) => adapterFor(byKey(key)), chainName: (key: string) => byKey(key).name }
 }
 
@@ -335,7 +338,7 @@ async function providersCommand(): Promise<void> {
   if (opts.json) return printJson({ builtIn: ['lifi', 'cctp', 'thorchain', 'maya'], optional: sdks })
   out('Built in: lifi, cctp, thorchain, maya')
   for (const s of sdks) {
-    out(`${s.provider}: ${s.installed ? 'installed' : s.error ? `broken (${s.error})` : `not installed, ${s.gives} is not offered; add it with "npm install ${s.pkg}"`}`)
+    out(`${s.provider}: ${s.installed ? 'installed' : s.error ? `broken (${s.error})` : `not installed, ${s.gives} is not offered; add it with "npm install --no-save ${s.pkgs.join(' ')}"`}`)
   }
 }
 

@@ -34,6 +34,16 @@ cd web3_chainer
 
 The Linux script is tested on clean Arch, Debian, Ubuntu and Fedora systems. The macOS and Windows scripts have not been run on those systems yet.
 
+### Optional route sources
+
+Some route sources need a vendor's SDK. These are not installed by default and the app works without them; it just does not offer those routes. `chainer providers` shows what is installed.
+
+| Source | What it adds | Install |
+|---|---|---|
+| Atomiq | Trustless Bitcoin <-> Solana swaps (SOL and BTC only) | `npm install --no-save @atomiqlabs/sdk @atomiqlabs/chain-solana @solana/web3.js` |
+
+Atomiq asks for a location confirmation like other geo-restricted sources (its terms bar the United States). It keeps its swap records in the data folder under `atomiq/`; do not delete that folder while a swap is unfinished.
+
 On Android the command-line tool runs in [Termux](https://termux.dev) (`pkg install nodejs git`, then `npm ci` in the repository); there is no install script for it.
 
 ## Using the command line

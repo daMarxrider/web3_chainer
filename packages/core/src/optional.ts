@@ -8,11 +8,11 @@ export interface OptionalSdk {
   provider: string
   /** What the user gains by installing it. */
   gives: string
-  /** npm package name. */
-  pkg: string
+  /** npm packages that must all be installed (the SDK and its chain connectors). */
+  pkgs: string[]
 }
 
-export const OPTIONAL_SDKS: OptionalSdk[] = [{ provider: 'atomiq', gives: 'Atomiq trustless swaps between Bitcoin / Lightning and Solana', pkg: '@atomiqlabs/sdk' }]
+export const OPTIONAL_SDKS: OptionalSdk[] = [{ provider: 'atomiq', gives: 'Atomiq trustless swaps between Bitcoin / Lightning and Solana', pkgs: ['@atomiqlabs/sdk', '@atomiqlabs/chain-solana', '@solana/web3.js'] }]
 
 type Importer = (pkg: string) => Promise<unknown>
 // The package name is a variable on purpose: nothing is resolved until this runs.
@@ -46,7 +46,8 @@ export async function sdkStatus(importer: Importer = nodeImport): Promise<SdkSta
   return Promise.all(
     OPTIONAL_SDKS.map(async (sdk): Promise<SdkStatus> => {
       try {
-        return { ...sdk, installed: (await loadSdk(sdk.pkg, importer)) !== undefined }
+        const found = await Promise.all(sdk.pkgs.map((pkg) => loadSdk(pkg, importer)))
+        return { ...sdk, installed: found.every((m) => m !== undefined) }
       } catch (err) {
         return { ...sdk, installed: false, error: (err as Error).message }
       }

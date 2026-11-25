@@ -65,7 +65,9 @@ function runContext(record: TransferRecord, deps: TransferDeps): RunContext {
   return {
     signer: deps.signer,
     adapterFor: deps.adapterFor,
-    state: record.providerState,
+    get state() {
+      return record.providerState
+    },
     say: (message) => deps.onEvent(record, message),
     async checkpoint(patch) {
       if (patch.state) record.providerState = { ...record.providerState, ...patch.state }
