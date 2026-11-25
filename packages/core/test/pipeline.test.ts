@@ -355,3 +355,21 @@ test('a leg that names a transit wallet is signed by that wallet, the others by 
   const noSigner = await runPipeline(again, { ...base, signer: mine }).catch((e: Error) => e)
   assert.match(String((noSigner as Error).message ?? (noSigner as { legs: { error: string }[] }).legs[1]!.error), /not available to this run/)
 })
+
+test('a leg only uses the route the user chose, even when a better one appears later', async () => {
+  const w = world([[A, Z, 0.9]], [[A, 5_000_000n]])
+  const { routes } = await search(w, [])
+  const record = pipelineFromRoute(routes[0]!, 'main')
+  assert.equal(record.legs[0]!.pin, 'fake/a-z')
+
+  // The chosen bridge is gone when the leg is quoted again: nothing is sent, and no other route is substituted.
+  record.legs[0]!.pin = 'fake/other-bridge'
+  const done = await runPipeline(record, w.deps(memoryStore()))
+  assert.equal(done.state, 'failed')
+  assert.match(done.legs[0]!.error!, /no longer offered/)
+  assert.equal(w.sent.length, 0)
+
+  // Without a pin (a hand-written plan) the best route at the time is taken.
+  const plan = newPipeline('main', ME, [{ from: A, to: Z, amount: '1000000', fromAddress: ME, toAddress: '0xfriend' }])
+  assert.equal((await runPipeline(plan, w.deps(memoryStore()))).state, 'done')
+})

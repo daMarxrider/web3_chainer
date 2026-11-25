@@ -120,6 +120,12 @@ export interface PipelineLeg {
   /** The wallet's address on the source chain. Absent in runs saved before other chain families existed: then the run's `fromAddress` applies. */
   fromAddress?: string
   toAddress: string
+  /**
+   * "provider/tool" the user chose for this leg. The leg is quoted again right before it runs, but only
+   * this route may be used: if it is no longer offered the leg stops instead of switching to another.
+   * Absent for hand-written plans, which take the best route at the time.
+   */
+  pin?: string
   /** Wallet that signs this leg when it is not the run's own wallet (a transit wallet on a stop-over chain). */
   wallet?: string
   /** Rate seen when the route was planned; the leg stops if a fresh quote is worse than this. */
@@ -173,6 +179,7 @@ export function pipelineFromRoute(route: Route, wallet: string, geoAccepted: str
       fromAddress: q.request.fromAddress,
       toAddress: q.request.toAddress,
       wallet: walletOf(q.request.fromAddress),
+      pin: `${q.provider}/${q.tool}`,
       planned: { amountIn: q.request.amount.toString(), minOut: q.toAmountMin.toString() },
     })),
     geoAccepted,
@@ -238,7 +245,12 @@ async function runLeg(record: PipelineRecord, i: number, deps: PipelineDeps): Pr
     const request: QuoteRequest = { from: leg.from, to: leg.to, amount: a, fromAddress, toAddress: leg.toAddress, slippage: settings.slippage }
     const found = await findRoutes(request, providers, settings)
     // Bridges with geo restrictions are only used if the user confirmed their location for them.
-    const quotes = found.quotes.filter((q) => geoAllowed(q, record.geoAccepted))
+    let quotes = found.quotes.filter((q) => geoAllowed(q, record.geoAccepted))
+    if (leg.pin) {
+      const pinned = quotes.filter((q) => `${q.provider}/${q.tool}` === leg.pin)
+      if (pinned.length === 0 && quotes.length > 0) throw new Error(`The route you chose (${leg.pin}) is no longer offered for this leg, so nothing was sent. Choose a route again.`)
+      quotes = pinned
+    }
     if (quotes.length === 0) {
       const skipped = found.quotes.length > 0
       throw new Error(skipped ? 'The only routes for this leg use bridges with geo restrictions that were not confirmed for this run' : `No route for this leg${found.errors.length ? `: ${found.errors.join('; ')}` : ''}`)
