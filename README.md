@@ -195,6 +195,8 @@ Finished legs are never repeated. A leg that was interrupted in the middle of se
 
 ### Try it with test funds
 
+Step by step, with every faucet and what each one needs: [docs/TESTNET.md](docs/TESTNET.md).
+
 `--testnet` runs a route on the test networks of Ethereum, Optimism, Arbitrum and Base (their Sepolia networks) with worthless test tokens:
 
 ```sh
