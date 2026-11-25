@@ -1,6 +1,8 @@
 import './styles/base.css'
 import './styles/retro.css'
 import './styles/modern.css'
+import './styles/smoked.css'
+import './styles/night.css'
 import { mainWindow } from './app.ts'
 import { engine } from './engine.ts'
 import { firstLaunch, unlockWindow } from './firstlaunch.ts'

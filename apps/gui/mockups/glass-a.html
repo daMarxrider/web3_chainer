@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" data-theme="glass">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Glass option A: Frosted panes</title>
+<link rel="stylesheet" href="/src/styles/base.css">
+<link rel="stylesheet" href="/mockups/glass-a.css">
+<style>body{background:var(--desktop);background-attachment:fixed}.window.main{height:auto;min-height:0}</style>
+</head>
+<body>
+<div class="desktop">
+  <div class="window main" role="application" aria-label="chainer" style="position:relative">
+    <header class="titlebar"><span class="mark"><svg class="icon logo" viewBox="0 0 32 32" width="20" height="20"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 21l6-10 8 8"/></g><g fill="currentColor" stroke="var(--logo-edge)" stroke-width="1.6"><circle cx="9" cy="21" r="3.4"/><circle cx="15" cy="11" r="3.4"/><circle cx="23" cy="19" r="3.4"/></g></svg></span><span class="title">chainer</span><span class="title-meta">test networks</span></header>
+    <div class="window-body">
+      <nav class="sheetlist" aria-label="Screens">
+        <button class="sheet-item"><span>Balances</span></button>
+        <button class="sheet-item" aria-current><span>Transfer</span></button>
+        <button class="sheet-item"><span>Bridge wallet</span></button>
+        <button class="sheet-item"><span>Saved routes</span></button>
+        <button class="sheet-item"><span>Schedules</span></button>
+        <button class="sheet-item"><span>History</span></button>
+        <button class="sheet-item"><span>Settings</span></button>
+        <button class="sheet-item lock"><span>Lock</span></button>
+      </nav>
+      <main class="sheet">
+        <h1 class="sheet-title">Transfer</h1>
+        <form class="form transfer-form">
+          <fieldset class="group"><legend>From</legend>
+            <label class="row"><span class="label">Chain</span><select><option>Arc Testnet</option></select></label>
+            <label class="row"><span class="label">Token</span><input value="USDC"></label>
+            <label class="row"><span class="label">Amount</span><span class="with-button"><input class="num" value="250.00"><button type="button" class="btn small">Max</button></span></label>
+            <p class="hint">You hold 14.986289 USDC on this chain.</p>
+          </fieldset>
+          <fieldset class="group"><legend>To</legend>
+            <label class="row"><span class="label">Chain</span><select><option>Base Sepolia Testnet</option></select></label>
+            <label class="row"><span class="label">Recipient</span><input placeholder="your own address on the destination"></label>
+          </fieldset>
+          <div class="actions"><button class="btn primary" type="button">Find routes</button></div>
+        </form>
+        <section class="results">
+          <h2>3 routes, cheapest first</h2>
+          <div class="table-wrap"><table class="data routes">
+            <thead><tr><th></th><th>Via</th><th class="num">You receive</th><th class="num">At worst</th><th class="num">Gas + fees</th><th class="num">Net value</th><th class="num">Time</th></tr></thead>
+            <tbody>
+              <tr data-selected="true"><td class="pick"><input type="radio" checked></td><th class="via-cell">cctp/cctp-fast <span class="tag">region</span></th><td class="num strong">247.31 USDC</td><td class="num">247.31</td><td class="num">$0.00</td><td class="num">$247.31</td><td class="num">30 s</td></tr>
+              <tr><td class="pick"><input type="radio"></td><th class="via-cell">lifi/stargateV2</th><td class="num strong">246.90 USDC</td><td class="num">245.66</td><td class="num">$0.21</td><td class="num">$246.69</td><td class="num">1 min</td></tr>
+              <tr><td class="pick"><input type="radio"></td><th class="via-cell">cctp/cctp-standard <span class="tag">region</span></th><td class="num strong">247.31 USDC</td><td class="num">247.31</td><td class="num">$0.00</td><td class="num">$247.31</td><td class="num">20 min</td></tr>
+            </tbody></table></div>
+        </section>
+      </main>
+    </div>
+    <footer class="statusbar">
+      <span class="seg grow">Wallet main</span>
+      <span class="seg"><span class="lamp" data-state="test"></span>Test networks</span>
+      <span class="seg"><span class="lamp" data-state="working"></span>Leg 1 of 1: waiting for the attestation</span>
+    </footer>
+    <dialog open class="window dialog" aria-labelledby="t" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);margin:0;z-index:5">
+      <header class="titlebar"><span class="title" id="t">Confirm transfer</span></header>
+      <div class="dialog-body">
+        <p class="banner test">Test networks: this moves test funds only.</p>
+        <dl class="summary"><dt>You send</dt><dd class="strong">250 USDC from Arc Testnet</dd><dt>You receive</dt><dd class="strong">247.31 USDC on Base Sepolia</dd><dt>Route</dt><dd>cctp/cctp-fast</dd><dt>Time</dt><dd>about 30 s</dd></dl>
+        <div class="actions"><button class="btn" type="button">Cancel</button><button class="btn primary" type="button">Send now</button></div>
+      </div>
+    </dialog>
+  </div>
+</div>
+</body></html>

@@ -1,7 +1,7 @@
 import { h, replace } from '../dom.ts'
 import { engine } from '../engine.ts'
 import { disclaimerBlock } from '../firstlaunch.ts'
-import { prefs, savePrefs, type ThemeName } from '../prefs.ts'
+import { prefs, savePrefs, THEMES, type ThemeName } from '../prefs.ts'
 
 /** Look, network mode, defaults and the disclaimer. Everything here is stored on this device. */
 export async function settingsScreen(sheet: HTMLElement): Promise<void> {
@@ -51,7 +51,7 @@ export async function settingsScreen(sheet: HTMLElement): Promise<void> {
     sheet,
     h('h1', { class: 'sheet-title' }, 'Settings'),
     saved,
-    h('fieldset', { class: 'group' }, h('legend', {}, 'Look'), themeRadio('retro', 'Retro', 'A workstation desktop with windows and bevels.'), themeRadio('modern', 'Modern', 'Flat and quiet, light or dark with your system.')),
+    h('fieldset', { class: 'group' }, h('legend', {}, 'Look'), THEMES.map((t) => themeRadio(t.id, t.label, t.blurb))),
     h('fieldset', { class: 'group' }, h('legend', {}, 'Networks'), h('p', { class: 'hint' }, 'Test networks use test funds and keep their own run history. Switch with the network button in the status strip below, or here.'), h('label', { class: 'check block' }, h('input', { type: 'checkbox', name: 'test', checked: prefs().testMode, onChange: async (e: Event) => { await savePrefs({ testMode: (e.target as HTMLInputElement).checked }); flash(prefs().testMode ? 'Test networks on. Reopen a screen to see them.' : 'Real networks on.') } }), h('span', {}, 'Use test networks'))),
     h('fieldset', { class: 'group' }, h('legend', {}, 'Defaults'), form),
     h('fieldset', { class: 'group' }, h('legend', {}, 'About and disclaimer'), h('p', { class: 'hint' }, 'chainer is free software under the GNU GPL v3. It holds your keys on this device only.'), disclaimerBlock()),

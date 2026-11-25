@@ -2,7 +2,7 @@ import { addAccount, newMnemonic } from '@chainer/core'
 import { append, h, replace } from './dom.ts'
 import { engine } from './engine.ts'
 import { icon } from './icons.ts'
-import { savePrefs, prefs, type ThemeName } from './prefs.ts'
+import { savePrefs, prefs, THEMES, type ThemeName } from './prefs.ts'
 
 export const DISCLAIMER = [
   ['Loss of funds.', 'The author is not liable for any loss of money or tokens, including losses caused by bugs or errors in this software, by failures or changes in the bridges, exchanges, networks and other third-party services it talks to, or by price movements, fees and slippage.'],
@@ -54,7 +54,7 @@ export function firstLaunch(root: HTMLElement): Promise<void> {
           { class: 'wizard-body' },
           h('h1', { id: 'w-title' }, 'Move tokens between chains, with your own keys'),
           h('p', { class: 'lede' }, 'chainer compares routes from several services that never hold your funds, shows what actually arrives, and runs the transfer from this device. Choose how it looks first; you can change it later in Settings.'),
-          h('fieldset', { class: 'theme-picker' }, h('legend', {}, 'Look'), themePreview('retro', 'Retro', 'A workstation desktop: windows, bevels and a status strip.', theme === 'retro', () => (theme = 'retro', void savePrefs({ theme }))), themePreview('modern', 'Modern', 'The same layout, flat and quiet, light or dark with your system.', theme === 'modern', () => (theme = 'modern', void savePrefs({ theme })))),
+          h('fieldset', { class: 'theme-picker' }, h('legend', {}, 'Look'), THEMES.map((t) => themePreview(t.id, t.label, t.blurb, theme === t.id, () => (theme = t.id, void savePrefs({ theme }))))),
           h('h2', {}, 'Before you start'),
           disclaimerBlock(),
           h('label', { class: 'check', for: 'accept' }, accept, h('span', {}, 'I have read this and I accept it.')),

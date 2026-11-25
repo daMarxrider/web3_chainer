@@ -1,0 +1,72 @@
+/* Option A: Frosted panes. Cool blue-violet light behind rounded frosted panels. */
+[data-theme='glass'] {
+  --font: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', sans-serif;
+  --mono: ui-monospace, 'DejaVu Sans Mono', monospace;
+  --font-size: 14px;
+  --h1: 22px;
+  --h2: 15px;
+  --desktop-pad: 24px;
+  --title-h: 46px;
+  --status-h: 34px;
+  --list-w: 196px;
+  --control-h: 36px;
+
+  --desktop:
+    radial-gradient(60% 55% at 12% 8%, #4a32b8 0%, transparent 60%),
+    radial-gradient(55% 50% at 92% 18%, #0f7fa8 0%, transparent 60%),
+    radial-gradient(60% 60% at 70% 100%, #8b2d78 0%, transparent 62%), #0a0e1d;
+  --face: rgb(22 28 52 / 0.55);
+  --field: rgb(255 255 255 / 0.06);
+  --line: rgb(255 255 255 / 0.15);
+  --text: #eef1ff;
+  --text-dim: #a9b2d2;
+  --hover: rgb(255 255 255 / 0.08);
+  --accent: #8e9dff;
+  --select: rgb(142 157 255 / 0.26);
+  --select-text: #ffffff;
+  --err: #ff9a9a;
+  --ok: #7be0a6;
+  --backdrop: rgb(4 6 16 / 0.55);
+  --title-bg: transparent;
+  --title-text: var(--text);
+  --logo-edge: #1b2142;
+  --lamp-off: #5a6389;
+  --lamp-amber: #ffc25c;
+  --lamp-green: #5ee59a;
+  --lamp-red: #ff6b6b;
+  --lamp-blue: #7aa2ff;
+  --focus: 2px solid var(--accent);
+  --focus-offset: 2px;
+}
+[data-theme='glass'] .window {
+  background: var(--face);
+  backdrop-filter: blur(26px) saturate(150%);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.16);
+}
+[data-theme='glass'] .titlebar { border-bottom: 1px solid var(--line); padding: 0 18px; }
+[data-theme='glass'] .titlebar .mark { color: var(--accent); }
+[data-theme='glass'] .sheetlist { border-right: 1px solid var(--line); background: rgb(8 10 24 / 0.28); padding: 12px; }
+[data-theme='glass'] .sheet-item { border-radius: 10px; color: var(--text-dim); border: 1px solid transparent; }
+[data-theme='glass'] .sheet-item:hover { background: var(--hover); color: var(--text); }
+[data-theme='glass'] .sheet-item[aria-current] { background: var(--select); color: var(--select-text); border-color: rgb(142 157 255 / 0.45); font-weight: 600; }
+[data-theme='glass'] .statusbar { border-top: 1px solid var(--line); padding: 0 8px; background: rgb(8 10 24 / 0.28); }
+[data-theme='glass'] .seg { color: var(--text-dim); }
+[data-theme='glass'] input:not([type='checkbox'], [type='radio']), [data-theme='glass'] select, [data-theme='glass'] textarea { background: var(--field); border: 1px solid var(--line); border-radius: 10px; color: var(--text); }
+[data-theme='glass'] .btn { background: rgb(255 255 255 / 0.08); border: 1px solid var(--line); border-radius: 10px; }
+[data-theme='glass'] .btn.primary { background: #8e9dff; border-color: #a8b4ff; color: #0c1030; font-weight: 700; box-shadow: 0 4px 14px rgb(80 100 255 / 0.35); }
+[data-theme='glass'] .group { border: 1px solid var(--line); border-radius: 12px; background: rgb(255 255 255 / 0.03); }
+[data-theme='glass'] .table-wrap { border: 1px solid var(--line); border-radius: 12px; background: rgb(8 10 24 / 0.25); }
+[data-theme='glass'] .data thead th { color: var(--text-dim); font-weight: 600; border-bottom: 1px solid var(--line); }
+[data-theme='glass'] .data tbody tr + tr > * { border-top: 1px solid rgb(255 255 255 / 0.07); }
+[data-theme='glass'] .data tr[data-selected='true'] { background: var(--select); color: var(--select-text); }
+[data-theme='glass'] .data tr[data-selected='true'] .via { color: inherit; }
+[data-theme='glass'] .tag { border-radius: 999px; background: rgb(255 194 92 / 0.2); color: #ffd48a; border: 1px solid rgb(255 194 92 / 0.4); }
+[data-theme='glass'] .banner { border-radius: 10px; border: 1px solid var(--line); }
+[data-theme='glass'] .banner.test { background: rgb(255 194 92 / 0.18); color: #ffd9a0; }
+[data-theme='glass'] .geo { border: 1px solid rgb(255 194 92 / 0.4); border-radius: 12px; background: rgb(255 194 92 / 0.1); color: #ffe5b8; }
+[data-theme='glass'] .dialog { border-radius: 16px; border: 1px solid var(--line); background: rgb(24 30 56 / 0.78); backdrop-filter: blur(30px); box-shadow: 0 30px 80px rgb(0 0 0 / 0.55); }
+[data-theme='glass'] .log { border: 1px solid var(--line); border-radius: 10px; background: rgb(8 10 24 / 0.3); }

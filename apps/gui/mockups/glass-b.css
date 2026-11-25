@@ -1,0 +1,75 @@
+/* Option B: Smoked glass console. Near-black smoked panels, amber instrument accents, mono readouts, tighter geometry. */
+[data-theme='glass'] {
+  --font: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', sans-serif;
+  --mono: ui-monospace, 'DejaVu Sans Mono', 'Liberation Mono', monospace;
+  --font-size: 13px;
+  --h1: 19px;
+  --h2: 14px;
+  --desktop-pad: 20px;
+  --title-h: 36px;
+  --status-h: 30px;
+  --list-w: 176px;
+  --control-h: 30px;
+
+  --desktop:
+    radial-gradient(40% 35% at 85% 10%, rgb(240 179 74 / 0.22) 0%, transparent 70%),
+    radial-gradient(45% 40% at 5% 95%, rgb(40 160 150 / 0.2) 0%, transparent 70%), #07090b;
+  --face: rgb(14 17 20 / 0.74);
+  --field: rgb(0 0 0 / 0.35);
+  --line: rgb(255 255 255 / 0.11);
+  --text: #e9ecee;
+  --text-dim: #8f979d;
+  --hover: rgb(255 255 255 / 0.06);
+  --accent: #f0b34a;
+  --select: rgb(240 179 74 / 0.18);
+  --select-text: #ffd997;
+  --err: #ff8a7a;
+  --ok: #6fd9a0;
+  --backdrop: rgb(0 0 0 / 0.6);
+  --title-bg: transparent;
+  --title-text: var(--text);
+  --logo-edge: #0e1114;
+  --lamp-off: #3b4247;
+  --lamp-amber: #f0b34a;
+  --lamp-green: #46d48a;
+  --lamp-red: #ff5d4d;
+  --lamp-blue: #4ec3d8;
+  --focus: 1px solid var(--accent);
+  --focus-offset: 2px;
+}
+[data-theme='glass'] .window {
+  background: var(--face);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid var(--line);
+  border-top-color: rgb(255 255 255 / 0.28);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.6);
+}
+[data-theme='glass'] .titlebar { border-bottom: 1px solid var(--line); padding: 0 14px; font-family: var(--mono); font-weight: 600; letter-spacing: 0.02em; }
+[data-theme='glass'] .titlebar .mark { color: var(--accent); }
+[data-theme='glass'] .sheetlist { border-right: 1px solid var(--line); padding: 8px; background: rgb(0 0 0 / 0.22); }
+[data-theme='glass'] .sheet-item { border-radius: 3px; color: var(--text-dim); border: 1px solid transparent; }
+[data-theme='glass'] .sheet-item:hover { background: var(--hover); color: var(--text); }
+[data-theme='glass'] .sheet-item[aria-current] { background: var(--select); color: var(--select-text); border-color: rgb(240 179 74 / 0.4); }
+[data-theme='glass'] .statusbar { border-top: 1px solid var(--line); background: rgb(0 0 0 / 0.3); font-family: var(--mono); font-size: 0.88em; }
+[data-theme='glass'] .seg { color: var(--text-dim); }
+[data-theme='glass'] .data, [data-theme='glass'] .num, [data-theme='glass'] .summary dd, [data-theme='glass'] .label { font-variant-numeric: tabular-nums; }
+[data-theme='glass'] input:not([type='checkbox'], [type='radio']), [data-theme='glass'] select, [data-theme='glass'] textarea { background: var(--field); border: 1px solid var(--line); border-bottom-color: rgb(255 255 255 / 0.22); border-radius: 3px; color: var(--text); }
+[data-theme='glass'] .btn { background: rgb(255 255 255 / 0.05); border: 1px solid rgb(255 255 255 / 0.18); border-radius: 3px; }
+[data-theme='glass'] .btn:hover:not(:disabled) { background: rgb(255 255 255 / 0.1); }
+[data-theme='glass'] .btn.primary { background: var(--accent); border-color: #ffd28a; color: #1b1203; font-weight: 700; }
+[data-theme='glass'] .group { border: 1px solid var(--line); border-radius: 4px; }
+[data-theme='glass'] .group legend { font-family: var(--mono); color: var(--accent); font-weight: 600; }
+[data-theme='glass'] .table-wrap { border: 1px solid var(--line); border-radius: 4px; background: rgb(0 0 0 / 0.25); }
+[data-theme='glass'] .data thead th { color: var(--text-dim); font-family: var(--mono); font-weight: 500; border-bottom: 1px solid rgb(255 255 255 / 0.2); }
+[data-theme='glass'] .data tbody tr + tr > * { border-top: 1px solid rgb(255 255 255 / 0.06); }
+[data-theme='glass'] .data tr[data-selected='true'] { background: var(--select); color: var(--select-text); }
+[data-theme='glass'] .data tr[data-selected='true'] .via { color: inherit; }
+[data-theme='glass'] .tag { border-radius: 2px; background: rgb(240 179 74 / 0.16); color: #ffd28a; border: 1px solid rgb(240 179 74 / 0.4); font-family: var(--mono); }
+[data-theme='glass'] .banner { border-radius: 3px; border: 1px solid var(--line); }
+[data-theme='glass'] .banner.test { background: rgb(240 179 74 / 0.14); color: #ffd9a0; border-color: rgb(240 179 74 / 0.4); }
+[data-theme='glass'] .geo { border: 1px solid rgb(240 179 74 / 0.4); border-radius: 4px; background: rgb(240 179 74 / 0.08); color: #ffe2b0; }
+[data-theme='glass'] .dialog { border-radius: 6px; border: 1px solid var(--line); border-top-color: rgb(255 255 255 / 0.3); background: rgb(14 17 20 / 0.88); backdrop-filter: blur(16px); box-shadow: 0 24px 60px rgb(0 0 0 / 0.7); }
+[data-theme='glass'] .log { border: 1px solid var(--line); border-radius: 3px; background: rgb(0 0 0 / 0.35); }
