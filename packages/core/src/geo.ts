@@ -77,6 +77,12 @@ export const GEO_RESTRICTIONS: Record<string, GeoRestriction> = {
     note: 'The 1Click API terms bar "Restricted Jurisdictions" and persons, defined in an access policy that is not published and can change without notice; every quote is screened against AML lists. Persons on sanctions lists are barred everywhere.',
     terms: 'Intents Technology Limited 1Click API Terms of Use, 7 Oct 2026',
   },
+  atomiq: {
+    name: 'Atomiq',
+    regions: ['United States', ...SANCTIONED],
+    note: 'The terms bar restricted persons and anyone located, resident or incorporated in the United States, also forbid VPNs, and say no exceptions are made. Persons on sanctions lists are barred everywhere.',
+    terms: 'Atomiq Labs International Inc. Terms of Service, last modified 17 Apr 2025',
+  },
   paxos: { name: 'Paxos Labs Transit', regions: ['Cuba', 'Iran', 'North Korea', 'Syria', 'Russia', 'Crimea', 'jurisdictions that restrict crypto'], note: 'The terms also forbid VPNs.', terms: 'Paxos Labs Terms of Use, 2025' },
 }
 
@@ -88,25 +94,30 @@ export interface GeoNotice extends GeoRestriction {
   keys: string[]
 }
 
-export const isGeoRestricted = (q: Pick<Quote, 'provider' | 'tool'>): boolean => q.provider === 'lifi' && q.tool in GEO_RESTRICTIONS
+/** Providers that call one service directly are keyed by provider name; LI.FI quotes by their bridge key. */
+const DIRECT = new Set(['cctp', 'atomiq'])
+const geoKey = (q: Pick<Quote, 'provider' | 'tool'>): string => (DIRECT.has(q.provider) ? q.provider : q.tool)
+
+export const isGeoRestricted = (q: Pick<Quote, 'provider' | 'tool'>): boolean => (q.provider === 'lifi' || DIRECT.has(q.provider)) && geoKey(q) in GEO_RESTRICTIONS
 
 /** The geo-restricted services a set of quotes (one route) passes through, one entry per service. */
 export function geoNotices(quotes: Pick<Quote, 'provider' | 'tool'>[]): GeoNotice[] {
   const byName = new Map<string, GeoNotice>()
   for (const q of quotes.filter(isGeoRestricted)) {
-    const r = GEO_RESTRICTIONS[q.tool]!
+    const key = geoKey(q)
+    const r = GEO_RESTRICTIONS[key]!
     const entry = byName.get(r.name)
-    if (entry) entry.keys.push(q.tool)
-    else byName.set(r.name, { ...r, keys: [q.tool] })
+    if (entry) entry.keys.push(key)
+    else byName.set(r.name, { ...r, keys: [key] })
   }
   return [...byName.values()]
 }
 
 /** Bridge keys of the quotes that need the user's location confirmation. */
-export const geoKeys = (quotes: Pick<Quote, 'provider' | 'tool'>[]): string[] => [...new Set(quotes.filter(isGeoRestricted).map((q) => q.tool))]
+export const geoKeys = (quotes: Pick<Quote, 'provider' | 'tool'>[]): string[] => [...new Set(quotes.filter(isGeoRestricted).map(geoKey))]
 
 /** Whether a quote may be used given the bridge keys the user confirmed their location for. */
-export const geoAllowed = (q: Pick<Quote, 'provider' | 'tool'>, accepted: string[] | undefined): boolean => !isGeoRestricted(q) || (accepted ?? []).includes(q.tool)
+export const geoAllowed = (q: Pick<Quote, 'provider' | 'tool'>, accepted: string[] | undefined): boolean => !isGeoRestricted(q) || (accepted ?? []).includes(geoKey(q))
 
 /** The statement the user must accept. */
 export function geoStatement(notices: GeoNotice[]): string {

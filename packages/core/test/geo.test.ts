@@ -32,3 +32,10 @@ test('every entry names regions and its terms; Paxos Labs Transit is denied by d
   assert.ok(defaultSettings.lifi.denyBridges.includes('unit'))
   assert.equal(geoKeys([q('garden')]).length, 1)
 })
+
+test('direct providers are keyed by provider name and need the same confirmation as the matching LI.FI bridge', () => {
+  assert.deepEqual(geoKeys([{ provider: 'cctp', tool: 'cctp-fast' }, { provider: 'atomiq', tool: 'btc-sol' }]), ['cctp', 'atomiq'])
+  assert.equal(geoAllowed({ provider: 'cctp', tool: 'cctp-fast' }, undefined), false)
+  assert.equal(geoAllowed({ provider: 'cctp', tool: 'cctp-standard' }, ['cctp']), true)
+  assert.equal(geoAllowed({ provider: 'thorchain', tool: 'thorchain' }, undefined), true)
+})
