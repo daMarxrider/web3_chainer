@@ -227,16 +227,32 @@ Every command takes `--json`. `--yes` skips the confirmation, and the `CHAINER_P
 
 ## Using the graphical app
 
-The graphical app is not built yet. It is planned for Windows, Linux, macOS and Android, with the same features as the command line: balances, transfers with a ranked route list and live progress, whole-wallet bridging, a pipeline builder, saved routes, history and settings.
+The graphical app is being built (milestone 6). The first slice works in a browser window today: first launch, wallet, Balances, Transfer with ranked routes, confirmation and live progress, resuming interrupted transfers, and Settings. Whole-wallet bridging, the pipeline builder, saved routes, schedules, the address book, history, the Tauri desktop shell and the Android build are still to come, and the command line remains the complete tool until then.
+
+Run it from the repository:
+
+```sh
+npm install
+npm run dev -w @chainer/gui        # opens on http://127.0.0.1:5173
+```
+
+1. **First launch.** Choose a look, read and accept the disclaimer, then create a wallet (a seed phrase is shown once; write it down) or import one. The wallet is encrypted with your password and stored on this device only.
+2. **Unlock** with the password. **Lock** is at the bottom of the screen list.
+3. **Balances.** Pick a chain to see what the wallet holds and its address on that chain (with a Copy button, for funding it).
+4. **Transfer.** Choose the chain and token to send and where to, press Find routes, pick a route from the ranked table (what you receive, the worst case, gas and fees, net value, time; a `region` tag marks services with location restrictions), then Review and send. The confirmation window shows the amounts, route and recipient, and asks for your location if a restricted service is used. Progress is shown step by step. **The route you choose is the route that runs.**
+5. **Unfinished transfers.** If the app is closed or crashes during a transfer, it shows up at the top of the Transfer screen after unlocking, with a Resume button. A step that already went out is never sent twice.
+6. **Test networks.** Click the network button in the status strip (bottom) to switch between real and test networks. In test mode everything runs on test networks with test funds, and the confirmation says so. See [docs/TESTNET.md](docs/TESTNET.md) for free test funds.
+
+The browser build keeps the wallet and journal in the browser's local storage; the desktop shell will keep them in a data folder like the command line does.
 
 ### Themes
 
-The app will ask for a theme on first launch, and the choice can be changed later in the settings:
+The app asks for a theme on first launch, and the choice can be changed later in the settings:
 
 - **Retro** (the default): an original early-2000s desktop look, designed for this project and not a copy of any operating system's interface
-- **Modern**
+- **Modern**: the same layout, flat, light or dark with your system
 
-Step-by-step instructions and one screenshot per theme will be added here when the app exists.
+One screenshot per theme will be added here when the app is finished.
 
 ## Where your data lives
 
