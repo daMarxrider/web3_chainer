@@ -109,6 +109,17 @@ chainer pipeline run plan.yaml --dry-run   # check it first
 chainer pipeline run plan.yaml
 ```
 
+### Move a whole wallet
+
+```sh
+chainer sweep arbitrum base --dry-run              # plan only: what would go, what is skipped and why
+chainer sweep arbitrum base                        # run it, one transfer per token
+chainer sweep arbitrum base --tokens USDC,DAI      # only some tokens
+chainer sweep arbitrum base --target USDC          # receive everything as one token
+```
+
+Each token held on the source chain becomes its own transfer, biggest value first, and the chain's own coin goes last with enough held back to pay the gas of the others. Tokens with no matching token on the destination, no route, or fees higher than their value are skipped and listed with the reason. You confirm once (and the location form appears if a route needs it); a failure in one token does not stop the rest.
+
 ### 6. Check on runs, or continue one
 
 ```sh
@@ -140,6 +151,7 @@ chainer config avoid add USDT                   # never route through or into th
 chainer config rpc arbitrum https://my-node...  # use your own RPC node ("default" to undo)
 chainer geo                                     # bridges with geo restrictions, and where
 chainer providers                               # route sources, and which optional SDKs are installed
+chainer sweep <from-chain> <to-chain>           # whole-wallet transfer, see above
 ```
 
 ### Scripting

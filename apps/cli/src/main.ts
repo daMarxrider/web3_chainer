@@ -18,7 +18,9 @@ import {
   geoNotices,
   geoStatement,
   lifiChains,
+  isNative,
   lifiProvider,
+  planSweep,
   sdkStatus,
   cctpProvider,
   atomiqProvider,
@@ -69,6 +71,8 @@ Usage:
                                               Compare routes without sending anything
   chainer send  <amount> <token> <chain> [<to-token>] <to-chain>
                                               Send over the best route and follow it live
+  chainer sweep <from-chain> <to-chain> [--tokens USDC,DAI] [--target USDC]
+                                              Move a whole wallet's tokens to another chain, one transfer per token
   chainer pipeline run <plan.yaml>            Run a chain of transfers, each starting when
                                               the previous one has arrived
   chainer geo                                 List bridges with geo restrictions and where they apply
@@ -119,6 +123,8 @@ const { values: opts, positionals } = parseArgs({
     name: { type: 'string' },
     prefer: { type: 'string' },
     'max-hops': { type: 'string' },
+    tokens: { type: 'string' },
+    target: { type: 'string' },
     to: { type: 'string' },
     testnet: { type: 'boolean' },
     'dry-run': { type: 'boolean' },
@@ -456,6 +462,71 @@ async function sendCommand(args: string[]): Promise<void> {
   await execute(pipelineFromRoute(routes[0]!, plan.wallet, accepted))
 }
 
+// ---- sweep ----------------------------------------------------------------
+
+async function sweepCommand(args: string[]): Promise<void> {
+  if (args.length !== 2) throw new Error('Use: chainer sweep <from-chain> <to-chain> [--tokens USDC,DAI] [--target USDC]')
+  const account = findAccount(await loadKeystore(store), opts.wallet)
+  const [fromChain, toChain] = await Promise.all([resolveChain(args[0]!), resolveChain(args[1]!)])
+  const fromAddress = ownAddress(account, fromChain)
+  const toAddress = opts.to ?? ownAddress(account, toChain)
+  if (!adapterFor(toChain).validateAddress(toAddress)) throw new Error(`"${toAddress}" is not a valid address on ${toChain.name}`)
+
+  const wanted = opts.tokens ? opts.tokens.split(',').map((s) => s.trim().toLowerCase()) : undefined
+  const sourceTokens = (await lifiTokens(fetchFn, fromChain)).filter((t) => !wanted || wanted.includes(t.symbol.toLowerCase()))
+  const balances = await adapterFor(fromChain).getBalances(fromAddress, sourceTokens)
+  const holdings = sourceTokens.map((token, i) => ({ token, balance: balances[i]! }))
+
+  // Where each token lands: one chosen token, or the same token on the destination.
+  const destTokens = await lifiTokens(fetchFn, toChain)
+  const chosen = opts.target ? await lifiToken(fetchFn, toChain, opts.target) : undefined
+  const target = (t: Token): Token | undefined => chosen ?? destTokens.find((d) => (isNative(t) ? isNative(d) : d.symbol.toLowerCase() === t.symbol.toLowerCase()))
+
+  const { providers } = await runDeps()
+  const chains = await allChains()
+  const addressOn = (chainKey: string) => ownAddress(account, chains.find((c) => c.key === chainKey)!)
+  const hubs = await hubTokens()
+  const findRoute = async (from: Token, to: Token, amount: bigint): Promise<Route | undefined> => {
+    const request: QuoteRequest = { from, to, amount, fromAddress, toAddress, slippage: settings.slippage }
+    const { routes } = await findPipelineRoutes(request, providers, settings, { prefer: preference(), hubs: async () => hubs, maxHops: maxHops(), addressOn })
+    return routes[0]
+  }
+
+  out(`Looking up routes for ${holdings.filter((h) => h.balance > 0n).length} token(s) on ${fromChain.name}...`)
+  const plan = await planSweep({ holdings, target, findRoute })
+  if (opts.json) return printJson({ items: plan.items.map((i) => ({ from: i.from.symbol, to: i.to.symbol, amount: i.amount.toString(), via: routeVia(i.route), netUsd: routeNetUsd(i.route) })), skipped: plan.skipped.map((s) => ({ token: s.token.symbol, reason: s.reason })) })
+  if (plan.items.length > 0) {
+    table([
+      ['TOKEN', 'AMOUNT', '-> RECEIVE', 'VIA', 'GAS + FEES', 'NET VALUE', 'TIME'],
+      ...plan.items.map((i) => [i.from.symbol, fmt(i.amount, i.from), `${fmt(i.route.legs.at(-1)!.toAmount, i.to)}`, routeVia(i.route) + (geoKeys(i.route.legs).length ? ' [geo]' : ''), usd(i.route.legs.reduce((s, q) => s + q.costUsd, 0)), usd(routeNetUsd(i.route)), duration(routeEta(i.route))]),
+    ])
+  }
+  if (plan.skipped.length > 0) {
+    out()
+    out('Skipped:')
+    for (const s of plan.skipped) out(`  ${s.token.symbol}: ${s.reason}`)
+  }
+  if (plan.items.length === 0) return out('Nothing to send.')
+  out()
+  out(`Recipient: ${toAddress} on ${toChain.name}`)
+  if (opts['dry-run']) return out('Dry run: nothing was signed or sent.')
+  if (!opts.yes && !(await confirm(`Send ${plan.items.length} transfer(s) one after the other?`))) return out('Cancelled.')
+  const accepted = await geoAcceptance({ legs: plan.items.flatMap((i) => i.route.legs) })
+  if (!accepted) return out('Cancelled: the location confirmation was not given. Nothing was sent.')
+
+  // Each token is its own run, so a failure in one leaves the others untouched.
+  for (const [n, item] of plan.items.entries()) {
+    out()
+    out(`[${n + 1}/${plan.items.length}] ${item.from.symbol}`)
+    try {
+      await execute(pipelineFromRoute(item.route, account.name, accepted))
+    } catch (err) {
+      out(`${item.from.symbol} stopped: ${(err as Error).message}`)
+      process.exitCode = 1
+    }
+  }
+}
+
 // ---- pipelines ----------------------------------------------------------
 
 const MARK = { waiting: '·', running: '▶', done: '✔', failed: '✘' }
@@ -675,6 +746,8 @@ async function main(): Promise<void> {
       return quoteCommand(rest)
     case 'send':
       return sendCommand(rest)
+    case 'sweep':
+      return sweepCommand(rest)
     case 'pipeline':
       return pipelineCommand(rest[0], rest[1])
     case 'geo':

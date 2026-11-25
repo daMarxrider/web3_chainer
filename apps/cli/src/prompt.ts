@@ -42,8 +42,10 @@ export async function askHidden(question: string): Promise<string> {
   }
 }
 
+let remembered: string | undefined
+/** The wallet password, asked once per run of the program (a sweep unlocks the wallet for every transfer). Kept in memory only. */
 export async function askPassword(question = 'Wallet password: '): Promise<string> {
-  return process.env.CHAINER_PASSWORD ?? askHidden(question)
+  return process.env.CHAINER_PASSWORD ?? (remembered ??= await askHidden(question))
 }
 
 export async function confirm(question: string): Promise<boolean> {
