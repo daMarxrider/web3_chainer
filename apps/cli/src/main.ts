@@ -29,6 +29,7 @@ import {
   resolveRecipient,
   isNative,
   lifiProvider,
+  planGasTopUp,
   planSweep,
   sdkStatus,
   cctpProvider,
@@ -95,7 +96,7 @@ Usage:
   chainer book list | add <label> <chain> <address> | remove <label> [<chain>]
                                               Named recipient addresses; use the label after --to
   chainer config show
-  chainer config set <prefer|slippage|maxUsdPerTransfer|maxHops|blockcypher> <value>   (blockcypher on|off: Dogecoin and Dash data, off by default)
+  chainer config set <prefer|slippage|maxUsdPerTransfer|maxHops|gasTopUpUsd|blockcypher> <value>   (blockcypher on|off: Dogecoin and Dash data, off by default)
   chainer config rpc <chain> <url|default>    Use your own RPC node for a chain
   chainer config avoid <add|remove> <token>   Tokens never to route through or into
 
@@ -455,6 +456,39 @@ async function quoteCommand(args: string[]): Promise<void> {
   printRoutes(plan, routes)
 }
 
+/** The extra transfer that gives a gas-less recipient some of the destination coin, if the setting asks for one. */
+async function gasTopUpRoute(plan: Plan, sourceBalance: bigint): Promise<Route | undefined> {
+  if (!(settings.gasTopUpUsd > 0)) return undefined
+  const { request, toChain } = plan
+  const destNative = await lifiToken(fetchFn, toChain, toChain.nativeSymbol)
+  const [have] = await adapterFor(toChain).getBalances(request.toAddress, [destNative])
+  const { topUp, why } = planGasTopUp(settings, { source: request.from, destination: request.to, destNative, destNativeBalance: have!, mainAmount: request.amount, sourceBalance })
+  if (!topUp) {
+    if (why) out(`No gas top-up: ${why}.`)
+    return undefined
+  }
+  try {
+    return (await search({ ...plan, request: { ...request, to: destNative, amount: topUp.amount } }))[0]
+  } catch (err) {
+    out(`No gas top-up: no route for it (${(err as Error).message}).`)
+    return undefined
+  }
+}
+
+/** Runs the gas top-up after the main transfer; a problem here never undoes or hides the main transfer. */
+async function runGasTopUp(route: Route | undefined, wallet: string): Promise<void> {
+  if (!route) return
+  out()
+  out(`Gas top-up: ${fmt(route.legs[0]!.request.amount, route.legs[0]!.request.from)} -> ${route.legs.at(-1)!.request.to.symbol} on ${route.legs.at(-1)!.request.to.chainKey}`)
+  const accepted = await geoAcceptance(route)
+  if (!accepted) return out('Skipped: the location confirmation was not given.')
+  try {
+    await execute(pipelineFromRoute(route, wallet, accepted))
+  } catch (err) {
+    out(`The gas top-up stopped: ${(err as Error).message}`)
+  }
+}
+
 async function sendCommand(args: string[]): Promise<void> {
   const plan = await buildPlan(args)
   const { request } = plan
@@ -472,11 +506,14 @@ async function sendCommand(args: string[]): Promise<void> {
     out(`Route:     ${routeVia(routes[0]!)}`)
     out(`Recipient: ${request.toAddress}`)
   }
+  const topUp = await gasTopUpRoute(plan, balance!)
+  if (topUp) out(`Extra:     ${fmt(topUp.legs[0]!.request.amount, request.from)} for gas as ${topUp.legs.at(-1)!.request.to.symbol} on ${plan.toChain.name} (the recipient has none), via ${routeVia(topUp)}`)
   if (opts['dry-run']) return out('Dry run: nothing was signed or sent.')
-  if (!opts.yes && !(await confirm(`Send ${fmt(request.amount, request.from)} over this route?`))) return out('Cancelled.')
+  if (!opts.yes && !(await confirm(`Send ${fmt(request.amount, request.from)}${topUp ? ' and the gas top-up' : ''} over this route?`))) return out('Cancelled.')
   const accepted = await geoAcceptance(routes[0]!)
   if (!accepted) return out('Cancelled: the location confirmation was not given. Nothing was sent.')
   await execute(pipelineFromRoute(routes[0]!, plan.wallet, accepted))
+  await runGasTopUp(topUp, plan.wallet)
 }
 
 // ---- sweep ----------------------------------------------------------------
@@ -643,13 +680,16 @@ async function routeCommand(args: string[]): Promise<void> {
     out()
     out(`Route:     ${routeVia(choice.route)}`)
     out(`Recipient: ${toAddress}`)
+    const topUp = await gasTopUpRoute(plan, balance!)
+    if (topUp) out(`Extra:     ${fmt(topUp.legs[0]!.request.amount, from)} for gas on ${toChain.name} via ${routeVia(topUp)}`)
     if (opts['dry-run']) return out('Dry run: nothing was signed or sent.')
-    if (!opts.yes && !(await confirm(`Run "${saved.name}" now?`))) return out('Cancelled.')
+    if (!opts.yes && !(await confirm(`Run "${saved.name}" now${topUp ? ', with the gas top-up' : ''}?`))) return out('Cancelled.')
     const accepted = await geoAcceptance(choice.route)
     if (!accepted) return out('Cancelled: the location confirmation was not given. Nothing was sent.')
     const record = pipelineFromRoute(choice.route, account.name, accepted)
     if (saved.amount === 'all') record.legs[0]!.amount = 'all'
-    return execute(record)
+    await execute(record)
+    return runGasTopUp(topUp, account.name)
   }
   throw new Error('Use: chainer route save | save-sweep | list | show | remove | run')
 }
@@ -859,6 +899,10 @@ async function configCommand(args: string[]): Promise<void> {
       const n = Number(b)
       if (!Number.isInteger(n) || n < 1 || n > 5) throw new Error('maxHops must be a whole number from 1 to 5')
       next.maxHops = n
+    } else if (a === 'gasTopUpUsd') {
+      const n = b === 'off' ? 0 : Number(b)
+      if (!(n === 0 || (n >= 0.5 && n <= 10))) throw new Error('gasTopUpUsd is a value in USD from 0.5 to 10, or "off"')
+      next.gasTopUpUsd = n
     } else if (a === 'blockcypher') {
       if (b !== 'on' && b !== 'off') throw new Error('blockcypher must be "on" or "off"')
       next.blockcypher = b === 'on'

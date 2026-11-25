@@ -18,6 +18,8 @@ export interface Settings {
   disabledProviders: string[]
   /** Use BlockCypher (Dogecoin, Dash) whose docs ask for an API token on broadcasts. Off until the user turns it on. */
   blockcypher: boolean
+  /** Extra USD value routed into the destination's own coin when the recipient has none there; 0 turns it off. */
+  gasTopUpUsd: number
   /** Named recipient addresses; each is tied to the chain it was checked against. */
   addressBook: AddressBookEntry[]
 }
@@ -38,6 +40,7 @@ export const defaultSettings: Settings = {
   lifi: { allowBridges: [], denyBridges: [...DEFAULT_DENIED_BRIDGES] },
   disabledProviders: [],
   blockcypher: false,
+  gasTopUpUsd: 0,
   addressBook: [],
 }
 

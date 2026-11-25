@@ -122,6 +122,10 @@ chainer route remove weekly
 
 A saved route keeps what you meant (wallet, tokens, chains, recipient, amount rule) and, for a transfer, the path that was best when you saved it, for example `lifi/stargateV2`. It does not keep prices: they are quoted again when it runs, and `all` means whatever the wallet holds then. If the saved path is no longer offered the run stops and says so, unless you saved it with `--fallback`, which uses the best route at that moment. `--min` sets the least you accept at worst case; a result below it always stops the run. Save routes without `--testnet`.
 
+### Gas top-up
+
+A recipient with no gas coin on the destination chain cannot move what arrives. Turn on an automatic extra transfer with `chainer config set gasTopUpUsd 2` (0.5 to 10 US dollars, `off` to disable; it is off by default). When a `send` or a saved-route run delivers a token to an address that holds none of the destination chain's own coin, the same source token is also sent into that coin, after the main transfer. The extra transfer is shown and confirmed together with the main one, is skipped when the recipient already has gas, when the transfer is too small to carry it, or when the wallet cannot pay it on top, and a failure of the extra never affects the main transfer.
+
 ### Address book
 
 ```sh
