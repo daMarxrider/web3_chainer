@@ -35,7 +35,8 @@ Decisions made with the user:
   - Maya stays on by default; THORChain and Maya quotes are priced for thin pools (a tenth of the pool's price impact is added to the worst case and counted against the route; above 15 % impact a quote is not offered).
   - Solana and Bitcoin signing is verified by unit tests with fake nodes and by live read-only calls (balances, fee estimates, quotes); no live transfer, because LI.FI has no test network for either and the Solana devnet faucet needs a web login.
 - **Default RPC endpoints reviewed** (16 Nov 2026): PublicNode, Pocket and dRPC replace LI.FI's chain list for 55 of 64 EVM chains and Solana; LI.FI stays direct API, no SDK. See "RPC endpoints" under Third-party terms. Open: LI.FI email (optional now), seven small chains on their own endpoints.
-- Milestones 4-9: not started.
+- **Milestone 4: started** (25 Nov 2026). Done: direct Circle CCTP v2 (`packages/core/src/providers/cctp.ts`) for USDC between 15 mainnet and 10 test EVM chains: one burn transaction through `depositForBurnWithHook` with Circle's Forwarding Service hook, so Circle mints on the destination and the wallet needs no gas there; fast and standard quotes from the keyless Iris fee API (live fee shape checked on mainnet and sandbox, no transfer sent); status through Iris `forwardTxHash`. Terms: covered by the existing Circle CCTP row (permissionless contracts, public Iris API). Not estimated: source-chain gas (quote cost counts only the fees taken from the amount). Not done: Solana as destination or source, a live testnet transfer, Across, Garden, Atomiq (each needs its own terms review first; Across direct falls under its section 1.4).
+- Milestones 5-9: not started.
 
 Verified so far:
 

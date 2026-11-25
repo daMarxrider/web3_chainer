@@ -19,6 +19,7 @@ import {
   geoStatement,
   lifiChains,
   lifiProvider,
+  cctpProvider,
   lifiToken,
   lifiTokens,
   mayaProvider,
@@ -231,7 +232,7 @@ async function runDeps() {
     if (!chain) throw new Error(`Chain "${key}" is no longer listed`)
     return chain
   }
-  const providers = [lifiProvider(fetchFn, chains, settings), thorchainProvider(fetchFn, chains), mayaProvider(fetchFn, chains)].filter((p) => !settings.disabledProviders.includes(p.name))
+  const providers = [lifiProvider(fetchFn, chains, settings), cctpProvider(fetchFn, chains), thorchainProvider(fetchFn, chains), mayaProvider(fetchFn, chains)].filter((p) => !settings.disabledProviders.includes(p.name))
   return { providers, adapterFor: (key: string) => adapterFor(byKey(key)), chainName: (key: string) => byKey(key).name }
 }
 
