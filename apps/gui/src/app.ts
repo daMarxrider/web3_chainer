@@ -85,7 +85,7 @@ export function mainWindow(root: HTMLElement, onLock: () => void): void {
   const win = h(
     'div',
     { class: 'desktop' },
-    h('div', { class: 'window main', role: 'application', 'aria-label': 'chainer' }, titlebar('chainer', h('span', { class: 'title-meta' }, prefs().testMode ? 'test networks' : 'real networks')), h('div', { class: 'window-body' }, list, sheet), status),
+    h('div', { class: 'window main', role: 'application', 'aria-label': 'chainer' }, titlebar('chainer', h('span', { class: 'title-meta' }, prefs().testMode ? 'Test networks' : 'Real networks')), h('div', { class: 'window-body' }, list, sheet), status),
   )
   replace(root, win)
   void open(showing)

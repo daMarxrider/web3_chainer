@@ -21,6 +21,8 @@ const routeVia = (route: Route) => route.legs.map((q) => `${q.provider}/${q.tool
 export async function transferScreen(sheet: HTMLElement): Promise<void> {
   const chains = await engine.pickerChains()
   const byKey = (key: string) => chains.find((c) => c.key === key)!
+  /** For display: names each stop-over chain, so two routes through different chains do not read the same. */
+  const routeLabel = (route: Route) => route.legs.map((q, i) => `${i ? ` > ${chains.find((c) => c.key === q.request.from.chainKey)?.name ?? q.request.from.chainKey} > ` : ''}${q.provider}/${q.tool}`).join('')
   form.fromChain ??= chains.find((c) => c.key === (engine.testMode ? 'arct' : 'arb'))?.key ?? chains[0]!.key
   form.toChain ??= chains.find((c) => c.key === (engine.testMode ? 'bast' : 'bas'))?.key ?? chains[1]!.key
   if (!chains.some((c) => c.key === form.fromChain)) form.fromChain = chains[0]!.key
@@ -135,7 +137,7 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
         detail,
         h('h3', {}, 'This route'),
         h('ol', { class: 'legs' }, r.legs.map((q) => h('li', {}, `${amount(q.request.amount, q.request.from)} ${q.request.from.symbol} on ${byName(q.request.from.chainKey)} `, icon('arrow'), ` ${amount(q.toAmount, q.request.to)} ${q.request.to.symbol} on ${byName(q.request.to.chainKey)}`, h('span', { class: 'via' }, ` via ${q.provider}/${q.tool}`)))),
-        notices.length ? h('p', { class: 'notice' }, icon('warn'), ` Uses ${notices.map((n) => n.name).join(', ')}, which restrict where they can be used. You confirm your location before sending.`) : null,
+        notices.length ? h('p', { class: 'notice' }, icon('warn'), ` Uses ${notices.map((n) => n.name).join(', ')}, ${notices.length > 1 ? 'which restrict where they' : 'which restricts where it'} can be used. You confirm your location before sending.`) : null,
         r.legs.length > 1 ? h('p', { class: 'hint' }, `No direct connection: this goes through ${r.legs.length - 1} stop-over${r.legs.length > 2 ? 's' : ''}; each leg starts by itself when the one before has arrived.`) : null,
       )
     }
@@ -147,8 +149,8 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
         h(
           'tr',
           { dataset: { selected: String(i === 0) } },
-          h('td', { class: 'pick' }, h('input', { type: 'radio', name: 'route', value: String(i), checked: i === 0, 'aria-label': `Route ${i + 1}: ${routeVia(r)}`, onChange: () => { chosen = i; for (const [n, row] of body.querySelectorAll('tr').entries()) row.dataset.selected = String(n === i); draw() } })),
-          h('th', { scope: 'row', class: 'via-cell' }, routeVia(r), geoKeys(r.legs).length ? h('span', { class: 'tag' }, 'region') : null),
+          h('td', { class: 'pick' }, h('input', { type: 'radio', name: 'route', value: String(i), checked: i === 0, 'aria-label': `Route ${i + 1}: ${routeLabel(r)}`, onChange: () => { chosen = i; for (const [n, row] of body.querySelectorAll('tr').entries()) row.dataset.selected = String(n === i); draw() } })),
+          h('th', { scope: 'row', class: 'via-cell' }, routeLabel(r), geoKeys(r.legs).length ? h('span', { class: 'tag' }, 'region') : null),
           h('td', { class: 'num strong' }, `${amount(last(r).toAmount, req.to)} ${req.to.symbol}`),
           h('td', { class: 'num' }, amount(last(r).toAmountMin, req.to)),
           h('td', { class: 'num' }, usd(r.legs.reduce((s, q) => s + q.costUsd, 0))),

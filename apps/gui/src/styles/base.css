@@ -272,6 +272,10 @@ input[type='radio'] {
   padding: 10px 14px 14px;
   min-width: 0;
 }
+/* fieldsets lay rows out as blocks, so the form's own gap does not reach them */
+.group .row ~ .row {
+  margin-top: 6px;
+}
 .group legend {
   padding: 0 6px;
   font-weight: 700;

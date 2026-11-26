@@ -181,6 +181,11 @@
 [data-theme='retro'] input[type='radio'] {
   border-radius: 50%;
 }
+/* on a white table row the light bevel edge vanishes: ring the field in shade there */
+[data-theme='retro'] .data input[type='radio'] {
+  border-color: var(--shade);
+  vertical-align: middle;
+}
 [data-theme='retro'] input[type='checkbox']:checked::after {
   content: '';
   width: 8px;
