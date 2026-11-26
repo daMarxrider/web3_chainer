@@ -7,6 +7,10 @@
 #
 #   ./scripts/test-install-linux.sh                 # all four
 #   ./scripts/test-install-linux.sh debian fedora   # only these
+#   ./scripts/test-install-linux.sh --desktop       # also install.sh --desktop and a release build of the desktop app
+#   ./scripts/test-install-linux.sh --packages      # install the built .deb (Debian, Ubuntu) or .rpm (Fedora) and
+#                                                   # check that every library the app links against is found
+#                                                   # (build them first: npm run desktop:build -w @chainer/gui)
 #
 # Requirements on the host: unshare, newuidmap (and an /etc/subuid entry), curl, python3, tar.
 set -euo pipefail
@@ -15,7 +19,37 @@ repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cache="${CHAINER_TEST_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/chainer-install-test}"
 work="$(mktemp -d "${TMPDIR:-/tmp}/chainer-install-test.XXXXXX")"
 declare -A IMAGES=([arch]=archlinux:latest [debian]=debian:stable [ubuntu]=ubuntu:latest [fedora]=fedora:latest)
-[ "$#" -gt 0 ] || set -- arch debian ubuntu fedora
+mode=install
+distros=()
+for arg in "$@"; do
+  case "$arg" in
+    --desktop) mode=desktop ;;
+    --packages) mode=packages ;;
+    *) distros+=("$arg") ;;
+  esac
+done
+[ "${#distros[@]}" -gt 0 ] || distros=(arch debian ubuntu fedora)
+set -- "${distros[@]}"
+bundle="$repo/apps/gui/src-tauri/target/release/bundle"
+
+# What runs inside each system, and the line that marks success.
+command_for() {
+  case "$mode" in
+    install) echo '/chainer/scripts/install-linux.sh && /root/.local/bin/chainer --help | head -n 1 && /chainer/scripts/install-linux.sh >/dev/null && echo TEST-OK' ;;
+    desktop) echo '/chainer/scripts/install-linux.sh --desktop && cd /chainer && npm run desktop:build -w @chainer/gui -- --no-bundle && test -x apps/gui/src-tauri/target/release/chainer && echo TEST-OK' ;;
+    packages)
+      local check='missing="$(ldd /usr/bin/chainer | grep "not found" || true)"; [ -z "$missing" ] || { echo "$missing"; exit 1; }; echo "all libraries found"; echo TEST-OK'
+      case "$1" in
+        debian | ubuntu) echo "apt-get update -q && DEBIAN_FRONTEND=noninteractive apt-get install -y -q /pkgs/*.deb && $check" ;;
+        fedora) echo "dnf install -y -q /pkgs/*.rpm && $check" ;;
+        *) echo 'echo "No .deb or .rpm for this system; skipped"; echo TEST-OK' ;;
+      esac ;;
+  esac
+}
+if [ "$mode" = packages ] && ! ls "$bundle"/deb/*.deb "$bundle"/rpm/*.rpm >/dev/null 2>&1; then
+  echo "No packages under $bundle; build them first: npm run desktop:build -w @chainer/gui" >&2
+  exit 2
+fi
 
 in_userns() { unshare --map-auto --map-root-user --mount --pid --fork "$@"; }
 # Files inside a root folder belong to mapped IDs, so removing them also needs the namespace.
@@ -61,7 +95,7 @@ run_distro() {
   mapfile -t layers < <(fetch_image "${IMAGES[$distro]}")
   # shellcheck disable=SC2016  # expanded inside the namespace
   in_userns bash -euo pipefail -c '
-    root="$1"; repo="$2"; shift 2
+    root="$1"; repo="$2"; cmd="$3"; bundle="$4"; shift 4
     mkdir -p "$root"
     for layer in "$@"; do tar -xf "$layer" -C "$root"; done
     mount --bind "$root" "$root"   # package managers want the root to be a mount point
@@ -71,18 +105,20 @@ run_distro() {
     cp --remove-destination /etc/resolv.conf "$root/etc/resolv.conf"
     # A clean copy of the working tree: no node_modules, nothing from the host.
     mkdir -p "$root/chainer"
-    tar -C "$repo" --exclude=./node_modules --exclude=./.git -cf - . | tar -C "$root/chainer" -xf -
+    tar -C "$repo" --exclude=./node_modules --exclude=./.git --exclude=./apps/gui/node_modules --exclude=./apps/gui/src-tauri/target -cf - . | tar -C "$root/chainer" -xf -
+    mkdir -p "$root/pkgs"
+    cp "$bundle"/deb/*.deb "$bundle"/rpm/*.rpm "$root/pkgs/" 2>/dev/null || true
     chroot "$root" /usr/bin/env -i HOME=/root TERM=dumb \
       PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
-      bash -c "/chainer/scripts/install-linux.sh && /root/.local/bin/chainer --help | head -n 1 && /chainer/scripts/install-linux.sh >/dev/null && echo SECOND-RUN-OK"
-  ' _ "$root" "$repo" "${layers[@]}"
+      bash -c "$cmd"
+  ' _ "$root" "$repo" "$(command_for "$distro")" "$bundle" "${layers[@]}"
 }
 
 failed=()
 for distro in "$@"; do
   [ -n "${IMAGES[$distro]:-}" ] || { echo "Unknown system \"$distro\" (choose from: ${!IMAGES[*]})" >&2; exit 2; }
-  printf '\n######## %s (%s) ########\n' "$distro" "${IMAGES[$distro]}"
-  if run_distro "$distro" 2>&1 | tee "$work/$distro.log" | tail -n "${CHAINER_TEST_LINES:-25}" && grep -q SECOND-RUN-OK "$work/$distro.log"; then
+  printf '\n######## %s (%s), %s ########\n' "$distro" "${IMAGES[$distro]}" "$mode"
+  if run_distro "$distro" 2>&1 | tee "$work/$distro.log" | tail -n "${CHAINER_TEST_LINES:-25}" && grep -q TEST-OK "$work/$distro.log"; then
     echo "PASS: $distro"
   else
     echo "FAIL: $distro"
