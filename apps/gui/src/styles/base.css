@@ -550,6 +550,11 @@ input.narrow {
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+/* narrow token fields (pipeline legs): the list may be wider than the field */
+.leg-grid .combo-list {
+  right: auto;
+  width: max(100%, 300px);
+}
 .combo-empty {
   padding: 8px 10px;
   color: var(--text-dim);

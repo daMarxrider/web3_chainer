@@ -25,7 +25,7 @@ export function trustNote(rated: RatedToken, chain: Chain): string | undefined {
  * (and what the wallet holds, for the sending side), matches by symbol, name or address while typing.
  * Tokens on the curated list come first; look-alikes are tagged; flagged ones are never offered.
  */
-export function tokenPicker(opts: { id: string; name: string; value?: string; placeholder: string; required?: boolean }) {
+export function tokenPicker(opts: { id: string; name?: string; value?: string; placeholder: string; required?: boolean; label?: string }) {
   const listId = `${opts.id}-list`
   const input = h('input', {
     id: opts.id,
@@ -35,6 +35,7 @@ export function tokenPicker(opts: { id: string; name: string; value?: string; pl
     autocomplete: 'off',
     spellcheck: 'false',
     required: opts.required,
+    'aria-label': opts.label,
     role: 'combobox',
     'aria-autocomplete': 'list',
     'aria-expanded': 'false',

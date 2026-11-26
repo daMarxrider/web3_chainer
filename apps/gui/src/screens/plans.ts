@@ -3,6 +3,7 @@ import { amount, duration, h, replace, usd } from '../dom.ts'
 import { engine } from '../engine.ts'
 import { askLocation, confirmRun } from './confirm.ts'
 import { showJob } from './job.ts'
+import { tokenPicker, trustNote } from '../tokenpicker.ts'
 
 interface LegForm {
   fromChain: string
@@ -34,13 +35,26 @@ export async function plansScreen(sheet: HTMLElement): Promise<void> {
     el.addEventListener('change', () => on(el.value))
     return el
   }
+  type Picker = ReturnType<typeof tokenPicker>
+  // One picker per token field, rebuilt with the legs; each follows the chain chosen next to it.
+  let pickers: { from: Picker; to: Picker }[] = []
+  const picker = (id: string, chain: () => string, value: string, on: (v: string) => void, label: string, placeholder: string) => {
+    const p = tokenPicker({ id, value, placeholder, label })
+    void p.setChain(byKey(chain()))
+    p.input.addEventListener('input', () => on(p.input.value))
+    return p
+  }
   const text = (value: string, on: (v: string) => void, label: string, placeholder = '', cls = '') => {
     const el = h('input', { value, placeholder, 'aria-label': label, autocomplete: 'off', class: cls })
     el.addEventListener('input', () => on(el.value))
     return el
   }
 
-  const drawLegs = () =>
+  const drawLegs = () => {
+    pickers = draft.map((l, i) => ({
+      from: picker(`pl-${i}-from`, () => l.fromChain, l.fromSymbol, (v) => (l.fromSymbol = v), `Leg ${i + 1} token to send`, 'USDC'),
+      to: picker(`pl-${i}-to`, () => l.toChain, l.toSymbol, (v) => (l.toSymbol = v), `Leg ${i + 1} token to receive`, 'USDC'),
+    }))
     replace(
       legsBox,
       ...draft.map((l, i) =>
@@ -48,20 +62,27 @@ export async function plansScreen(sheet: HTMLElement): Promise<void> {
           'fieldset',
           { class: 'group' },
           h('legend', {}, `Leg ${i + 1}`),
-          h('div', { class: 'leg-grid' }, select(l.fromChain, (v) => (l.fromChain = v), `Leg ${i + 1} from chain`), text(l.fromSymbol, (v) => (l.fromSymbol = v), `Leg ${i + 1} token to send`, 'USDC'), h('span', { class: 'leg-arrow' }, 'to'), select(l.toChain, (v) => (l.toChain = v), `Leg ${i + 1} to chain`), text(l.toSymbol, (v) => (l.toSymbol = v), `Leg ${i + 1} token to receive`, 'USDC'), text(l.amount, (v) => (l.amount = v), `Leg ${i + 1} amount`, i === 0 ? '10' : 'all', 'num')),
+          h('div', { class: 'leg-grid' }, select(l.fromChain, (v) => ((l.fromChain = v), void pickers[i]!.from.setChain(byKey(v))), `Leg ${i + 1} from chain`), pickers[i]!.from.el, h('span', { class: 'leg-arrow' }, 'to'), select(l.toChain, (v) => ((l.toChain = v), void pickers[i]!.to.setChain(byKey(v))), `Leg ${i + 1} to chain`), pickers[i]!.to.el, text(l.amount, (v) => (l.amount = v), `Leg ${i + 1} amount`, i === 0 ? '10' : 'all', 'num')),
           draft.length > 1 ? h('div', { class: 'actions' }, h('button', { class: 'btn small', type: 'button', onClick: () => { draft.splice(i, 1); drawLegs() } }, 'Remove leg')) : null,
         ),
       ),
     )
+  }
   drawLegs()
 
-  const build = async (): Promise<{ legs: Omit<PipelineLeg, 'state'>[]; tokens: { from: Token; to: Token; fromChain: Chain; toChain: Chain }[] }> => {
+  const build = async (): Promise<{ legs: Omit<PipelineLeg, 'state'>[]; tokens: { from: Token; to: Token; fromChain: Chain; toChain: Chain }[]; tokenNotes: string[] }> => {
     const legs: Omit<PipelineLeg, 'state'>[] = []
     const tokens: { from: Token; to: Token; fromChain: Chain; toChain: Chain }[] = []
+    const tokenNotes: string[] = []
     for (const [i, l] of draft.entries()) {
       if (!l.fromSymbol.trim() || !l.toSymbol.trim()) throw new Error(`Leg ${i + 1} needs a token to send and a token to receive`)
       const [fc, tc] = [byKey(l.fromChain), byKey(l.toChain)]
-      const [from, to] = await Promise.all([engine.token(fc, l.fromSymbol.trim()), engine.token(tc, l.toSymbol.trim())])
+      const [fromRated, toRated] = await Promise.all([
+        pickers[i]!.from.resolve(l.fromSymbol, `Leg ${i + 1}: there is no token "${l.fromSymbol.trim()}" on ${fc.name}.`),
+        pickers[i]!.to.resolve(l.toSymbol, `Leg ${i + 1}: there is no token "${l.toSymbol.trim()}" on ${tc.name}.`),
+      ])
+      const [from, to] = [fromRated.token, toRated.token]
+      for (const n of [trustNote(fromRated, fc), trustNote(toRated, tc)]) if (n && !tokenNotes.includes(n)) tokenNotes.push(n)
       const a = l.amount.trim().toLowerCase()
       if (i === 0 && a === 'all') throw new Error('Leg 1 needs an amount; later legs can send "all" of what arrived')
       if (i > 0 && a !== 'all' && a !== '') throw new Error(`Leg ${i + 1} must send "all": it continues with what the previous leg delivered`)
@@ -70,7 +91,7 @@ export async function plansScreen(sheet: HTMLElement): Promise<void> {
       legs.push({ from, to, amount: i === 0 ? engine.parseAmount(l.amount, from).toString() : 'all', fromAddress: engine.ownAddress(fc), toAddress: last ? engine.recipientOn(tc, recipient.value) : engine.ownAddress(tc) })
       tokens.push({ from, to, fromChain: fc, toChain: tc })
     }
-    return { legs, tokens }
+    return { legs, tokens, tokenNotes }
   }
 
   const dry = h('button', { class: 'btn', type: 'button' }, 'Dry run')
@@ -81,7 +102,7 @@ export async function plansScreen(sheet: HTMLElement): Promise<void> {
     dry.disabled = true
     replace(out, h('p', { class: 'empty busy' }, 'Quoting each leg with what the one before would deliver at worst.'))
     try {
-      const { legs, tokens } = await build()
+      const { legs, tokens, tokenNotes } = await build()
       let carried: bigint | undefined
       const rows: HTMLElement[] = []
       for (const [i, leg] of legs.entries()) {
@@ -97,7 +118,7 @@ export async function plansScreen(sheet: HTMLElement): Promise<void> {
         carried = q.toAmountMin
         rows.push(h('tr', {}, h('th', { scope: 'row' }, `Leg ${i + 1}`), h('td', { class: 'via-cell' }, best.legs.map((x) => `${x.provider}/${x.tool}`).join(' > ')), h('td', { class: 'num strong' }, `${amount(q.toAmount, tokens[i]!.to)} ${tokens[i]!.to.symbol}`), h('td', { class: 'num' }, amount(q.toAmountMin, tokens[i]!.to)), h('td', { class: 'num' }, `${usd(best.legs.reduce((s, x) => s + x.costUsd, 0))}, ${duration(best.legs.reduce((s, x) => s + x.etaSeconds, 0))}`)))
       }
-      replace(out, h('h2', {}, 'Dry run'), h('div', { class: 'table-wrap' }, h('table', { class: 'data' }, h('caption', { class: 'sr-only' }, 'Quote for each leg'), h('thead', {}, h('tr', {}, h('th', {}, 'Leg'), h('th', {}, 'Best route now'), h('th', { class: 'num' }, 'Receive'), h('th', { class: 'num' }, 'At worst'), h('th', { class: 'num' }, 'Cost, time'))), h('tbody', {}, rows))), h('p', { class: 'hint' }, 'Nothing was signed or sent. Each leg is quoted again when it starts and takes the best route then.'))
+      replace(out, h('h2', {}, 'Dry run'), h('div', { class: 'table-wrap' }, h('table', { class: 'data' }, h('caption', { class: 'sr-only' }, 'Quote for each leg'), h('thead', {}, h('tr', {}, h('th', {}, 'Leg'), h('th', {}, 'Best route now'), h('th', { class: 'num' }, 'Receive'), h('th', { class: 'num' }, 'At worst'), h('th', { class: 'num' }, 'Cost, time'))), h('tbody', {}, rows))), ...tokenNotes.map((n) => h('p', { class: 'notice' }, n)), h('p', { class: 'hint' }, 'Nothing was signed or sent. Each leg is quoted again when it starts and takes the best route then.'))
     } catch (e) {
       replace(out)
       err.textContent = (e as Error).message
@@ -110,14 +131,14 @@ export async function plansScreen(sheet: HTMLElement): Promise<void> {
     err.textContent = ''
     run.disabled = true
     try {
-      const { legs, tokens } = await build()
+      const { legs, tokens, tokenNotes } = await build()
       const gas = await engine.planGasForLegs(legs)
       const ok = await confirmRun(sheet, {
         title: 'Run plan',
         rows: legs.map((l, i): [string, string] => [`Leg ${i + 1}`, `${i === 0 ? amount(l.amount, tokens[i]!.from) : 'all'} ${tokens[i]!.from.symbol} on ${tokens[i]!.fromChain.name} to ${tokens[i]!.to.symbol} on ${tokens[i]!.toChain.name}`]).concat([['Recipient', legs.at(-1)!.toAddress]]),
         routes: [],
         confirmLabel: 'Continue',
-        notes: ['The best route for each leg is picked when that leg starts, so the exact bridges are not known yet.', ...gas.stops.map((t) => `Gas ahead: about ${usd(t.usd)} into ${byKey(t.stop.chainKey)?.name ?? t.stop.chainKey}'s coin before the first leg.`), ...(gas.topUp ? [`Gas top-up for the recipient after the last leg.`] : [])],
+        notes: [...tokenNotes, 'The best route for each leg is picked when that leg starts, so the exact bridges are not known yet.', ...gas.stops.map((t) => `Gas ahead: about ${usd(t.usd)} into ${byKey(t.stop.chainKey)?.name ?? t.stop.chainKey}'s coin before the first leg.`), ...(gas.topUp ? [`Gas top-up for the recipient after the last leg.`] : [])],
       })
       if (!ok) return
       const geo = await askLocation(sheet, 'This plan picks its bridges while it runs and may use any of these:')
