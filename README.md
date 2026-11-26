@@ -283,7 +283,8 @@ Settings, the encrypted wallet file and the transfer journal are in `~/.config/c
 
 ```sh
 npm ci
-npm test            # unit tests
+npm test            # unit tests, and the CLI run end to end against a fake network (nothing leaves the machine)
+npm run test:gui    # the GUI in headless Chromium against the same fake network (needs chromium)
 npm run typecheck
 npm run chainer -- quote 100 USDC arbitrum base
 ./scripts/test-install-linux.sh   # install script on clean Arch, Debian, Ubuntu, Fedora

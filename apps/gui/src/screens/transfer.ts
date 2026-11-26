@@ -80,7 +80,7 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
     const from = fromRated.token
     const toRated = await toPicker.resolve(toTyped || from.symbol, toTyped ? `There is no token "${toTyped}" on ${tc.name}.` : `${from.symbol} does not exist on ${tc.name}. Choose the token to receive under To, Token.`)
     const to = toRated.token
-    const tokenNotes = [trustNote(fromRated, fc), trustNote(toRated, tc)].filter((n): n is string => !!n)
+    const tokenNotes = [trustNote(fromRated, fc, fromPicker.covers()), trustNote(toRated, tc, toPicker.covers())].filter((n): n is string => !!n)
     const amountText = amountInput.value.trim()
     const wholeBalance = /^all$/i.test(amountText)
     let value: bigint

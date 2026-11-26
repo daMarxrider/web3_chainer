@@ -16,7 +16,7 @@ export function fakeNetwork(world: World, log: (line: LogLine) => void): (url: s
     return { chain: key, symbol: c.coin, address: ZERO, decimals: 18, price: c.price }
   }
   const tokensOf = (key: string): WorldToken[] => [native(key), ...world.tokens.filter((t) => t.chain === key)]
-  const findToken = (key: string, query: string) => tokensOf(key).find((t) => t.symbol.toLowerCase() === query.toLowerCase() || t.address.toLowerCase() === query.toLowerCase())
+  const findToken = (key: string, query: string) => [...tokensOf(key), ...(world.unlisted ?? []).filter((t) => t.chain === key)].find((t) => t.symbol.toLowerCase() === query.toLowerCase() || t.address.toLowerCase() === query.toLowerCase())
   const lifiToken = (t: WorldToken) => ({ address: t.address, chainId: chainByKey(t.chain)!.id, symbol: t.symbol, decimals: t.decimals, priceUSD: t.price === undefined ? undefined : String(t.price), name: t.name ?? t.symbol, verificationStatus: t.status ?? 'verified' })
   const parseSpec = (spec: string) => {
     const [symbol, key] = spec.split('@') as [string, string]

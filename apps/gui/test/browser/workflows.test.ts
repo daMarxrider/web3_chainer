@@ -1,18 +1,13 @@
 // Bridge wallet, Saved routes, Pipelines, Schedules and the in-app scheduler, in headless Chromium
 // against the fake network.
 import assert from 'node:assert/strict'
-import { after, before, describe, test } from 'node:test'
-import { Browser, browserMissing, ME, setUpApp, unlock, type Page } from './harness.ts'
+import { after, describe, test } from 'node:test'
+import { browserMissing, lazyBrowser, ME, setUpApp, unlock, type Page } from './harness.ts'
 import { standardWorld, TOKENS } from './worlds.ts'
 import type { World } from '../../../../testing/fakenet/world.ts'
 
-let b: Browser
-before(async () => {
-  if (!browserMissing) b = await Browser.start()
-})
-after(async () => {
-  await b?.close()
-})
+const b = lazyBrowser()
+after(() => b.close())
 
 async function screen(t: { after: (fn: () => Promise<void>) => void }, label: string, world: World = standardWorld(), storage: Record<string, string> = {}, prefs: Record<string, unknown> = {}): Promise<Page> {
   const page = await b.page(world)

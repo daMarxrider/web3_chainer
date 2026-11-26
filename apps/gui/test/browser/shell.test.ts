@@ -1,18 +1,13 @@
 // The GUI in headless Chromium against the fake network: first launch, unlocking, the main
 // window, Settings, Balances, History and the address book.
 import assert from 'node:assert/strict'
-import { after, before, describe, test } from 'node:test'
-import { Browser, browserMissing, ME, PASSWORD, SEED, setUpApp, unlock, type Page } from './harness.ts'
+import { after, describe, test } from 'node:test'
+import { browserMissing, lazyBrowser, ME, PASSWORD, SEED, setUpApp, unlock, type Page } from './harness.ts'
 import { standardWorld, TOKENS } from './worlds.ts'
 import type { World } from '../../../../testing/fakenet/world.ts'
 
-let b: Browser
-before(async () => {
-  if (!browserMissing) b = await Browser.start()
-})
-after(async () => {
-  await b?.close()
-})
+const b = lazyBrowser()
+after(() => b.close())
 
 /** A page for one test, closed when the test ends; it must make no request the fake network cannot answer. */
 async function pageFor(t: { after: (fn: () => Promise<void>) => void }, world: World = standardWorld()): Promise<Page> {
@@ -114,7 +109,8 @@ describe('the GUI shell', { concurrency: 6, skip: browserMissing }, () => {
     await page.fill('input[name=password]', PASSWORD)
     await page.fill('input[name=password2]', PASSWORD)
     await submitWallet(page)
-    await unlock(page)
+    // A wallet made in the app uses the full 600 000 PBKDF2 rounds, once to save and once to unlock.
+    await unlock(page, PASSWORD, 60_000)
     await page.waitFor(`document.querySelector(".address-card code")?.textContent === ${JSON.stringify(ME)}`, 30_000)
   })
 

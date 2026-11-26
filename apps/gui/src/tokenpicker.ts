@@ -13,9 +13,14 @@ const TRUST_TAG: Partial<Record<RatedToken['trust'], [string, string]>> = {
   flagged: ['flagged', 'Flagged by LI.FI’s token screening as a likely scam. It cannot be sent from here.'],
 }
 
-/** What to tell the user about a token that is not on the list; nothing for listed tokens. */
-export function trustNote(rated: RatedToken, chain: Chain): string | undefined {
+/**
+ * What to tell the user about a token that is not on the list; nothing for listed tokens. Where the
+ * list does not cover the chain (or could not be loaded), a token that passed LI.FI's screening is not
+ * warned about: the list cannot say anything there, and a warning on every token would be ignored.
+ */
+export function trustNote(rated: RatedToken, chain: Chain, listCovers: boolean): string | undefined {
   if (rated.trust === 'listed') return undefined
+  if (rated.trust === 'screened' && !listCovers) return undefined
   const where = `${rated.token.symbol} on ${chain.name} (${rated.token.address})`
   return rated.trust === 'screened' ? `${where} is not on the Uniswap token list. Make sure it is the token you mean.` : `${where} is neither on the token list nor checked by LI.FI. Make sure it is the token you mean.`
 }
@@ -163,6 +168,10 @@ export function tokenPicker(opts: { id: string; name?: string; value?: string; p
   return {
     el,
     input,
+    /** Whether the curated list says enough about the current chain to judge its tokens by it. */
+    covers(): boolean {
+      return !!(chain && index?.covers(chain))
+    },
     /** Loads the tokens of another chain; a token picked on the old chain is forgotten. */
     setChain(next: Chain) {
       if (chain?.key !== next.key) chosen = undefined

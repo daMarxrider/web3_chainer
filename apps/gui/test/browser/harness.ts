@@ -51,6 +51,15 @@ export class Browser {
     })
     b.ws = new WebSocket(wsUrl)
     await new Promise((r) => b.ws.addEventListener('open', r, { once: true }))
+    // If a file's "after" hook never runs (all its tests filtered out), nothing here may keep the
+    // test process alive, and Chromium must not outlive it.
+    b.chrome.unref()
+    ;(b.chrome.stderr as unknown as { unref(): void }).unref()
+    b.vite.httpServer?.unref()
+    process.once('exit', () => {
+      b.chrome.kill()
+      rmSync(b.profile, { recursive: true, force: true })
+    })
     b.ws.addEventListener('message', (e) => {
       const m = JSON.parse(String(e.data))
       if (m.id && b.pending.has(m.id)) {
@@ -88,6 +97,20 @@ export class Browser {
     this.chrome.kill()
     await this.vite.close()
     rmSync(this.profile, { recursive: true, force: true })
+  }
+}
+
+/**
+ * The browser for one test file, started when a test first asks for a page. A file whose tests are
+ * all filtered out (--test-name-pattern) then starts nothing, so it cannot keep the run alive.
+ */
+export function lazyBrowser() {
+  let started: Promise<Browser> | undefined
+  return {
+    page: async (world: World) => (await (started ??= Browser.start())).page(world),
+    close: async () => {
+      if (started) await (await started).close()
+    },
   }
 }
 
@@ -196,7 +219,8 @@ export class Page {
     await this.waitFor('document.readyState === "complete"')
     await this.evaluate(`localStorage.clear(); ${Object.entries(storage).map(([k, v]) => `localStorage.setItem(${JSON.stringify(k)}, ${JSON.stringify(v)});`).join(' ')}`)
     await this.send('Page.navigate', { url: `${this.b.origin}/` })
-    await this.waitFor('document.querySelector("#app") && document.querySelector("#app").childElementCount > 0')
+    // Either the app's first window, or the text it shows when it cannot start.
+    await this.waitFor('document.querySelector("#app") && (document.querySelector("#app").childElementCount > 0 || document.querySelector("#app").textContent.length > 0)')
   }
 
   text(selector: string): Promise<string> {
@@ -266,9 +290,9 @@ export async function setUpApp(prefs: Record<string, unknown> = {}, settings?: R
 }
 
 /** Types the password into the unlock window and waits for the main window. */
-export async function unlock(page: Page, password = PASSWORD): Promise<void> {
-  await page.waitFor('document.querySelector("input[type=password]")')
+export async function unlock(page: Page, password = PASSWORD, ms = 15_000): Promise<void> {
+  await page.waitFor('document.querySelector("input[type=password]")', ms)
   await page.fill('input[type=password]', password)
   await page.evaluate('document.querySelector("input[type=password]").form.requestSubmit()')
-  await page.waitFor('document.querySelector(".window.main")')
+  await page.waitFor('document.querySelector(".window.main")', ms)
 }

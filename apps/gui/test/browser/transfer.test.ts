@@ -1,18 +1,13 @@
 // The Transfer screen in headless Chromium against the fake network: form, token picker, routes,
 // the confirmation, the job view, saving a route and resuming unfinished runs.
 import assert from 'node:assert/strict'
-import { after, before, describe, test } from 'node:test'
-import { Browser, browserMissing, ME, setUpApp, unlock, type Page } from './harness.ts'
+import { after, describe, test } from 'node:test'
+import { browserMissing, lazyBrowser, ME, setUpApp, unlock, type Page } from './harness.ts'
 import { standardWorld, TOKENS } from './worlds.ts'
 import type { World } from '../../../../testing/fakenet/world.ts'
 
-let b: Browser
-before(async () => {
-  if (!browserMissing) b = await Browser.start()
-})
-after(async () => {
-  await b?.close()
-})
+const b = lazyBrowser()
+after(() => b.close())
 
 async function transferScreen(t: { after: (fn: () => Promise<void>) => void }, world: World = standardWorld(), opts: { prefs?: Record<string, unknown>; settings?: Record<string, unknown>; storage?: Record<string, string> } = {}): Promise<Page> {
   const page = await b.page(world)
@@ -379,6 +374,24 @@ describe('the Transfer screen', { concurrency: 6, skip: browserMissing }, () => 
     await findRoutes(page)
     await routesShown(page)
     assert.equal((await page.text('.route-detail')).includes(`USDC on Arbitrum (${lookAlike}) is neither on the token list nor checked by LI.FI. Make sure it is the token you mean.`), true)
+  })
+
+  test('without a curated list, a token that passed screening gets no warning in the route details', async (t) => {
+    const page = await transferScreen(t)
+    await fillForm(page, { token: 'USDC', amount: '100' })
+    await findRoutes(page)
+    await routesShown(page)
+    assert.equal((await page.text('.route-detail')).includes('token list'), false)
+  })
+
+  test('without a curated list, a token nobody checked is still warned about', async (t) => {
+    const odd = '0x5555555555555555555555555555555555555555'
+    const world = standardWorld({ tokens: [...Object.values(TOKENS), { chain: 'arb', symbol: 'ODD', address: odd, decimals: 6, price: 1, status: 'unverified' }], routes: [{ from: `${odd}@arb`, to: 'USDC@bas', tool: 'stargate', rate: 0.999 }] })
+    const page = await transferScreen(t, world)
+    await fillForm(page, { token: 'ODD', amount: '1', toToken: 'USDC' })
+    await findRoutes(page)
+    await routesShown(page)
+    assert.equal((await page.text('.route-detail')).includes(`ODD on Arbitrum (${odd}) is neither on the token list nor checked by LI.FI.`), true)
   })
 
   test('the token list that could not be loaded is mentioned in the picker', async (t) => {
