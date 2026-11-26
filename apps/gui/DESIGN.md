@@ -189,6 +189,8 @@ Retro is square (0px) with 1px bevels and round lamps and radio buttons. Smoked 
 ### Fields
 Recessed in Retro, hairline with a focus border in the others; focus ring is a dotted inner outline in Retro and a 1 to 2px accent outline elsewhere.
 
+**Token picker** (`tokenpicker.ts`, `.combo`): a text field with a listbox under it (ARIA combobox; arrow keys, Enter, Escape). Empty: "In your wallet" and "Popular on <chain>" groups; typing: matches, then a "Not on the token list" group. Rows are symbol, name (dim), trust tag, balance (tabular, right). The list sits on `--popup` (opaque in the glass skins, where `--field` is translucent), takes the skin's field radius, and is the one surface besides dialogs that floats over the sheet.
+
 ### Tables
 A framed, horizontally scrolling table; header row in the skin's raised or dim style, selected row in the selection colour with its secondary text inheriting it, numbers right-aligned. The routes table carries a radio per row and a `region` tag for restricted services.
 
