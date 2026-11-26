@@ -143,3 +143,9 @@ test('a forwarding failure is reported with how the USDC can still be recovered'
   const s = await statusWith({ messages: [{ status: 'complete', forwardState: 'failed' }] })
   assert.deepEqual(s, { state: 'failed', detail: 'The Forwarding Service reported a failure; the USDC is burned and can still be minted by hand with the attestation' })
 })
+
+test('the status of a burn on a test network is asked from Circle’s sandbox', async () => {
+  const api = iris([], { messages: [] })
+  await cctpProvider(api.fetchFn, chains).getStatus('0xabc', { srcDomain: 6, testnet: 1, expected: '1' })
+  assert.equal(api.urls[0], 'https://iris-api-sandbox.circle.com/v2/messages/6?transactionHash=0xabc')
+})

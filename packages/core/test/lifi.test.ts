@@ -355,3 +355,9 @@ test('a completed transfer without receiving details is done, with the amount un
   const { result } = await statusOf({ status: 'DONE' })
   assert.deepEqual(result, { state: 'done', detail: undefined, receivedAmount: undefined, destTxId: undefined })
 })
+
+test('a route from a chain LI.FI was not told about is built as an EVM transaction', async () => {
+  const { fetchFn } = lifiApi({ '/v1/advanced/stepTransaction': step() })
+  const [action] = await lifiProvider(fetchFn, [base], noBridgeSettings).buildActions!(normalizeLifiStep(step(), request()))
+  assert.equal(action!.kind, 'evm-tx')
+})
