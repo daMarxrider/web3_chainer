@@ -52,7 +52,8 @@ export async function saveRoute(store: Store, route: SavedRoute): Promise<void> 
 }
 
 export async function loadRoute(store: Store, name: string): Promise<SavedRoute> {
-  const raw = await store.get(file(name))
+  // A name that could never have been saved (../x) is not looked up: it could reach other files.
+  const raw = valid(name) ? await store.get(file(name)) : null
   if (!raw) throw new Error(`No saved route "${name}". List them with "chainer route list".`)
   return JSON.parse(raw) as SavedRoute
 }
@@ -65,6 +66,8 @@ export async function listRoutes(store: Store): Promise<SavedRoute[]> {
 }
 
 export async function removeRoute(store: Store, name: string): Promise<void> {
+  // Checked first: removing writes an empty value, which must never land on another file (../keystore).
+  if (!valid(name)) throw new Error(`No saved route "${name}"`)
   const key = file(name)
   if (!(await store.get(key))) throw new Error(`No saved route "${name}"`)
   // The Store has no delete; an empty value is read back as "gone".

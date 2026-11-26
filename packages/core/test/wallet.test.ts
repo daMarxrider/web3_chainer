@@ -121,7 +121,7 @@ test('a second wallet refused for its password leaves the keystore as it was', a
   const store = fastStore()
   await addAccount(store, 'main', SEED, PASSWORD)
   const before = store.raw()
-  await addAccount(store, 'key', KEY, 'another password').catch(() => undefined)
+  await assert.rejects(addAccount(store, 'key', KEY, 'another password'), /^Error: Wrong password$/)
   assert.equal(store.raw(), before)
 })
 
