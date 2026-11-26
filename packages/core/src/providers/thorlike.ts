@@ -233,8 +233,9 @@ export function thorProvider(fetchFn: FetchFn, config: ThorConfig, chains: Chain
       try {
         s = await fetchJson<TxStatus>(fetchFn, `${config.api}/tx/status/${/^[0-9A-F]{64}$/.test(id) ? id : txId}`)
       } catch (err) {
-        // The network has not seen the deposit yet, or the node is busy.
-        return { state: 'pending', detail: 'Waiting for the network to see the deposit' }
+        // A 404 means the network has not seen the deposit yet; anything else is the node failing, said as such.
+        const text = (err as Error).message
+        return { state: 'pending', detail: /responded 404\b/.test(text) ? 'Waiting for the network to see the deposit' : `Could not reach ${config.name} (${text}); trying again` }
       }
       const { stages } = s
       if (!stages.inbound_observed?.completed) return { state: 'pending', detail: 'Waiting for the network to see the deposit' }
