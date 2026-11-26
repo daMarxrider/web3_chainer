@@ -37,6 +37,14 @@ export interface SweepInput {
   findRoute(from: Token, to: Token, amount: bigint): Promise<Route | undefined>
 }
 
+/** A route search that failed is reported with its reason, never mistaken for "no route". */
+type Search = { route?: Route; failed?: string }
+const search = (find: SweepInput['findRoute'], from: Token, to: Token, amount: bigint): Promise<Search> =>
+  find(from, to, amount).then(
+    (route) => ({ route }),
+    (err: Error) => ({ failed: `the route search failed: ${err.message}` }),
+  )
+
 const valueUsd = (token: Token, amount: bigint) => (token.priceUsd === undefined ? undefined : (Number(amount) / 10 ** token.decimals) * token.priceUsd)
 const firstLegCost = (route: Route) => route.legs[0]!.costUsd
 /** Gas can rise between quote and send, so the amount held back is three times the quoted cost. */
@@ -71,9 +79,9 @@ export async function planSweep(input: SweepInput): Promise<SweepPlan> {
       skipped.push({ token: h.token, reason: 'no matching token on the destination' })
       continue
     }
-    const route = await input.findRoute(h.token, to, h.balance).catch(() => undefined)
+    const { route, failed } = await search(input.findRoute, h.token, to, h.balance)
     if (!route) {
-      skipped.push({ token: h.token, reason: 'no route' })
+      skipped.push({ token: h.token, reason: failed ?? 'no route' })
       continue
     }
     const why = notWorth(route, h.token, h.balance)
@@ -91,12 +99,22 @@ export async function planSweep(input: SweepInput): Promise<SweepPlan> {
       // Gas of the transfers above all comes out of this coin; so does the cost of its own transfer.
       const others = toNative(items.reduce((s, i) => s + firstLegCost(i.route), 0) * GAS_MARGIN)
       let amount = native.balance - others
-      let route = amount > 0n ? await input.findRoute(native.token, to, amount).catch(() => undefined) : undefined
-      if (route) {
-        amount -= toNative(firstLegCost(route) * GAS_MARGIN)
-        route = amount > 0n ? await input.findRoute(native.token, to, amount).catch(() => undefined) : undefined
+      let why: string | undefined
+      let route: Route | undefined
+      if (amount <= 0n) why = 'the balance is too small to cover the gas of the other transfers'
+      else {
+        const first = await search(input.findRoute, native.token, to, amount)
+        if (!first.route) why = first.failed ?? 'no route'
+        else {
+          amount -= toNative(firstLegCost(first.route) * GAS_MARGIN)
+          if (amount <= 0n) why = 'the balance is too small to cover the gas of its own transfer'
+          else {
+            const second = await search(input.findRoute, native.token, to, amount)
+            route = second.route
+            why = route ? notWorth(route, native.token, amount) : (second.failed ?? 'no route')
+          }
+        }
       }
-      const why = route ? notWorth(route, native.token, amount) : amount <= 0n ? 'the balance is too small to cover the gas of the other transfers' : 'no route'
       if (route && !why) items.push({ from: native.token, to, amount, route })
       else skipped.push({ token: native.token, reason: why ?? 'no route' })
     }

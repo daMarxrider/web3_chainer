@@ -697,7 +697,9 @@ async function sweepCommand(args: string[]): Promise<void> {
   const hubs = await hubTokens()
   const findRoute = async (from: Token, to: Token, amount: bigint): Promise<Route | undefined> => {
     const request: QuoteRequest = { from, to, amount, fromAddress, toAddress, slippage: settings.slippage }
-    const { routes } = await findPipelineRoutes(request, providers, settings, { prefer: preference(), hubs: async () => hubs, maxHops: maxHops(), addressOn })
+    const { routes, errors } = await findPipelineRoutes(request, providers, settings, { prefer: preference(), hubs: async () => hubs, maxHops: maxHops(), addressOn })
+    // Nothing found because sources failed is not the same as no route: the planner shows why.
+    if (!routes[0] && errors.length) throw new Error(errors.join('; '))
     return routes[0]
   }
 

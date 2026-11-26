@@ -536,7 +536,12 @@ class Engine {
       target,
       // On chains like Arc the gas coin is also a token; it must keep some back like the native coin does.
       isGasCoin: (t) => isNative(t) || t.symbol.toLowerCase() === fromChain.nativeSymbol.toLowerCase(),
-      findRoute: async (from, to, amount) => (await this.findRoutes(from, to, amount, toAddress)).routes[0],
+      findRoute: async (from, to, amount) => {
+        const { routes, errors } = await this.findRoutes(from, to, amount, toAddress)
+        // Nothing found because sources failed is not the same as no route: the planner shows why.
+        if (!routes[0] && errors.length) throw new Error(errors.join('; '))
+        return routes[0]
+      },
     })
     return { plan, toAddress }
   }

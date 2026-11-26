@@ -79,3 +79,67 @@ test('empty balances are ignored', async () => {
   const plan = await planSweep({ holdings: [{ token: USDC, balance: 0n }], target: dest, findRoute: async () => undefined })
   assert.deepEqual(plan, { items: [], skipped: [] })
 })
+
+// ---- more edges ----
+
+const noRoute = async () => undefined
+/** A $0.10 route whose received value is known only when the token has a price. */
+const valuedWhenPriced = (f: Token, t: Token, a: bigint): Promise<Route> => (f.priceUsd === undefined ? unknownValueRoute(f, t, a) : Promise.resolve(route(f, t, a, 0.1)))
+/** A route whose received value is unknown, as for a token without a price. */
+const unknownValueRoute = async (f: Token, t: Token, a: bigint): Promise<Route> => ({ legs: [{ ...route(f, t, a, 0.1).legs[0]!, toAmountUsd: undefined }] })
+const searchFails = async (): Promise<Route> => {
+  throw new Error('li.quest is rate-limiting this connection; try again in 2 minutes')
+}
+
+test('a token whose route search fails is skipped with the reason the search gave, not as "no route"', async () => {
+  const plan = await planSweep({ holdings: [{ token: USDC, balance: 200_000_000n }], target: dest, findRoute: searchFails })
+  assert.deepEqual(plan.skipped.map((s) => s.reason), ['the route search failed: li.quest is rate-limiting this connection; try again in 2 minutes'])
+})
+
+test('the chain’s coin whose route search fails is skipped with the reason the search gave', async () => {
+  const plan = await planSweep({ holdings: [{ token: ETH, balance: eth(1) }], target: dest, findRoute: searchFails })
+  assert.deepEqual(plan.skipped.map((s) => s.reason), ['the route search failed: li.quest is rate-limiting this connection; try again in 2 minutes'])
+})
+
+test('a token with no route is skipped as having no route', async () => {
+  const plan = await planSweep({ holdings: [{ token: USDC, balance: 200_000_000n }], target: dest, findRoute: noRoute })
+  assert.deepEqual(plan.skipped.map((s) => [s.token.symbol, s.reason]), [['USDC', 'no route']])
+})
+
+test('the chain’s coin without a matching token on the destination is skipped', async () => {
+  const plan = await planSweep({ holdings: [{ token: ETH, balance: eth(1) }], target: () => undefined, findRoute: async (f, t, a) => route(f, t, a, 1) })
+  assert.deepEqual(plan.skipped.map((s) => s.reason), ['no matching token on the destination'])
+})
+
+test('the chain’s coin without a price is skipped, as the gas to keep cannot be sized', async () => {
+  const plan = await planSweep({ holdings: [{ token: { ...ETH, priceUsd: undefined }, balance: eth(1) }], target: dest, findRoute: async (f, t, a) => route(f, t, a, 1) })
+  assert.deepEqual(plan.skipped.map((s) => s.reason), ['its price is unknown, so the gas to hold back cannot be worked out'])
+})
+
+test('the chain’s coin is skipped when its own gas reserve would use up what is left', async () => {
+  // 0.001 ETH at $2000 = $2; its own transfer costs $1, times 3 = $3 = 0.0015 ETH, more than it has.
+  const plan = await planSweep({ holdings: [{ token: ETH, balance: eth(0.001) }], target: dest, findRoute: async (f, t, a) => route(f, t, a, 1) })
+  assert.deepEqual(plan.skipped.map((s) => s.reason), ['the balance is too small to cover the gas of its own transfer'])
+})
+
+test('a route whose net value is below zero is skipped as costing more than it delivers', async () => {
+  // 1 USDC arriving, $1.50 cost: net value -$0.50.
+  const plan = await planSweep({ holdings: [{ token: USDC, balance: 1_000_000n }], target: dest, findRoute: async (f, t, a) => route(f, t, a, 1.5) })
+  assert.deepEqual(plan.skipped.map((s) => s.reason), ['fees and gas are higher than the amount received'])
+})
+
+test('a token without a price is still sent when a route is found', async () => {
+  const unpriced = { ...USDC, symbol: 'NEW', address: 'NEW', priceUsd: undefined }
+  const plan = await planSweep({ holdings: [{ token: unpriced, balance: 5_000_000n }], target: dest, findRoute: unknownValueRoute })
+  assert.deepEqual(plan.items.map((i) => [i.from.symbol, i.amount]), [['NEW', 5_000_000n]])
+})
+
+test('tokens without a price go after the priced ones', async () => {
+  const unpriced = { ...USDC, symbol: 'NEW', address: 'NEW', priceUsd: undefined }
+  const plan = await planSweep({ holdings: [{ token: unpriced, balance: 5_000_000n }, { token: USDC, balance: 1_000_000n }], target: dest, findRoute: valuedWhenPriced })
+  assert.deepEqual(plan.items.map((i) => i.from.symbol), ['USDC', 'NEW'])
+})
+
+test('a wallet with nothing in it plans nothing and skips nothing', async () => {
+  assert.deepEqual(await planSweep({ holdings: [], target: dest, findRoute: noRoute }), { items: [], skipped: [] })
+})
