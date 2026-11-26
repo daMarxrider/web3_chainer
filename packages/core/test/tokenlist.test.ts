@@ -175,3 +175,62 @@ test('a failed download with nothing cached returns no list and says screening a
   const load = await loadTokenList(offline, memoryStore(), NOV_26)
   assert.deepEqual([load.list, load.problem], [undefined, "The token list could not be loaded (offline); tokens are judged by LI.FI's screening only"])
 })
+
+// ---- remaining branches ----
+
+const solana = { family: 'solana', key: 'sol', id: 1151111081099710, name: 'Solana', nativeSymbol: 'SOL', rpcUrls: [], testnet: false } as Chain
+const JUP = 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN'
+const solToken = (address: string, symbol: string): Token => ({ chainKey: 'sol', address, symbol, decimals: 6, screening: 'verified' })
+const solList = new TokenIndex({ name: 't', fetchedAt: '2026-11-26T00:00:00.000Z', tokens: [{ chainId: 1151111081099710, address: JUP, symbol: 'JUP', name: 'Jupiter' }] })
+
+test('a Solana address on the list matches only in its exact letter case', () => {
+  assert.deepEqual([solList.trust(solToken(JUP, 'JUP'), solana), solList.trust(solToken(JUP.toLowerCase(), 'JUP'), solana)], ['listed', 'screened'])
+})
+
+test('a token list without a token array is reported, and screening alone decides', async () => {
+  const notAList = (async () => new Response('{"name":"x"}')) as typeof fetch
+  assert.equal((await loadTokenList(notAList, memoryStore(), NOV_26)).problem, "The token list could not be loaded (The token list has no tokens); tokens are judged by LI.FI's screening only")
+})
+
+test('a token list with only broken entries is reported as having no usable tokens', async () => {
+  const broken = (async () => new Response('{"tokens":[{"symbol":"X"}]}')) as typeof fetch
+  assert.match((await loadTokenList(broken, memoryStore(), NOV_26)).problem ?? '', /The token list has no usable tokens/)
+})
+
+test('a list entry without a name is named by its symbol', async () => {
+  const nameless = (async () => new Response('{"name":"x","tokens":[{"chainId":1,"address":"0xa","symbol":"AAA"}]}')) as typeof fetch
+  assert.equal((await loadTokenList(nameless, memoryStore(), NOV_26)).list?.tokens[0]!.name, 'AAA')
+})
+
+test('a list without a name of its own is called the Uniswap default token list', async () => {
+  const unnamed = (async () => new Response('{"tokens":[{"chainId":1,"address":"0xa","symbol":"AAA","name":"A"}]}')) as typeof fetch
+  assert.equal((await loadTokenList(unnamed, memoryStore(), NOV_26)).list?.name, 'Uniswap default token list')
+})
+
+test('a list entry’s chain id other than Solana’s is kept as it is', async () => {
+  const base = (async () => new Response('{"tokens":[{"chainId":8453,"address":"0xa","symbol":"AAA","name":"A"}]}')) as typeof fetch
+  assert.equal((await loadTokenList(base, memoryStore(), NOV_26)).list?.tokens[0]!.chainId, 8453)
+})
+
+test('search finds a token by the name the list gives it', () => {
+  const named = new TokenIndex({ name: 't', fetchedAt: '2026-11-26T00:00:00.000Z', tokens: coveredList({ ...bridgedUsdc, name: 'Bridged USD Coin' }) })
+  assert.deepEqual(searchTokens([bridgedUsdc], 'bridged', ethereum, named).map((r) => r.token.address), [bridgedUsdc.address])
+})
+
+test('search does not match a token without any name on its name', () => {
+  assert.deepEqual(searchTokens([{ ...lookAlikeUsdc, name: undefined }], 'coin', ethereum, curated), [])
+})
+
+test('search finds a token whose symbol contains the query in the middle', () => {
+  assert.deepEqual(searchTokens([bridgedUsdc], 'dc.', ethereum, curated).map((r) => r.token.symbol), ['USDC.e'])
+})
+
+test('among equal matches the chain’s coin comes first, then majors, then the rest by symbol', () => {
+  const zed = token('ZED', '0x6666666666666666666666666666666666666666', { screening: 'verified' })
+  const abc = token('ABC', '0x7777777777777777777777777777777777777777', { screening: 'verified' })
+  // Every token named "<symbol> token", so one name query matches them all equally.
+  const named = (t: Token): Token => ({ ...t, name: `${t.symbol} token` })
+  const all = new TokenIndex({ name: 't', fetchedAt: '2026-11-26T00:00:00.000Z', tokens: coveredList(named(zed), named(abc), named(realUsdc)) })
+  const found = searchTokens([named(zed), named(abc), named(realUsdc), named(ether)], 'token', ethereum, all)
+  assert.deepEqual(found.map((r) => r.token.symbol), ['ETH', 'USDC', 'ABC', 'ZED'])
+})
