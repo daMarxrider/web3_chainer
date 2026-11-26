@@ -1,0 +1,102 @@
+# Desktop builds of the GUI for Linux, macOS and Windows.
+#
+# - A pushed version tag (v1.2.3) builds every platform and attaches the bundles to a draft release
+#   for that tag; the tag must match the version in apps/gui/src-tauri/tauri.conf.json.
+# - A pull request that touches the desktop build runs the same builds and keeps the bundles as
+#   workflow artifacts only, so a broken build is seen before it reaches a release.
+#
+# Builds are unsigned for now (macOS Gatekeeper and Windows SmartScreen warn); signing is issue #4.
+# Android is left out until the owner has made the signing certificate (issue #3).
+name: Release builds
+
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+    paths:
+      - .github/workflows/release.yml
+      - apps/gui/**
+      - packages/core/src/**
+      - package.json
+      - package-lock.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux (x64)
+            runner: ubuntu-22.04
+            args: ''
+          - name: macOS (Apple silicon)
+            runner: macos-latest
+            args: --target aarch64-apple-darwin
+            rust-target: aarch64-apple-darwin
+          - name: macOS (Intel)
+            runner: macos-latest
+            args: --target x86_64-apple-darwin
+            rust-target: x86_64-apple-darwin
+          - name: Windows (x64)
+            runner: windows-latest
+            args: ''
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: The tag matches the app's version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          version=$(node -p "require('./apps/gui/src-tauri/tauri.conf.json').version")
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "::error::The tag ${GITHUB_REF_NAME} does not match the app version ${version} in tauri.conf.json"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.rust-target }}
+
+      - uses: swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: apps/gui/src-tauri -> target
+          key: ${{ matrix.rust-target || matrix.runner }}
+
+      - name: Linux build libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install the project
+        run: npm ci
+
+      - name: Build the desktop app
+        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # action-v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/gui
+          args: ${{ matrix.args }}
+          # Only a tag makes a (draft) release; otherwise the bundles stay workflow artifacts.
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseName: chainer ${{ github.ref_name }}
+          releaseBody: Unsigned builds; see the README for what your system will say on first start.
+          releaseDraft: true
+          uploadWorkflowArtifacts: ${{ !startsWith(github.ref, 'refs/tags/') }}
