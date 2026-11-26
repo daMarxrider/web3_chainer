@@ -222,6 +222,8 @@ const missing = (code: string, pkg: string) => async () => {
 
 test('a package missing under CommonJS rules counts as not installed', async () => {
   assert.equal(await loadSdk('@atomiqlabs/sdk', missing('MODULE_NOT_FOUND', '@atomiqlabs/sdk')), undefined)
+  // Inside the standalone CLI binary only built-in modules can be imported.
+  assert.equal(await loadSdk('@atomiqlabs/sdk', missing('ERR_UNKNOWN_BUILTIN_MODULE', '@atomiqlabs/sdk')), undefined)
 })
 
 test('a missing dependency of the package counts as broken, not as not installed', async () => {

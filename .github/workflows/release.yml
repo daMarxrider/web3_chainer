@@ -1,9 +1,9 @@
-# Desktop builds of the GUI for Linux, macOS and Windows.
+# Release builds: the desktop app (Tauri bundles) and the command line as one executable per system.
 #
-# - A pushed version tag (v1.2.3) builds every platform and attaches the bundles to a draft release
-#   for that tag; the tag must match the app's version (root package.json, see scripts/version.ts).
-# - A pull request that touches the desktop build runs the same builds and keeps the bundles as
-#   workflow artifacts only, so a broken build is seen before it reaches a release.
+# - A pushed version tag (v1.2.3) builds everything and attaches it to a draft release for that tag;
+#   the tag must match the app's version (root package.json, see scripts/version.ts).
+# - A pull request that touches either build runs the same builds and keeps the results as workflow
+#   artifacts only, so a broken build is seen before it reaches a release.
 #
 # Builds are unsigned for now (macOS Gatekeeper and Windows SmartScreen warn); signing is issue #4.
 # Android is left out until the owner has made the signing certificate (issue #3).
@@ -16,7 +16,10 @@ on:
     paths:
       - .github/workflows/release.yml
       - apps/gui/**
+      - apps/cli/src/**
       - packages/core/src/**
+      - scripts/build-cli.ts
+      - scripts/licenses/**
       - package.json
       - package-lock.json
   workflow_dispatch:
@@ -29,8 +32,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: ${{ matrix.name }}
+  release:
+    name: Draft release
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.draft.outputs.id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: The tag matches the app's version
+        run: |
+          node scripts/version.ts check
+          version=$(node -p "require('./package.json').version")
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "::error::The tag ${GITHUB_REF_NAME} does not match the app version ${version}"
+            exit 1
+          fi
+
+      # One draft for every build job to upload into; a re-run reuses it.
+      - name: Draft release
+        id: draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          id=$(gh api "repos/${GITHUB_REPOSITORY}/releases" --paginate --jq ".[] | select(.tag_name == \"${GITHUB_REF_NAME}\") | .id" | head -n 1)
+          if [ -z "$id" ]; then
+            id=$(gh api "repos/${GITHUB_REPOSITORY}/releases" -f tag_name="${GITHUB_REF_NAME}" -f name="chainer ${GITHUB_REF_NAME}" -F draft=true \
+              -f body="Desktop app and command line for Linux, macOS and Windows. Unsigned builds; see the README for what your system will say on first start." --jq .id)
+          fi
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+  desktop:
+    name: Desktop, ${{ matrix.name }}
+    needs: release
+    # Runs without a release too (pull requests), but not when the release job failed.
+    if: ${{ !cancelled() && needs.release.result != 'failure' }}
     strategy:
       fail-fast: false
       matrix:
@@ -58,17 +99,6 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: The tag matches the app's version
-        if: startsWith(github.ref, 'refs/tags/')
-        shell: bash
-        run: |
-          node scripts/version.ts check
-          version=$(node -p "require('./package.json').version")
-          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
-            echo "::error::The tag ${GITHUB_REF_NAME} does not match the app version ${version}"
-            exit 1
-          fi
-
       - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
         with:
           toolchain: stable
@@ -95,9 +125,68 @@ jobs:
         with:
           projectPath: apps/gui
           args: ${{ matrix.args }}
-          # Only a tag makes a (draft) release; otherwise the bundles stay workflow artifacts.
-          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
-          releaseName: chainer ${{ github.ref_name }}
-          releaseBody: Unsigned builds; see the README for what your system will say on first start.
-          releaseDraft: true
+          # Only a tag has a draft release to upload into; otherwise the bundles stay workflow artifacts.
+          releaseId: ${{ needs.release.outputs.id }}
           uploadWorkflowArtifacts: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+  cli:
+    name: Command line, ${{ matrix.name }}
+    needs: release
+    if: ${{ !cancelled() && needs.release.result != 'failure' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Native runners: a single executable is a copy of the Node.js that builds it.
+        include:
+          - { name: Linux (x64), runner: ubuntu-24.04 }
+          - { name: Linux (arm64), runner: ubuntu-24.04-arm }
+          - { name: macOS (Apple silicon), runner: macos-latest }
+          - { name: macOS (Intel), runner: macos-15-intel }
+          - { name: Windows (x64), runner: windows-latest }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26 # node --build-sea needs 25.5 or later
+          cache: npm
+
+      - name: Install the project
+        run: npm ci
+
+      - name: Build the executable
+        run: npm run build:cli
+
+      - name: The executable starts
+        shell: bash
+        run: |
+          dir=$(find apps/cli/dist -mindepth 1 -maxdepth 1 -type d)
+          version=$(node -p "require('./package.json').version")
+          out=$("$dir/chainer" --version)
+          echo "$out"
+          [ "$out" = "chainer ${version}" ]
+          CHAINER_HOME="$RUNNER_TEMP/chainer-home" "$dir/chainer" providers
+
+      - name: Attach to the draft release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ needs.release.outputs.id }}
+        run: |
+          for file in apps/cli/dist/*.tar.gz apps/cli/dist/*.zip; do
+            [ -f "$file" ] || continue
+            gh api --method POST -H "Content-Type: application/octet-stream" \
+              "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets?name=$(basename "$file")" \
+              --input "$file" --jq .browser_download_url
+          done
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        with:
+          name: chainer-cli-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            apps/cli/dist/*.tar.gz
+            apps/cli/dist/*.zip
+          if-no-files-found: error

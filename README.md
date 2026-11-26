@@ -19,7 +19,9 @@ Still to come, in this order: more route sources (NEAR Intents, Chainflip, direc
 
 ## Install
 
-Clone the repository and run the script for your system. It installs every dependency (git, Node.js 24 or newer, the npm packages), runs the tests and adds the `chainer` command. It is safe to run again.
+**Without installing anything else:** each [release](https://github.com/daMarxrider/web3_chainer/releases) has the command line as one executable for Linux (x64, arm64), macOS (Apple silicon, Intel) and Windows (x64), with Node.js inside. Unpack `chainer-<version>-<system>-<cpu>.tar.gz` (`.zip` on Windows) and run `chainer` from that folder or put it on your `PATH`. It is unsigned: on macOS run `xattr -d com.apple.quarantine chainer` once after unpacking a download from a browser, on Windows choose More info, then Run anyway. It cannot load the optional route sources below; run it from source for those. The archive holds the licence texts of the app, of Node.js and of every package built into it.
+
+**From source:** clone the repository and run the script for your system. It installs every dependency (git, Node.js 24 or newer, the npm packages), runs the tests and adds the `chainer` command. It is safe to run again.
 
 ```sh
 git clone https://github.com/daMarxrider/web3_chainer.git
@@ -236,7 +238,7 @@ npm install
 npm run dev -w @chainer/gui        # opens on http://127.0.0.1:5173
 ```
 
-**Downloads.** Each release on GitHub has the desktop app for Linux (deb, rpm, AppImage), macOS (Apple silicon and Intel) and Windows (msi and setup.exe). They are not signed yet, so your system asks before the first start: on macOS right-click the app and choose Open, on Windows choose More info, then Run anyway in the SmartScreen window.
+**Downloads.** Each release on GitHub has the desktop app (and the command line, see Install) for Linux (deb, rpm, AppImage), macOS (Apple silicon and Intel) and Windows (msi and setup.exe). They are not signed yet, so your system asks before the first start: on macOS right-click the app and choose Open, on Windows choose More info, then Run anyway in the SmartScreen window.
 
 **Desktop app (Tauri).** On Linux, `./scripts/install-linux.sh --desktop` also installs Rust and the libraries the shell needs (Arch, Debian, Ubuntu and Fedora package names; this option has not been run on those systems yet). Then:
 
