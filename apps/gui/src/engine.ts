@@ -223,7 +223,11 @@ class Engine {
   private tokenIndexLoad?: Promise<TokenIndex>
   /** The curated token list (cached for a day), for telling known tokens from look-alikes. Without it, only LI.FI's screening is used. */
   tokenIndex(): Promise<TokenIndex> {
-    return (this.tokenIndexLoad ??= loadTokenList(withTimeout, this.store).then((list) => new TokenIndex(list)))
+    return (this.tokenIndexLoad ??= loadTokenList(withTimeout, this.store).then(({ list, problem }) => {
+      // A failed download is tried again on the next use instead of being kept for the session.
+      if (problem) this.tokenIndexLoad = undefined
+      return new TokenIndex(list, problem)
+    }))
   }
   tokens(chain: Chain): Promise<Token[]> {
     return lifiTokens(withTimeout, chain)

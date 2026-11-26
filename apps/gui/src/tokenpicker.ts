@@ -52,6 +52,8 @@ export function tokenPicker(opts: { id: string; name?: string; value?: string; p
   let shown: RatedToken[] = []
   let active = -1
   let loading: Promise<void> = Promise.resolve()
+  /** Why this chain's tokens could not be read; shown in the list instead of an unexplained empty one. */
+  let tokensProblem: string | undefined
   const cache = new Map<string, Token[]>()
 
   const nameOf = (t: Token) => {
@@ -80,6 +82,7 @@ export function tokenPicker(opts: { id: string; name?: string; value?: string; p
     const q = input.value.trim()
     const parts: (HTMLElement | string)[] = []
     shown = []
+    for (const problem of [tokensProblem, index.problem]) if (problem) parts.push(h('li', { class: 'combo-empty', role: 'presentation' }, problem))
     const add = (rs: RatedToken[]) => rs.map((r) => (shown.push(r), option(r, shown.length - 1)))
     if (!q) {
       const mine = held.map((x) => ({ token: x.token, trust: index!.trust(x.token, chain!) }))
@@ -166,8 +169,18 @@ export function tokenPicker(opts: { id: string; name?: string; value?: string; p
       chain = next
       loading = (async () => {
         index = await engine.tokenIndex()
-        tokens = cache.get(next.key) ?? (await engine.tokens(next).catch(() => []))
-        cache.set(next.key, tokens)
+        tokensProblem = undefined
+        const known = cache.get(next.key)
+        if (known) tokens = known
+        else {
+          try {
+            tokens = await engine.tokens(next)
+            cache.set(next.key, tokens)
+          } catch (err) {
+            tokens = []
+            tokensProblem = `Could not load the tokens of ${next.name}: ${(err as Error).message}`
+          }
+        }
       })()
       return loading
     },
