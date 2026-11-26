@@ -78,6 +78,14 @@ test('zero dollars is $0.00', () => {
   assert.equal(usd(0), '$0.00')
 })
 
+test('dollar values group thousands with commas, like token amounts', () => {
+  assert.equal(usd(1_234_567.891), '$1,234,567.89')
+})
+
+test('a thousand dollars is $1,000.00', () => {
+  assert.equal(usd(1000), '$1,000.00')
+})
+
 test('a positive value under a cent is shown as less than a cent', () => {
   assert.equal(usd(0.004), '<$0.01')
 })

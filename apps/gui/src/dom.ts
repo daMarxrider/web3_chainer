@@ -31,7 +31,9 @@ export function replace(el: Element, ...children: Child[]): void {
   append(el, children)
 }
 
-export const usd = (n: number | undefined) => (n === undefined ? '?' : n < 0.01 && n > 0 ? '<$0.01' : `$${n.toFixed(2)}`)
+/** A dollar value with two decimals and thousands grouped, like token amounts. */
+export const usd = (n: number | undefined) =>
+  n === undefined ? '?' : n < 0.01 && n > 0 ? '<$0.01' : `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 /** An amount in a token's units, trimmed to what is readable. */
 export function amount(raw: bigint | string, token: Pick<Token, 'decimals'>, maxDecimals = 6): string {
