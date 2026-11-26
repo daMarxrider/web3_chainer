@@ -309,3 +309,6 @@
     transition: background-color 80ms ease-out;
   }
 }
+
+/* token picker */
+[data-theme='retro'] .combo-list { border-color: var(--edge); box-shadow: 2px 3px 6px rgb(0 0 0 / 0.25); }

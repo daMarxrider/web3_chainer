@@ -73,3 +73,7 @@
 [data-theme='smoked'] .geo { border: 1px solid rgb(240 179 74 / 0.4); border-radius: 4px; background: rgb(240 179 74 / 0.08); color: #ffe2b0; }
 [data-theme='smoked'] .dialog { border-radius: 6px; border: 1px solid var(--line); border-top-color: rgb(255 255 255 / 0.3); background: rgb(14 17 20 / 0.88); backdrop-filter: blur(16px); box-shadow: 0 24px 60px rgb(0 0 0 / 0.7); }
 [data-theme='smoked'] .log { border: 1px solid var(--line); border-radius: 3px; background: rgb(0 0 0 / 0.35); }
+
+/* token picker */
+[data-theme='smoked'] { --popup: #111417; }
+[data-theme='smoked'] .combo-list { border-radius: 3px; }

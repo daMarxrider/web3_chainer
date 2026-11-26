@@ -83,3 +83,7 @@
 [data-theme='night'] .dialog { padding: 6px; border-radius: 14px; background: rgb(90 150 220 / 0.26); backdrop-filter: blur(22px); border: 1px solid rgb(170 220 255 / 0.45); box-shadow: 0 30px 70px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.4); }
 [data-theme='night'] .dialog .dialog-body { background: var(--face); border: 1px solid var(--line); border-radius: 8px; }
 [data-theme='night'] .log { border: 1px solid var(--line); border-radius: 7px; background: rgb(0 8 20 / 0.5); }
+
+/* token picker */
+[data-theme='night'] { --popup: #0b1828; }
+[data-theme='night'] .combo-list { border-radius: 7px; }

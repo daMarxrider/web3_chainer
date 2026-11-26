@@ -274,3 +274,6 @@
     border-top: 1px solid var(--line);
   }
 }
+
+/* token picker */
+[data-theme='modern'] .combo-list { border-radius: 8px; }

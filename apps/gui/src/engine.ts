@@ -1,4 +1,6 @@
 import {
+  loadTokenList,
+  TokenIndex,
   BUILTIN_CHAINS,
   bitcoinAdapter,
   cctpProvider,
@@ -218,6 +220,11 @@ class Engine {
     return all.filter((p) => !this.settings.disabledProviders.includes(p.name))
   }
 
+  private tokenIndexLoad?: Promise<TokenIndex>
+  /** The curated token list (cached for a day), for telling known tokens from look-alikes. Without it, only LI.FI's screening is used. */
+  tokenIndex(): Promise<TokenIndex> {
+    return (this.tokenIndexLoad ??= loadTokenList(withTimeout, this.store).then((list) => new TokenIndex(list)))
+  }
   tokens(chain: Chain): Promise<Token[]> {
     return lifiTokens(withTimeout, chain)
   }
@@ -509,11 +516,16 @@ class Engine {
   async planSweep(fromChain: Chain, toChain: Chain, symbols: string[] | undefined, targetSymbol: string | undefined, recipient?: string): Promise<{ plan: SweepPlan; toAddress: string }> {
     const toAddress = this.recipientOn(toChain, recipient)
     const wanted = symbols?.map((x) => x.toLowerCase())
-    const sourceTokens = (await this.tokens(fromChain)).filter((t) => !wanted || wanted.includes(t.symbol.toLowerCase()))
+    const index = await this.tokenIndex()
+    // Tokens LI.FI's screening flags (scam airdrops, mostly) are never swept.
+    const sourceTokens = (await this.tokens(fromChain)).filter((t) => t.screening !== 'flagged' && (!wanted || wanted.includes(t.symbol.toLowerCase())))
     const balances = await this.adapterFor(fromChain).getBalances(this.ownAddress(fromChain), sourceTokens)
     const holdings = sourceTokens.map((token, i) => ({ token, balance: balances[i]! }))
-    const destTokens = await this.tokens(toChain)
+    const order = { listed: 0, screened: 1, unknown: 2, flagged: 3 } as const
+    // Same symbol on the destination: the best-trusted one, so a look-alike with the same symbol is never picked.
+    const destTokens = (await this.tokens(toChain)).filter((d) => d.screening !== 'flagged').sort((a, b) => order[index.trust(a, toChain)] - order[index.trust(b, toChain)])
     const chosen = targetSymbol ? await lifiToken(withTimeout, toChain, targetSymbol) : undefined
+    if (chosen?.screening === 'flagged') throw new Error(`${chosen.symbol} on ${toChain.name} is flagged by LI.FI’s token screening as a likely scam`)
     const target = (t: Token): Token | undefined => chosen ?? destTokens.find((d) => (isNative(t) ? isNative(d) : d.symbol.toLowerCase() === t.symbol.toLowerCase()))
     const plan = await planSweep({
       holdings,

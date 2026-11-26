@@ -468,6 +468,86 @@ input.narrow {
   font-weight: 600;
 }
 
+/* ---- token picker: a field with a list of tokens under it ---- */
+
+.combo {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+.combo > input {
+  width: 100%;
+}
+.combo-list {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 3px);
+  left: 0;
+  right: 0;
+  max-height: min(320px, 50vh);
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: var(--popup, var(--field));
+  color: var(--text);
+  border: 1px solid var(--line, var(--shade));
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.22);
+}
+.combo-list[hidden] {
+  display: none;
+}
+.combo-group {
+  padding: 8px 10px 3px;
+  font-size: 0.8em;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.combo-group:first-child {
+  padding-top: 4px;
+}
+.combo-option {
+  display: grid;
+  grid-template-columns: minmax(6ch, max-content) minmax(0, 1fr) auto minmax(0, max-content);
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 10px;
+  cursor: default;
+}
+.combo-option:hover {
+  background: var(--hover);
+}
+.combo-option[aria-selected='true'] {
+  background: var(--select);
+  color: var(--select-text);
+}
+.combo-option[aria-disabled='true'] {
+  opacity: 0.55;
+}
+.combo-option .sym {
+  font-weight: 600;
+}
+.combo-option .name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-dim);
+}
+.combo-option[aria-selected='true'] .name {
+  color: inherit;
+}
+.combo-option .tag {
+  margin-left: 0;
+}
+.combo-option .bal {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.combo-empty {
+  padding: 8px 10px;
+  color: var(--text-dim);
+}
+
 /* ---- transfer ---- */
 
 .results {

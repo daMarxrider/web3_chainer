@@ -31,7 +31,7 @@ export async function balancesScreen(sheet: HTMLElement): Promise<void> {
       const held = await engine.balances(chain)
       note.textContent = `${engine.requireSession().walletName}, ${shortAddress(address)} on ${chain.name}`
       if (held.length === 0) return replace(table, h('p', { class: 'empty' }, `No tokens found on ${chain.name}.`))
-      const total = held.reduce((s, x) => s + (x.usd ?? 0), 0)
+      const total = held.reduce((s, x) => s + (x.token.screening === 'flagged' ? 0 : (x.usd ?? 0)), 0) // scam tokens often carry made-up prices
       replace(
         table,
         h(
@@ -39,7 +39,7 @@ export async function balancesScreen(sheet: HTMLElement): Promise<void> {
           { class: 'data' },
           h('caption', { class: 'sr-only' }, `Tokens held on ${chain.name}`),
           h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, 'Token'), h('th', { scope: 'col', class: 'num' }, 'Balance'), h('th', { scope: 'col', class: 'num' }, 'Value'), h('th', { scope: 'col', class: 'addr' }, 'Contract'))),
-          h('tbody', {}, held.map((x) => h('tr', {}, h('th', { scope: 'row' }, x.token.symbol), h('td', { class: 'num' }, amount(x.balance, x.token)), h('td', { class: 'num' }, usd(x.usd)), h('td', { class: 'addr' }, x.token.address.startsWith('0x0000') ? 'native coin' : shortAddress(x.token.address))))),
+          h('tbody', {}, held.map((x) => h('tr', {}, h('th', { scope: 'row' }, x.token.symbol, x.token.screening === 'flagged' ? h('span', { class: 'tag', title: 'Flagged by LI.FI’s token screening as a likely scam (often an unsolicited airdrop). Do not interact with it; it cannot be sent from here.' }, 'flagged') : null), h('td', { class: 'num' }, amount(x.balance, x.token)), h('td', { class: 'num' }, usd(x.usd)), h('td', { class: 'addr' }, x.token.address.startsWith('0x0000') ? 'native coin' : shortAddress(x.token.address))))),
           h('tfoot', {}, h('tr', {}, h('th', { scope: 'row', colspan: 2 }, 'Total on this chain'), h('td', { class: 'num' }, usd(total)), h('td', {}))),
         ),
       )

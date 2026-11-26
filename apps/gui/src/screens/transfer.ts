@@ -2,6 +2,7 @@ import { geoKeys, geoNotices, geoStatement, parseUnits, resolveRecipient, routeE
 import { amount, duration, h, replace, shortAddress, usd } from '../dom.ts'
 import { engine, type GasPlan } from '../engine.ts'
 import { icon } from '../icons.ts'
+import { tokenPicker, trustNote } from '../tokenpicker.ts'
 import { askText, confirmRun } from './confirm.ts'
 import { showJob } from './job.ts'
 
@@ -31,11 +32,11 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
   const chainSelect = (name: string, value: string) => h('select', { name, id: `f-${name}` }, chains.map((c) => h('option', { value: c.key, selected: c.key === value }, c.name)))
   const fromChain = chainSelect('fromChain', form.fromChain)
   const toChain = chainSelect('toChain', form.toChain)
-  const fromSymbol = h('input', { name: 'fromSymbol', id: 'f-fromSymbol', list: 'held-tokens', value: form.fromSymbol, placeholder: 'USDC', autocomplete: 'off', required: true })
-  const toSymbol = h('input', { name: 'toSymbol', id: 'f-toSymbol', value: form.toSymbol, placeholder: 'same as sent', autocomplete: 'off' })
-  const amountInput = h('input', { name: 'amount', id: 'f-amount', inputmode: 'decimal', value: form.amount, placeholder: '0.00', autocomplete: 'off', required: true, class: 'num' })
+  const fromPicker = tokenPicker({ id: 'f-fromSymbol', name: 'fromSymbol', value: form.fromSymbol, placeholder: 'Pick or type a token', required: true })
+  const toPicker = tokenPicker({ id: 'f-toSymbol', name: 'toSymbol', value: form.toSymbol, placeholder: 'same as sent' })
+  const [fromSymbol, toSymbol] = [fromPicker.input, toPicker.input]
+  const amountInput = h('input', { name: 'amount', id: 'f-amount', value: form.amount, placeholder: '0.00 or all', title: 'An amount, or "all" for the whole balance', autocomplete: 'off', required: true, class: 'num' })
   const recipient = h('input', { name: 'recipient', id: 'f-recipient', value: form.recipient, placeholder: 'your own address on the destination', autocomplete: 'off', spellcheck: 'false' })
-  const datalist = h('datalist', { id: 'held-tokens' })
   const heldNote = h('p', { class: 'hint', id: 'held-note' })
   const maxBtn = h('button', { class: 'btn small', type: 'button', disabled: true }, 'Max')
   const findBtn = h('button', { class: 'btn primary', type: 'submit' }, 'Find routes')
@@ -45,11 +46,11 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
 
   const loadHeld = async () => {
     held = []
-    replace(datalist)
+    fromPicker.setHeld([])
     heldNote.textContent = ''
     try {
       held = await engine.balances(byKey(fromChain.value))
-      replace(datalist, ...held.map((x) => h('option', { value: x.token.symbol }, `${amount(x.balance, x.token)} ${x.token.symbol}`)))
+      fromPicker.setHeld(held)
       heldNote.textContent = held.length ? `You hold ${held.slice(0, 4).map((x) => `${amount(x.balance, x.token)} ${x.token.symbol}`).join(', ')}${held.length > 4 ? ` and ${held.length - 4} more` : ''} on this chain.` : 'This wallet holds no tokens on this chain.'
       syncMax()
     } catch (err) {
@@ -59,25 +60,39 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
   const heldToken = () => held.find((x) => x.token.symbol.toLowerCase() === fromSymbol.value.trim().toLowerCase())
   const syncMax = () => {
     const x = heldToken()
-    // The chain's own coin pays for gas, so "all of it" is not offered.
-    maxBtn.disabled = !x || x.token.address.startsWith('0x0000')
-    maxBtn.title = x?.token.address.startsWith('0x0000') ? 'Keep some of the chain’s own coin for gas' : 'Send the whole balance of this token'
+    maxBtn.disabled = !x
+    // The chain's own coin pays for gas: "all" of it keeps back what the transfer's gas needs when it runs.
+    maxBtn.title = x?.token.address.startsWith('0x0000') ? 'Send the whole balance, less what the transfer’s gas needs' : 'Send the whole balance of this token'
   }
   maxBtn.addEventListener('click', () => {
-    const x = heldToken()
-    if (x) amountInput.value = amount(x.balance, x.token, x.token.decimals).replaceAll(',', '')
+    if (heldToken()) amountInput.value = 'all'
   })
-  fromChain.addEventListener('change', () => void loadHeld())
+  fromChain.addEventListener('change', () => (void fromPicker.setChain(byKey(fromChain.value)), void loadHeld()))
+  toChain.addEventListener('change', () => void toPicker.setChain(byKey(toChain.value)))
   fromSymbol.addEventListener('input', syncMax)
 
-  const readForm = async (): Promise<{ from: Token; to: Token; amount: bigint; toAddress: string; fromChain: Chain; toChain: Chain }> => {
+  const readForm = async (): Promise<{ from: Token; to: Token; amount: bigint; wholeBalance: boolean; toAddress: string; fromChain: Chain; toChain: Chain; tokenNotes: string[] }> => {
     const [fc, tc] = [byKey(fromChain.value), byKey(toChain.value)]
     const symbol = fromSymbol.value.trim()
     if (!symbol) throw new Error('Enter the token to send')
-    const [from, to] = await Promise.all([engine.token(fc, symbol), engine.token(tc, toSymbol.value.trim() || symbol)])
-    if (!/^\d+(\.\d+)?$/.test(amountInput.value.trim())) throw new Error(`"${amountInput.value}" is not a valid amount`)
-    const value = parseUnits(amountInput.value.trim(), from.decimals)
-    if (value === 0n) throw new Error('The amount must be greater than zero')
+    const toTyped = toSymbol.value.trim()
+    const fromRated = await fromPicker.resolve(symbol, `There is no token "${symbol}" on ${fc.name}.`)
+    const from = fromRated.token
+    const toRated = await toPicker.resolve(toTyped || from.symbol, toTyped ? `There is no token "${toTyped}" on ${tc.name}.` : `${from.symbol} does not exist on ${tc.name}. Choose the token to receive under To, Token.`)
+    const to = toRated.token
+    const tokenNotes = [trustNote(fromRated, fc), trustNote(toRated, tc)].filter((n): n is string => !!n)
+    const amountText = amountInput.value.trim()
+    const wholeBalance = /^all$/i.test(amountText)
+    let value: bigint
+    if (wholeBalance) {
+      const x = held.find((h) => h.token.address.toLowerCase() === from.address.toLowerCase())
+      if (!x) throw new Error(`The wallet holds no ${from.symbol} on ${fc.name}, so there is nothing to send.`)
+      value = x.balance
+    } else {
+      if (!/^\d+(\.\d+)?$/.test(amountText)) throw new Error(`"${amountText}" is not a valid amount. Enter a number, or "all" for the whole balance.`)
+      value = parseUnits(amountText, from.decimals)
+      if (value === 0n) throw new Error('The amount must be greater than zero')
+    }
     const own = engine.ownAddress(tc)
     const typed = recipient.value.trim()
     const toAddress = typed ? resolveRecipient(engine.settings, typed, tc.key) : own
@@ -87,7 +102,7 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
     if (!engine.testMode && maxUsdPerTransfer !== null && valueUsd !== undefined && valueUsd > maxUsdPerTransfer) {
       throw new Error(`This is worth about ${usd(valueUsd)}, above your limit of ${usd(maxUsdPerTransfer)}. Change the limit in Settings.`)
     }
-    return { from, to, amount: value, toAddress, fromChain: fc, toChain: tc }
+    return { from, to, amount: value, wholeBalance, toAddress, fromChain: fc, toChain: tc, tokenNotes }
   }
 
   const search = async (e: Event) => {
@@ -124,7 +139,7 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
       const name = await askText(sheet, 'Save route', 'Name', 'weekly-usdc')
       if (!name) return
       try {
-        await engine.saveRoute({ kind: 'transfer', name, createdAt: new Date().toISOString(), wallet: engine.requireSession().walletName, from: `${req.from.symbol}@${req.fromChain.key}`, to: `${req.to.symbol}@${req.toChain.key}`, amount: req.amount.toString(), recipient: recipient.value.trim() || undefined, via: routeVia(routes[chosen]!), fallback: false })
+        await engine.saveRoute({ kind: 'transfer', name, createdAt: new Date().toISOString(), wallet: engine.requireSession().walletName, from: `${req.from.symbol}@${req.fromChain.key}`, to: `${req.to.symbol}@${req.toChain.key}`, amount: req.wholeBalance ? 'all' : req.amount.toString(), recipient: recipient.value.trim() || undefined, via: routeVia(routes[chosen]!), fallback: false })
         results.prepend(h('p', { class: 'banner ok' }, `Saved "${name}". Find it under Saved routes.`))
       } catch (e) {
         formError.textContent = (e as Error).message
@@ -138,6 +153,7 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
         h('h3', {}, 'This route'),
         h('ol', { class: 'legs' }, r.legs.map((q) => h('li', {}, `${amount(q.request.amount, q.request.from)} ${q.request.from.symbol} on ${byName(q.request.from.chainKey)} `, icon('arrow'), ` ${amount(q.toAmount, q.request.to)} ${q.request.to.symbol} on ${byName(q.request.to.chainKey)}`, h('span', { class: 'via' }, ` via ${q.provider}/${q.tool}`)))),
         notices.length ? h('p', { class: 'notice' }, icon('warn'), ` Uses ${notices.map((n) => n.name).join(', ')}, ${notices.length > 1 ? 'which restrict where they' : 'which restricts where it'} can be used. You confirm your location before sending.`) : null,
+        ...req.tokenNotes.map((n) => h('p', { class: 'notice' }, icon('warn'), ` ${n}`)),
         r.legs.length > 1 ? h('p', { class: 'hint' }, `No direct connection: this goes through ${r.legs.length - 1} stop-over${r.legs.length > 2 ? 's' : ''}; each leg starts by itself when the one before has arrived.`) : null,
       )
     }
@@ -189,7 +205,7 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
     }
     const last = route.legs.at(-1)!
     const rows: [string, string][] = [
-      ['You send', `${amount(req.amount, req.from)} ${req.from.symbol} from ${req.fromChain.name}`],
+      ['You send', `${req.wholeBalance ? `whole balance, now ${amount(req.amount, req.from)}` : amount(req.amount, req.from)} ${req.from.symbol} from ${req.fromChain.name}${req.wholeBalance && req.from.address.startsWith('0x0000') ? ', less what the gas needs' : ''}`],
       ['You receive', `${amount(last.toAmount, req.to)} ${req.to.symbol} on ${req.toChain.name}`],
       ['At worst', `${amount(last.toAmountMin, req.to)} ${req.to.symbol}`],
       ['Gas and fees', usd(route.legs.reduce((s, q) => s + q.costUsd, 0))],
@@ -204,10 +220,10 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
       rows,
       routes: [route, ...engine.gasRoutes(gas)],
       confirmLabel: 'Send now',
-      notes: gas.topUpNote && engine.settings.gasTopUp.mode !== 'off' ? [`No gas top-up: ${gas.topUpNote}.`] : [],
+      notes: [...req.tokenNotes, ...(gas.topUpNote && engine.settings.gasTopUp.mode !== 'off' ? [`No gas top-up: ${gas.topUpNote}.`] : [])],
     })
     if (!accepted) return
-    void showJob(sheet, 'Transfer in progress', byName, (onEvent) => engine.runWithGas(route, accepted, onEvent, gas), () => void transferScreen(sheet))
+    void showJob(sheet, 'Transfer in progress', byName, (onEvent) => engine.runWithGas(route, accepted, onEvent, gas, { wholeBalance: req.wholeBalance }), () => void transferScreen(sheet))
   }
 
   // Runs the journal says are not finished, with a way to pick them up again.
@@ -254,12 +270,14 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
     h(
       'form',
       { class: 'form transfer-form', onSubmit: search },
-      h('fieldset', { class: 'group' }, h('legend', {}, 'From'), h('label', { class: 'row', for: 'f-fromChain' }, h('span', { class: 'label' }, 'Chain'), fromChain), h('label', { class: 'row', for: 'f-fromSymbol' }, h('span', { class: 'label' }, 'Token'), fromSymbol), datalist, h('label', { class: 'row', for: 'f-amount' }, h('span', { class: 'label' }, 'Amount'), h('span', { class: 'with-button' }, amountInput, maxBtn)), heldNote),
-      h('fieldset', { class: 'group' }, h('legend', {}, 'To'), h('label', { class: 'row', for: 'f-toChain' }, h('span', { class: 'label' }, 'Chain'), toChain), h('label', { class: 'row', for: 'f-toSymbol' }, h('span', { class: 'label' }, 'Token'), toSymbol), h('label', { class: 'row', for: 'f-recipient' }, h('span', { class: 'label' }, 'Recipient'), recipient)),
+      h('fieldset', { class: 'group' }, h('legend', {}, 'From'), h('label', { class: 'row', for: 'f-fromChain' }, h('span', { class: 'label' }, 'Chain'), fromChain), h('label', { class: 'row', for: 'f-fromSymbol' }, h('span', { class: 'label' }, 'Token'), fromPicker.el), h('label', { class: 'row', for: 'f-amount' }, h('span', { class: 'label' }, 'Amount'), h('span', { class: 'with-button' }, amountInput, maxBtn)), heldNote),
+      h('fieldset', { class: 'group' }, h('legend', {}, 'To'), h('label', { class: 'row', for: 'f-toChain' }, h('span', { class: 'label' }, 'Chain'), toChain), h('label', { class: 'row', for: 'f-toSymbol' }, h('span', { class: 'label' }, 'Token'), toPicker.el), h('label', { class: 'row', for: 'f-recipient' }, h('span', { class: 'label' }, 'Recipient'), recipient)),
       formError,
       h('div', { class: 'actions' }, findBtn),
     ),
     results,
   )
+  void fromPicker.setChain(byKey(fromChain.value))
+  void toPicker.setChain(byKey(toChain.value))
   void loadHeld()
 }

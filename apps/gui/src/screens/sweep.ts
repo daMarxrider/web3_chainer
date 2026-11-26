@@ -1,6 +1,7 @@
 import { routeEta, routeNetUsd, type Chain, type SweepPlan, type Token } from '@chainer/core'
 import { amount, duration, h, replace, usd } from '../dom.ts'
 import { engine } from '../engine.ts'
+import { tokenPicker } from '../tokenpicker.ts'
 import { askText, confirmRun } from './confirm.ts'
 import { showJobs } from './job.ts'
 
@@ -39,7 +40,8 @@ export async function sweepScreen(sheet: HTMLElement): Promise<void> {
   const chainSelect = (name: string, value: string | undefined) => h('select', { name, id: `sw-${name}` }, chains.map((c) => h('option', { value: c.key, selected: c.key === value }, c.name)))
   const from = chainSelect('from', chains.find((c) => c.key === (engine.testMode ? 'arct' : 'arb'))?.key)
   const to = chainSelect('to', chains.find((c) => c.key === (engine.testMode ? 'bast' : 'bas'))?.key)
-  const target = h('input', { name: 'target', id: 'sw-target', placeholder: 'same token on the destination', autocomplete: 'off' })
+  const targetPicker = tokenPicker({ id: 'sw-target', name: 'target', placeholder: 'same token on the destination' })
+  const target = targetPicker.input
   const recipient = h('input', { name: 'recipient', id: 'sw-recipient', placeholder: 'your own address, or an address book label', autocomplete: 'off', spellcheck: 'false' })
   const err = h('p', { class: 'form-error', role: 'alert' })
   const held = h('div', { class: 'table-wrap' })
@@ -50,6 +52,8 @@ export async function sweepScreen(sheet: HTMLElement): Promise<void> {
   const checks = new Map<string, HTMLInputElement>()
 
   const byKey = (k: string) => chains.find((c) => c.key === k)!
+  void targetPicker.setChain(byKey(to.value))
+  to.addEventListener('change', () => void targetPicker.setChain(byKey(to.value)))
 
   find.addEventListener('click', async () => {
     err.textContent = ''
@@ -111,7 +115,9 @@ export async function sweepScreen(sheet: HTMLElement): Promise<void> {
     try {
       const fc = byKey(from.value)
       const tc = byKey(to.value)
-      const { plan: p, toAddress } = await engine.planSweep(fc, tc, chosen, target.value.trim() || undefined, recipient.value.trim() || undefined)
+      const typed = target.value.trim()
+      const picked = typed ? await targetPicker.resolve(typed, `There is no token "${typed}" on ${tc.name}.`) : undefined
+      const { plan: p, toAddress } = await engine.planSweep(fc, tc, chosen, picked?.token.address, recipient.value.trim() || undefined)
       replace(
         result,
         h('h2', {}, 'Plan'),
@@ -145,7 +151,7 @@ export async function sweepScreen(sheet: HTMLElement): Promise<void> {
     sheet,
     h('h1', { class: 'sheet-title' }, 'Bridge wallet'),
     h('p', { class: 'hint' }, 'Move many tokens from one chain to another. Each token becomes its own transfer, biggest value first, and the chain’s own coin goes last with enough held back for gas.'),
-    h('form', { class: 'form transfer-form', onSubmit: (e: Event) => e.preventDefault() }, h('fieldset', { class: 'group' }, h('legend', {}, 'Chains'), h('label', { class: 'row', for: 'sw-from' }, h('span', { class: 'label' }, 'From'), from), h('label', { class: 'row', for: 'sw-to' }, h('span', { class: 'label' }, 'To'), to), h('label', { class: 'row', for: 'sw-target' }, h('span', { class: 'label' }, 'Receive as'), target), h('label', { class: 'row', for: 'sw-recipient' }, h('span', { class: 'label' }, 'Recipient'), recipient), h('div', { class: 'actions' }, find))),
+    h('form', { class: 'form transfer-form', onSubmit: (e: Event) => e.preventDefault() }, h('fieldset', { class: 'group' }, h('legend', {}, 'Chains'), h('label', { class: 'row', for: 'sw-from' }, h('span', { class: 'label' }, 'From'), from), h('label', { class: 'row', for: 'sw-to' }, h('span', { class: 'label' }, 'To'), to), h('label', { class: 'row', for: 'sw-target' }, h('span', { class: 'label' }, 'Receive as'), targetPicker.el), h('label', { class: 'row', for: 'sw-recipient' }, h('span', { class: 'label' }, 'Recipient'), recipient), h('div', { class: 'actions' }, find))),
     err,
     held,
     h('div', { class: 'actions' }, plan),
