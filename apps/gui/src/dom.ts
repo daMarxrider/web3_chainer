@@ -35,9 +35,13 @@ export const usd = (n: number | undefined) => (n === undefined ? '?' : n < 0.01 
 
 /** An amount in a token's units, trimmed to what is readable. */
 export function amount(raw: bigint | string, token: Pick<Token, 'decimals'>, maxDecimals = 6): string {
-  const [whole, frac = ''] = formatUnits(BigInt(raw), token.decimals).split('.')
+  const value = BigInt(raw)
+  const [whole = '0', frac = ''] = formatUnits(value, token.decimals).split('.')
   const shown = frac.slice(0, maxDecimals).replace(/0+$/, '')
-  const w = Number(whole).toLocaleString('en-US')
+  // Something held, but too little to show: say so instead of printing 0.
+  if (value > 0n && whole === '0' && !shown) return maxDecimals > 0 ? `<0.${'0'.repeat(maxDecimals - 1)}1` : '<1'
+  // BigInt, not Number: a whole part beyond 2^53 would lose its last digits.
+  const w = BigInt(whole).toLocaleString('en-US')
   return shown ? `${w}.${shown}` : w
 }
 
