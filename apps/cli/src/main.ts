@@ -828,7 +828,9 @@ async function daemonCommand(): Promise<void> {
   const pollMs = opts.poll ? parseDuration(opts.poll.replace(/^(\d+)$/, '$1s')) : 60_000
   await askPassword() // asked once up front, kept in memory
   let stop = false
-  process.once('SIGINT', () => (stop = true))
+  // Ctrl-C ends the wait between checks at once, instead of after the polling interval.
+  let wake = () => {}
+  process.once('SIGINT', () => ((stop = true), wake()))
   out(`[${stamp()}] Daemon started${opts.once ? ' (one pass)' : `, checking every ${Math.round(pollMs / 1000)} s; Ctrl-C stops it`}`)
   do {
     for (const s of await listSchedules(store)) {
@@ -837,7 +839,10 @@ async function daemonCommand(): Promise<void> {
       await saveSchedule(store, await runSchedule(s, due))
     }
     if (opts.once || stop) break
-    await new Promise((r) => setTimeout(r, pollMs))
+    await new Promise<void>((r) => {
+      const timer = setTimeout(r, pollMs)
+      wake = () => (clearTimeout(timer), r())
+    })
   } while (!stop)
   out(`[${stamp()}] Daemon stopped`)
 }
@@ -978,7 +983,8 @@ function liveView(): (record: PipelineRecord, legIndex: number, message: string)
   return (record, legIndex, message) => {
     if (opts.json) return console.error(JSON.stringify({ id: record.id, leg: legIndex + 1, state: record.legs[legIndex]!.state, message }))
     if (!process.stdout.isTTY) return out(`[${stamp()}] leg ${legIndex + 1}/${record.legs.length}: ${message}`)
-    const width = (process.stdout.columns ?? 100) - 1
+    // A terminal of unknown size reports 0 columns: treat that as unknown too, or every line loses its last character.
+    const width = (process.stdout.columns || 100) - 1
     const lines = record.legs.map((leg, i) => {
       const state = i === legIndex && leg.state === 'waiting' ? 'running' : leg.state
       return `${MARK[state]} ${i + 1}. ${legText(leg)}`

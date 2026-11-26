@@ -23,6 +23,7 @@ function home(t: { after: (fn: () => void) => void }): string {
 /** Runs `chainer <args>` with the given data folder; a run that takes over 20 s is killed and fails. */
 function chainer(dataDir: string, args: string[], opts: { input?: string; password?: string } = {}) {
   const env: NodeJS.ProcessEnv = { PATH: process.env.PATH, HOME: dataDir, CHAINER_HOME: dataDir }
+  if (process.env.CHAINER_COV_DIR) env.NODE_V8_COVERAGE = process.env.CHAINER_COV_DIR
   if (opts.password !== undefined) env.CHAINER_PASSWORD = opts.password
   const r = spawnSync(process.execPath, [MAIN, ...args], { env, input: opts.input ?? '', encoding: 'utf8', timeout: 20_000 })
   if (r.error) throw r.error

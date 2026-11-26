@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
 import { removeRoute, loadRoute } from '@chainer/core'
-import { dataDir, fileStore } from '../src/env.ts'
+import { dataDir, fetchWithTimeout, fileStore } from '../src/env.ts'
 
 async function folder(t: { after: (fn: () => Promise<void>) => void }): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), 'chainer-cli-'))
@@ -138,4 +138,27 @@ test('without CHAINER_HOME the data lives in XDG_CONFIG_HOME/chainer', () => {
 
 test('without either, the data lives in ~/.config/chainer', () => {
   assert.equal(withEnv({ CHAINER_HOME: undefined, XDG_CONFIG_HOME: undefined, HOME: '/home/someone' }, dataDir), '/home/someone/.config/chainer')
+})
+
+// ---- more of the store, and the timeout on requests ----
+
+test('listing under a key that is a file, not a folder, is an error, not an empty list', async (t) => {
+  const store = fileStore(await folder(t))
+  await store.set('runs', 'not a folder')
+  await assert.rejects(store.keys('runs/'), { code: 'ENOTDIR' })
+})
+
+test('a request without a signal of its own gets one that times out', async (t) => {
+  let seen: AbortSignal | undefined
+  t.mock.method(globalThis, 'fetch', async (_url: string, init?: RequestInit) => ((seen = init?.signal ?? undefined), new Response('{}')))
+  await fetchWithTimeout('https://example.org', {})
+  assert.equal(seen instanceof AbortSignal, true)
+})
+
+test('a request’s own signal is kept', async (t) => {
+  let seen: AbortSignal | undefined
+  t.mock.method(globalThis, 'fetch', async (_url: string, init?: RequestInit) => ((seen = init?.signal ?? undefined), new Response('{}')))
+  const mine = new AbortController().signal
+  await fetchWithTimeout('https://example.org', { signal: mine })
+  assert.equal(seen, mine)
 })
