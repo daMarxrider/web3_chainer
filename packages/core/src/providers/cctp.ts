@@ -183,8 +183,9 @@ export function cctpProvider(fetchFn: FetchFn, chains: Chain[]): BridgeProvider 
       try {
         body = await fetchJson<IrisMessages>(fetchFn, `${host}/v2/messages/${ref.srcDomain}?transactionHash=${txId}`)
       } catch (err) {
-        // Iris answers 404 until it has seen the burn.
-        return { state: 'pending', detail: (err as Error).message }
+        // Iris answers 404 until it has seen the burn: that is the normal first state, not an error.
+        const text = (err as Error).message
+        return { state: 'pending', detail: /responded 404\b/.test(text) ? 'Waiting for Circle to see the burn' : `Could not reach Circle (${text}); trying again` }
       }
       const message = body.messages?.[0]
       if (!message) return { state: 'pending', detail: 'Waiting for Circle to see the burn' }
