@@ -88,6 +88,11 @@ describe('sending and following runs', { concurrency: true }, () => {
     assert.deepEqual([lines[0].leg, typeof lines[0].message, JSON.parse(r.out.slice(r.out.indexOf('{'))).state], [1, 'string', 'done'])
   })
 
+  test('with --json nothing but the run’s JSON is printed on stdout', async (t) => {
+    const r = await chainer(await home(t), standardWorld(), [...send100, '--yes', '--json'])
+    assert.equal(JSON.parse(r.out).state, 'done')
+  })
+
   test('progress is printed as plain lines when not on a terminal', async (t) => {
     const r = await chainer(await home(t), standardWorld(), [...send100, '--yes'])
     assert.match(r.out, /^\[\d\d:\d\d:\d\d\] leg 1\/1: Signing and sending the transaction$/m)

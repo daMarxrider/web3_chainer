@@ -209,8 +209,9 @@ const runStore: Store = opts.testnet
   ? { get: (k) => store.get(`testnet/${k}`), set: (k, v) => store.set(`testnet/${k}`, v), keys: async (p) => (await store.keys(`testnet/${p}`)).map((k) => k.slice('testnet/'.length)) }
   : store
 
-const out = (line = '') => console.log(line)
-const printJson = (value: unknown) => out(JSON.stringify(value, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2))
+/** Text for the user. With --json it goes to stderr, so stdout carries nothing but the JSON. */
+const out = (line = '') => (opts.json ? console.error(line) : console.log(line))
+const printJson = (value: unknown) => console.log(JSON.stringify(value, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2))
 const usd = (n: number | undefined) => (n === undefined ? '?' : `$${n.toFixed(2)}`)
 const stamp = () => new Date().toTimeString().slice(0, 8)
 /** Journal times are stored in UTC; show them in the user's time zone. */
