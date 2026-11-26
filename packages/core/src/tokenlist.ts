@@ -42,18 +42,28 @@ function parseList(raw: unknown): ListedToken[] {
   return out
 }
 
-/** The cached list when it is less than a day old, otherwise a fresh one; a stale copy if the download fails. */
-export async function loadTokenList(fetchFn: FetchFn, store: Store, now = Date.now()): Promise<TokenList | undefined> {
+export interface TokenListLoad {
+  list?: TokenList
+  /** Set when the download failed (degraded mode): `list` is then a stale copy, or missing, and the caller must say so. */
+  problem?: string
+}
+
+/** The cached list when it is less than a day old, otherwise a fresh one; if the download fails, the stale copy (or none) with the reason. */
+export async function loadTokenList(fetchFn: FetchFn, store: Store, now = Date.now()): Promise<TokenListLoad> {
   const text = await store.get(CACHE_KEY)
   const cached = text ? (JSON.parse(text) as TokenList) : undefined
-  if (cached && now - Date.parse(cached.fetchedAt) < MAX_AGE_MS) return cached
+  if (cached && now - Date.parse(cached.fetchedAt) < MAX_AGE_MS) return { list: cached }
   try {
     const raw = await fetchJson<{ name?: string }>(fetchFn, TOKEN_LIST_URL)
     const list: TokenList = { name: raw.name ?? 'Uniswap default token list', fetchedAt: new Date(now).toISOString(), tokens: parseList(raw) }
     await store.set(CACHE_KEY, JSON.stringify(list))
-    return list
-  } catch {
-    return cached
+    return { list }
+  } catch (err) {
+    const reason = (err as Error).message
+    return {
+      list: cached,
+      problem: cached ? `The token list could not be updated (${reason}); using the copy from ${cached.fetchedAt.slice(0, 10)}` : `The token list could not be loaded (${reason}); tokens are judged by LI.FI's screening only`,
+    }
   }
 }
 
@@ -69,8 +79,11 @@ export type TokenTrust = 'listed' | 'screened' | 'unknown' | 'flagged'
 export class TokenIndex {
   private readonly byChain = new Map<number, Map<string, string>>()
   readonly list: TokenList | undefined
-  constructor(list: TokenList | undefined) {
+  /** Why the list is stale or missing, for the user; see TokenListLoad. */
+  readonly problem: string | undefined
+  constructor(list: TokenList | undefined, problem?: string) {
     this.list = list
+    this.problem = problem
     for (const t of list?.tokens ?? []) {
       let names = this.byChain.get(t.chainId)
       if (!names) this.byChain.set(t.chainId, (names = new Map()))

@@ -72,13 +72,18 @@ test('status follows the forwarded mint', async () => {
   assert.deepEqual([done.state, done.destTxId], ['done', '0xdef'])
 })
 
+const statusRef = { srcDomain: 6, testnet: 0, expected: '1' }
+
 test('a 404 from Iris before it has seen the burn reads as waiting, not as an error', async () => {
-  const ref = { srcDomain: 6, testnet: 0, expected: '1' }
-  const notYet = (async () => new Response('{"error":"Message not found for provided parameters"}', { status: 404 })) as typeof fetch
-  const early = await cctpProvider(notYet, chains).getStatus('0xabc', ref)
-  assert.deepEqual([early.state, early.detail], ['pending', 'Waiting for Circle to see the burn'])
-  const offline = (async () => { throw new Error('fetch failed') }) as typeof fetch
-  const down = await cctpProvider(offline, chains).getStatus('0xabc', ref)
-  assert.equal(down.state, 'pending')
-  assert.match(down.detail ?? '', /^Could not reach Circle \(fetch failed\); trying again$/)
+  const notSeenYet = (async () => new Response('{"error":"Message not found for provided parameters"}', { status: 404 })) as typeof fetch
+  const status = await cctpProvider(notSeenYet, chains).getStatus('0xabc', statusRef)
+  assert.deepEqual([status.state, status.detail], ['pending', 'Waiting for Circle to see the burn'])
+})
+
+test('an unreachable Iris keeps the transfer pending and says it is trying again', async () => {
+  const unreachable = (async () => {
+    throw new Error('fetch failed')
+  }) as typeof fetch
+  const status = await cctpProvider(unreachable, chains).getStatus('0xabc', statusRef)
+  assert.deepEqual([status.state, status.detail], ['pending', 'Could not reach Circle (fetch failed); trying again'])
 })
