@@ -48,12 +48,26 @@ export async function sweepScreen(sheet: HTMLElement): Promise<void> {
   const result = h('section', { class: 'results', 'aria-live': 'polite' })
   const find = h('button', { class: 'btn', type: 'button' }, 'Show tokens')
   const plan = h('button', { class: 'btn primary', type: 'button', disabled: true }, 'Plan the sweep')
+  const planHint = h('p', { class: 'hint', id: 'sw-plan-hint' }, 'Press Show tokens first, then tick the tokens to move.')
+  plan.setAttribute('aria-describedby', 'sw-plan-hint')
+  const planReady = (ready: boolean, why = 'Press Show tokens first, then tick the tokens to move.') => {
+    plan.disabled = !ready
+    planHint.textContent = ready ? '' : why
+  }
   let tokens: { token: Token; balance: bigint; usd?: number }[] = []
   const checks = new Map<string, HTMLInputElement>()
 
   const byKey = (k: string) => chains.find((c) => c.key === k)!
   void targetPicker.setChain(byKey(to.value))
   to.addEventListener('change', () => void targetPicker.setChain(byKey(to.value)))
+  // The token list belongs to the chain it was read from; another chain needs Show tokens again.
+  from.addEventListener('change', () => {
+    tokens = []
+    checks.clear()
+    replace(held)
+    replace(result)
+    planReady(false)
+  })
 
   find.addEventListener('click', async () => {
     err.textContent = ''
@@ -65,7 +79,7 @@ export async function sweepScreen(sheet: HTMLElement): Promise<void> {
       checks.clear()
       if (tokens.length === 0) {
         replace(held, h('p', { class: 'empty' }, 'This wallet holds no tokens on that chain.'))
-        plan.disabled = true
+        planReady(false, 'Nothing to move: the wallet holds no tokens on the chain you send from.')
         return
       }
       const all = h('input', { type: 'checkbox', checked: true, 'aria-label': 'Select all tokens' })
@@ -90,7 +104,7 @@ export async function sweepScreen(sheet: HTMLElement): Promise<void> {
           ),
         ),
       )
-      plan.disabled = false
+      planReady(true)
     } catch (e) {
       replace(held)
       err.textContent = (e as Error).message
@@ -154,7 +168,7 @@ export async function sweepScreen(sheet: HTMLElement): Promise<void> {
     h('form', { class: 'form transfer-form', onSubmit: (e: Event) => e.preventDefault() }, h('fieldset', { class: 'group' }, h('legend', {}, 'Chains'), h('label', { class: 'row', for: 'sw-from' }, h('span', { class: 'label' }, 'From'), from), h('label', { class: 'row', for: 'sw-to' }, h('span', { class: 'label' }, 'To'), to), h('label', { class: 'row', for: 'sw-target' }, h('span', { class: 'label' }, 'Receive as'), targetPicker.el), h('label', { class: 'row', for: 'sw-recipient' }, h('span', { class: 'label' }, 'Recipient'), recipient), h('div', { class: 'actions' }, find))),
     err,
     held,
-    h('div', { class: 'actions' }, plan),
+    h('div', { class: 'actions' }, planHint, plan),
     result,
   )
 }

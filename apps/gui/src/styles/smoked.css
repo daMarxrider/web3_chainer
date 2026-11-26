@@ -77,3 +77,6 @@
 /* token picker */
 [data-theme='smoked'] { --popup: #111417; }
 [data-theme='smoked'] .combo-list { border-radius: 3px; }
+
+/* disabled buttons must look it, primary included */
+[data-theme='smoked'] .btn:disabled { opacity: 0.4; }

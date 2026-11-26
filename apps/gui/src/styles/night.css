@@ -87,3 +87,6 @@
 /* token picker */
 [data-theme='night'] { --popup: #0b1828; }
 [data-theme='night'] .combo-list { border-radius: 7px; }
+
+/* disabled buttons must look it, primary included */
+[data-theme='night'] .btn:disabled { opacity: 0.4; box-shadow: none; }
