@@ -112,7 +112,14 @@ export function bitcoinAdapter(chain: Chain, opts: { fetch: FetchFn; rpcUrl?: st
         }
         const fee = totalIn - totalOut
         if (fee < 0n || fee > (action.amount * 5n) / 100n + MAX_FEE_FLOOR) throw new Error(`The transaction fee of ${fee} is out of range; refusing to sign`)
-        if (tx.sign(key.privateKey) === 0) throw new Error('No input of this transaction belongs to the wallet')
+        let signed = 0
+        try {
+          signed = tx.sign(key.privateKey)
+        } catch (err) {
+          // The library throws when no input is ours; say it in the app's words.
+          if (!/No inputs signed/.test((err as Error).message)) throw err
+        }
+        if (signed === 0) throw new Error('No input of this transaction belongs to the wallet; refusing to sign')
         tx.finalize()
         return broadcast(tx.hex)
       }
