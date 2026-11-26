@@ -35,7 +35,13 @@ export const newMnemonic = () => generateMnemonic(wordlist, 128)
 
 export async function loadKeystore(store: Store): Promise<Keystore> {
   const raw = await store.get(KEY)
-  if (raw) return JSON.parse(raw) as Keystore
+  if (raw) {
+    try {
+      return JSON.parse(raw) as Keystore
+    } catch (err) {
+      throw new Error(`The wallet file (${KEY}) is damaged and could not be read: ${(err as Error).message}. Do not delete it: keep a copy, and restore it from a backup or import your seed phrase again.`)
+    }
+  }
   return {
     version: 1,
     salt: bytesToHex(crypto.getRandomValues(new Uint8Array(16))),
@@ -72,16 +78,25 @@ async function decrypt(keystore: Keystore, record: AccountRecord, password: stri
 function signerFromSecret(secret: string): { type: AccountRecord['type']; signer: Signer } {
   if (isHex(secret)) {
     if (secret.length !== 66) throw new Error('A private key must be 32 bytes (0x followed by 64 hex characters)')
-    return { type: 'key', signer: { evm: privateKeyToAccount(secret) } }
+    let evm: ReturnType<typeof privateKeyToAccount>
+    try {
+      evm = privateKeyToAccount(secret)
+    } catch {
+      // The library's message quotes the key's value; this one does not.
+      throw new Error('Not a usable private key: it is zero or larger than the curve allows')
+    }
+    return { type: 'key', signer: { evm } }
   }
   if (!validateMnemonic(secret, wordlist)) throw new Error('Not a valid private key or BIP-39 seed phrase')
   return { type: 'seed', signer: { evm: mnemonicToAccount(secret), seed: mnemonicToSeedSync(secret) } }
 }
 
-/** Normalises user input: trims, collapses whitespace in seed phrases, adds 0x to bare hex keys. */
+/** Normalises user input: trims, collapses whitespace, adds 0x to bare hex keys, lowers seed phrases (the BIP-39 word list is lower case). */
 export function normalizeSecret(input: string): string {
   const s = input.trim().replace(/\s+/g, ' ')
-  return /^[0-9a-fA-F]{64}$/.test(s) ? `0x${s}` : s
+  if (/^[0-9a-fA-F]{64}$/.test(s)) return `0x${s}`
+  if (/^0x/i.test(s)) return s
+  return s.toLowerCase()
 }
 
 /** Encrypts a seed phrase or private key under the keystore password and saves it. */
