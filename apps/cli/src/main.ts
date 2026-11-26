@@ -3,6 +3,8 @@ import { parseArgs } from 'node:util'
 import { parse as parseYaml } from 'yaml'
 import {
   addAccount,
+  loadTokenList,
+  TokenIndex,
   addressSlot,
   bitcoinAdapter,
   BUILTIN_CHAINS,
@@ -682,13 +684,20 @@ async function sweepCommand(args: string[]): Promise<void> {
   if (!adapterFor(toChain).validateAddress(toAddress)) throw new Error(`"${toAddress}" is not a valid address on ${toChain.name}`)
 
   const wanted = opts.tokens ? opts.tokens.split(',').map((s) => s.trim().toLowerCase()) : undefined
-  const sourceTokens = (await lifiTokens(fetchFn, fromChain)).filter((t) => !wanted || wanted.includes(t.symbol.toLowerCase()))
+  const { list, problem } = await loadTokenList(fetchFn, store)
+  if (problem) out(`Note: ${problem}`)
+  const index = new TokenIndex(list, problem)
+  // Tokens LI.FI's screening flags (scam airdrops, mostly) are never swept.
+  const sourceTokens = (await lifiTokens(fetchFn, fromChain)).filter((t) => t.screening !== 'flagged' && (!wanted || wanted.includes(t.symbol.toLowerCase())))
   const balances = await adapterFor(fromChain).getBalances(fromAddress, sourceTokens)
   const holdings = sourceTokens.map((token, i) => ({ token, balance: balances[i]! }))
 
   // Where each token lands: one chosen token, or the same token on the destination.
-  const destTokens = await lifiTokens(fetchFn, toChain)
+  const order = { listed: 0, screened: 1, unknown: 2, flagged: 3 } as const
+  // Same symbol on the destination: the best-trusted one, so a look-alike with the same symbol is never picked.
+  const destTokens = (await lifiTokens(fetchFn, toChain)).filter((d) => d.screening !== 'flagged').sort((a, b) => order[index.trust(a, toChain)] - order[index.trust(b, toChain)])
   const chosen = opts.target ? await lifiToken(fetchFn, toChain, opts.target) : undefined
+  if (chosen?.screening === 'flagged') throw new Error(`${chosen.symbol} on ${toChain.name} is flagged by LI.FI's token screening as a likely scam`)
   const target = (t: Token): Token | undefined => chosen ?? destTokens.find((d) => (isNative(t) ? isNative(d) : d.symbol.toLowerCase() === t.symbol.toLowerCase()))
 
   const { providers } = await runDeps()

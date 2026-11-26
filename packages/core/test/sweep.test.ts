@@ -143,3 +143,35 @@ test('tokens without a price go after the priced ones', async () => {
 test('a wallet with nothing in it plans nothing and skips nothing', async () => {
   assert.deepEqual(await planSweep({ holdings: [], target: dest, findRoute: noRoute }), { items: [], skipped: [] })
 })
+
+// ---- a whole wallet into one token on another chain family ----
+
+/** Bitcoin on its own chain, as LI.FI names it. */
+const BTC = tok('BTC', 'btc', 60000, 8, 'bitcoin')
+const LINK = tok('LINK', 'arb', 15, 18)
+const intoBtc = () => BTC
+const toAnything = async (from: Token, to: Token, amount: bigint) => route(from, to, amount, 0.5)
+
+test('with one target token, every held token, the coin included, is sent to it', async () => {
+  const plan = await planSweep({ holdings: [{ token: ETH, balance: eth(1) }, { token: USDC, balance: 200_000_000n }, { token: LINK, balance: dai(10) }], target: intoBtc, findRoute: toAnything })
+  assert.deepEqual(plan.items.map((i) => `${i.from.symbol}->${i.to.chainKey}:${i.to.symbol}`), ['USDC->btc:BTC', 'LINK->btc:BTC', 'ETH->btc:BTC'])
+})
+
+test('with one target token, tokens still go by value and the coin last with the others’ gas held back', async () => {
+  // Two token transfers at $0.50 each, times 3 = $3 = 0.0015 ETH; the coin's own $0.50 times 3 = another 0.00075 ETH.
+  const plan = await planSweep({ holdings: [{ token: ETH, balance: eth(1) }, { token: USDC, balance: 200_000_000n }, { token: LINK, balance: dai(10) }], target: intoBtc, findRoute: toAnything })
+  assert.equal(plan.items.at(-1)!.amount, eth(1) - eth(0.00225))
+})
+
+test('with one target token, a token without a route to it is skipped and the rest still go', async () => {
+  const onlyStables = async (from: Token, to: Token, amount: bigint) => (from.symbol === 'LINK' ? undefined : route(from, to, amount, 0.5))
+  const plan = await planSweep({ holdings: [{ token: USDC, balance: 200_000_000n }, { token: LINK, balance: dai(10) }], target: intoBtc, findRoute: onlyStables })
+  assert.deepEqual([plan.items.map((i) => i.from.symbol), plan.skipped.map((s) => `${s.token.symbol}: ${s.reason}`)], [['USDC'], ['LINK: no route']])
+})
+
+test('with one target token, each route is searched for exactly that token', async () => {
+  const asked: string[] = []
+  const recording = async (from: Token, to: Token, amount: bigint) => (asked.push(`${from.symbol}->${to.chainKey}:${to.address}`), route(from, to, amount, 0.5))
+  await planSweep({ holdings: [{ token: USDC, balance: 200_000_000n }, { token: LINK, balance: dai(10) }], target: intoBtc, findRoute: recording })
+  assert.deepEqual(asked, ['USDC->btc:bitcoin', 'LINK->btc:bitcoin'])
+})
