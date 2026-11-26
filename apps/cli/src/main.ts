@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { parseArgs } from 'node:util'
 import { parse as parseYaml } from 'yaml'
+import pkg from '../../../package.json' with { type: 'json' }
 import {
   addAccount,
   loadTokenList,
@@ -93,6 +94,7 @@ import { ask, askHidden, askPassword, confirm } from './prompt.ts'
 const HELP = `chainer - move tokens between blockchains over the best route
 
 Usage:
+  chainer --version                           Show the version
   chainer wallet init [--name <name>]         Create a wallet with a new seed phrase
   chainer wallet import [--name <name>]       Import a seed phrase or private key
   chainer wallet list                         Show wallets and their addresses
@@ -191,6 +193,7 @@ const parseOptions = () => parseArgs({
     json: { type: 'boolean' },
     testnets: { type: 'boolean' },
     help: { type: 'boolean', short: 'h' },
+    version: { type: 'boolean', short: 'v' },
   },
 })
 let parsed: ReturnType<typeof parseOptions>
@@ -1242,6 +1245,7 @@ async function configCommand(args: string[]): Promise<void> {
 
 async function main(): Promise<void> {
   const [command, ...rest] = positionals
+  if (opts.version) return out(`chainer ${pkg.version}`)
   if (opts.help || !command) return out(HELP)
   switch (command) {
     case 'wallet':

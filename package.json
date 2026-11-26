@@ -1,5 +1,6 @@
 {
   "name": "web3-chainer",
+  "version": "0.1.0",
   "private": true,
   "license": "GPL-3.0-only",
   "type": "module",
@@ -12,9 +13,12 @@
   ],
   "scripts": {
     "chainer": "node apps/cli/src/main.ts",
-    "test": "node --test \"packages/*/test/*.test.ts\" \"apps/*/test/*.test.ts\"",
+    "test": "node --test \"packages/*/test/*.test.ts\" \"apps/*/test/*.test.ts\" \"scripts/*.test.ts\"",
     "typecheck": "tsc --noEmit",
-    "test:gui": "node --test --test-concurrency=1 \"apps/gui/test/browser/*.test.ts\""
+    "test:gui": "node --test --test-concurrency=1 \"apps/gui/test/browser/*.test.ts\"",
+    "version:check": "node scripts/version.ts check",
+    "version:bump": "node scripts/version.ts bump",
+    "version:tag": "node scripts/version.ts tag"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

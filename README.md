@@ -292,7 +292,20 @@ npm run chainer -- quote 100 USDC arbitrum base
 ./scripts/test-install-linux.sh   # install script on clean Arch, Debian, Ubuntu, Fedora
 ```
 
-**Releases.** Set the version in `apps/gui/src-tauri/tauri.conf.json`, then push a matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The "Release builds" workflow builds Linux, macOS and Windows and attaches the bundles to a draft release, which is published by hand after a look. Pull requests that touch the desktop build run the same builds and keep the bundles as workflow artifacts.
+**Versions.** One version (`MAJOR.MINOR.PATCH`) covers the whole app: the command line, the desktop app and every bundle. The root `package.json` holds it and `npm run version:check` (also part of `npm test`) fails when any other file disagrees. What a release bumps:
+
+- a bug fix bumps the patch (0.4.2 to 0.4.3);
+- a new feature bumps the minor (0.4.2 to 0.5.0);
+- anything that breaks backwards compatibility (saved data, plan files, command options, settings) bumps the major, also while on 0.x (0.4.2 to 1.0.0).
+
+The app stays on 0.x until milestones 1 to 8 of the [plan](docs/PLAN.md) are done; the first release after that is 1.0.0. A release takes the largest bump among the changes since the last tag.
+
+**Releases.**
+
+1. On a branch: `npm run version:bump -- patch` (or `minor`, `major`, or an exact `X.Y.Z`) sets the version in every file; commit it and merge the pull request.
+2. On an up-to-date `main`: `npm run version:tag` checks the files and creates the tag `vX.Y.Z`; `git push origin vX.Y.Z` starts the build.
+
+The "Release builds" workflow refuses a tag that does not match the version, builds Linux, macOS and Windows and attaches the bundles to a draft release, which is published by hand after a look. Pull requests that touch the desktop build run the same builds and keep the bundles as workflow artifacts.
 
 The code is TypeScript, run directly by Node.js without a build step. `packages/core` holds all logic; `apps/cli` is the command line on top of it.
 
