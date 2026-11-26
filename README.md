@@ -267,7 +267,13 @@ The app asks for a theme on first launch, and the choice can be changed later in
 - **Smoked glass**: near-black smoked glass panels with amber instrument accents and mono readouts
 - **Night glass**: a translucent frame with a diagonal sheen around a dark pane, cyan accent
 
-One screenshot per theme will be added here when the app is finished.
+The Transfer screen with ranked routes in each theme (browser build, test networks, Arc Testnet to Base Sepolia through Circle CCTP; captured 26 Nov 2026):
+
+| Modern | Retro |
+|---|---|
+| ![Modern theme](docs/screenshots/modern.png) | ![Retro theme](docs/screenshots/retro.png) |
+| **Smoked glass** | **Night glass** |
+| ![Smoked glass theme](docs/screenshots/smoked.png) | ![Night glass theme](docs/screenshots/night.png) |
 
 ## Where your data lives
 
