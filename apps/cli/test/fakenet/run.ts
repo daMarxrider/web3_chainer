@@ -46,7 +46,7 @@ export interface Run {
   /** Requests nothing in the fake network answers; a test expects none. */
   unexpected: string[]
   /** Transactions the program broadcast, decoded, with the address that signed each. */
-  broadcasts: { chain: string; from: string; to?: string; value?: bigint; data?: Hex }[]
+  broadcasts: { chain: string; chainId?: number; from: string; to?: string; value?: bigint; data?: Hex }[]
 }
 
 export async function chainer(dir: string, world: World, args: string[], opts: { input?: string; password?: string | null; env?: Record<string, string> } = {}): Promise<Run> {
@@ -71,7 +71,7 @@ export async function chainer(dir: string, world: World, args: string[], opts: {
   const broadcasts = await Promise.all(
     lines.flatMap((l) => (l.kind === 'broadcast' ? [l] : [])).map(async (l) => {
       const tx = parseTransaction(l.raw as Hex)
-      return { chain: l.chain, from: await recoverTransactionAddress({ serializedTransaction: l.raw as never }), to: tx.to ?? undefined, value: tx.value, data: tx.data }
+      return { chain: l.chain, chainId: tx.chainId, from: await recoverTransactionAddress({ serializedTransaction: l.raw as never }), to: tx.to ?? undefined, value: tx.value, data: tx.data }
     }),
   )
   return {
