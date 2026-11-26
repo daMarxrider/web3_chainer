@@ -16,8 +16,10 @@ import type { LogLine, World } from '../../../../testing/fakenet/world.ts'
 
 const GUI_ROOT = fileURLToPath(new URL('../../', import.meta.url))
 
+/** The Chromium (or Chrome) binary; CHROMIUM overrides it, e.g. google-chrome on CI runners. */
+const CHROMIUM = process.env.CHROMIUM ?? 'chromium'
 /** Why the browser tests cannot run here, or undefined when they can. */
-export const browserMissing = spawnSync('chromium', ['--version'], { encoding: 'utf8' }).status === 0 ? undefined : 'Chromium is not installed; the GUI browser tests need it'
+export const browserMissing = spawnSync(CHROMIUM, ['--version'], { encoding: 'utf8' }).status === 0 ? undefined : `${CHROMIUM} is not installed; the GUI browser tests need it (set CHROMIUM to another binary)`
 
 type Pending = { resolve: (v: unknown) => void; reject: (e: Error) => void }
 
@@ -39,7 +41,7 @@ export class Browser {
     const address = b.vite.httpServer!.address() as { port: number }
     b.origin = `http://127.0.0.1:${address.port}`
     b.profile = mkdtempSync(join(tmpdir(), 'chainer-gui-'))
-    b.chrome = spawn('chromium', ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${b.profile}`, '--no-first-run', '--no-default-browser-check', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] })
+    b.chrome = spawn(CHROMIUM, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${b.profile}`, '--no-first-run', '--no-default-browser-check', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] })
     const wsUrl = await new Promise<string>((resolve, reject) => {
       let err = ''
       b.chrome.stderr!.on('data', (d: Buffer) => {
