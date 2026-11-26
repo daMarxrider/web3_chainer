@@ -156,7 +156,13 @@ Environment:
   CHAINER_HOME       Data folder (default: ${dataDir()})
 `
 
-const { values: opts, positionals } = parseArgs({
+/** Failures while starting up (an unknown option, a damaged settings file) get the same one-line "Error: ..." as any command, not a stack trace. */
+function fail(err: unknown): never {
+  console.error(`Error: ${err instanceof Error ? err.message : String(err)}`)
+  process.exit(1)
+}
+
+const parseOptions = () => parseArgs({
   allowPositionals: true,
   options: {
     wallet: { type: 'string' },
@@ -185,9 +191,16 @@ const { values: opts, positionals } = parseArgs({
     help: { type: 'boolean', short: 'h' },
   },
 })
+let parsed: ReturnType<typeof parseOptions>
+try {
+  parsed = parseOptions()
+} catch (err) {
+  fail(err)
+}
+const { values: opts, positionals } = parsed
 
 const store = fileStore(dataDir())
-const settings = await loadSettings(store)
+const settings = await loadSettings(store).catch(fail)
 
 /** Runs on test networks are journalled apart from real ones; the wallet is shared. */
 const runStore: Store = opts.testnet

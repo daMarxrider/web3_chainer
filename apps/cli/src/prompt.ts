@@ -1,6 +1,20 @@
 import { createInterface } from 'node:readline/promises'
 
+/**
+ * Piped input is read through one reader for the whole run: a reader buffers ahead, so a new one
+ * per question would lose the lines the previous one had already taken.
+ */
+let pipedLines: AsyncIterator<string> | undefined
+
 export async function ask(question: string): Promise<string> {
+  if (!process.stdin.isTTY) {
+    process.stderr.write(question)
+    pipedLines ??= createInterface({ input: process.stdin, crlfDelay: Infinity })[Symbol.asyncIterator]()
+    const next = await pipedLines.next()
+    // Without this, a question asked after the input ended would leave the program to exit quietly with success.
+    if (next.done) throw new Error(`The input ended before this was answered: ${question.trim()}`)
+    return next.value.trim()
+  }
   const rl = createInterface({ input: process.stdin, output: process.stderr })
   try {
     return (await rl.question(question)).trim()
