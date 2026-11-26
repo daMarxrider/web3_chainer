@@ -89,11 +89,13 @@ export async function atomiqProvider(fetchFn: FetchFn, chains: Chain[], opts: At
     return undefined
   }
 
-  const usd = async (amount: { usdValue(): Promise<number> } | undefined) => {
+  /** A fee in dollars. An unpriceable fee is an error: as 0 it would make the route look free and win the ranking. */
+  const usd = async (amount: { usdValue(): Promise<number> } | undefined, what: string) => {
+    if (!amount) return 0
     try {
-      return amount ? await amount.usdValue() : 0
-    } catch {
-      return 0
+      return await amount.usdValue()
+    } catch (err) {
+      throw new Error(`Atomiq could not price the ${what} (${(err as Error).message}), so the route's cost is unknown`)
     }
   }
 
@@ -178,7 +180,7 @@ export async function atomiqProvider(fetchFn: FetchFn, chains: Chain[], opts: At
       // EXACT_IN: the amount is what leaves the wallet.
       const swap = await swapper.swap(src, dst, request.amount, mods.sdk.SwapAmountType.EXACT_IN, dir === 'frombtc' ? undefined : request.fromAddress, request.toAddress)
       const output: bigint = swap.getOutput().rawAmount
-      const network = dir === 'tobtc' ? await usd(await swap.getSmartChainNetworkFee()) : await usd(swap.getClaimerBounty())
+      const network = dir === 'tobtc' ? await usd(await swap.getSmartChainNetworkFee(), 'Solana network fee') : await usd(swap.getClaimerBounty(), 'watchtower fee')
       return [
         {
           provider: 'atomiq',

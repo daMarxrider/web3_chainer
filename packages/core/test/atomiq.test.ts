@@ -133,3 +133,29 @@ test('BTC -> SOL resume after the Bitcoin was sent does not send it again', asyn
   assert.equal(status.state, 'done')
   assert.equal(sent.length, 0)
 })
+
+test('a quote whose network fee cannot be priced is refused with the reason, not offered as free', async () => {
+  const swap = fakeSwap('tobtc')
+  swap.getSmartChainNetworkFee = async () => ({ usdValue: async () => { throw new Error('price feed down') } })
+  const { provider } = await setup(swap)
+  await assert.rejects(provider.getQuotes(request(SOL, BTC), 'cheapest'), /^Error: Atomiq could not price the Solana network fee \(price feed down\), so the route's cost is unknown$/)
+})
+
+test('a quote from Bitcoin whose watchtower fee cannot be priced is refused with the reason', async () => {
+  const swap = fakeSwap('frombtc')
+  swap.getClaimerBounty = () => ({ usdValue: async () => { throw new Error('price feed down') } })
+  const { provider } = await setup(swap)
+  await assert.rejects(provider.getQuotes(request(BTC, SOL), 'cheapest'), /^Error: Atomiq could not price the watchtower fee \(price feed down\), so the route's cost is unknown$/)
+})
+
+test('a quote to Bitcoin costs the Solana network fee in dollars', async () => {
+  const { provider } = await setup(fakeSwap('tobtc'))
+  const [q] = await provider.getQuotes(request(SOL, BTC), 'cheapest')
+  assert.equal(q!.costUsd, 0.01)
+})
+
+test('a quote from Bitcoin costs the watchtower fee in dollars', async () => {
+  const { provider } = await setup(fakeSwap('frombtc'))
+  const [q] = await provider.getQuotes(request(BTC, SOL), 'cheapest')
+  assert.equal(q!.costUsd, 0.5)
+})
