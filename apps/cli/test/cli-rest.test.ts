@@ -4,8 +4,8 @@ import assert from 'node:assert/strict'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, test } from 'node:test'
-import { chainer, home, KEY, lastError, ME, PASSWORD, SEED, standardWorld, TOKENS, ZERO } from './fakenet/run.ts'
-import type { World } from './fakenet/world.ts'
+import { chainer, home, KEY, lastError, ME, PASSWORD, SEED, standardWorld, TOKENS, ZERO } from './run.ts'
+import type { World } from '../../../testing/fakenet/world.ts'
 
 const settingsOf = (dir: string) => JSON.parse(readFileSync(join(dir, 'settings.json'), 'utf8'))
 const send100 = ['send', '100', 'USDC', 'arb', 'bas']

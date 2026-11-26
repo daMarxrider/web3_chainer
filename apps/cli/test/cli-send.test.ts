@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, test } from 'node:test'
 import { decodeFunctionData, erc20Abi } from 'viem'
-import { chainer, DIAMOND, FRIEND, home, lastError, ME, standardWorld, TOKENS, ZERO } from './fakenet/run.ts'
+import { chainer, DIAMOND, FRIEND, home, lastError, ME, standardWorld, TOKENS, ZERO } from './run.ts'
 
 const send100 = ['send', '100', 'USDC', 'arb', 'bas']
 const runIdOf = (out: string) => /^Run ([0-9a-f]{8})$/m.exec(out)?.[1]

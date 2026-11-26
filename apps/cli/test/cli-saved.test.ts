@@ -4,8 +4,8 @@ import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, test } from 'node:test'
 import { decodeFunctionData, erc20Abi } from 'viem'
-import { chainer, DIAMOND, FRIEND, home, lastError, ME, standardWorld, TOKENS, ZERO } from './fakenet/run.ts'
-import type { World } from './fakenet/world.ts'
+import { chainer, DIAMOND, FRIEND, home, lastError, ME, standardWorld, TOKENS, ZERO } from './run.ts'
+import type { World } from '../../../testing/fakenet/world.ts'
 
 const approvedAmount = (data: `0x${string}`) => (decodeFunctionData({ abi: erc20Abi, data }).args as readonly [string, bigint])[1]
 const saveNightly = (dir: string, world: World = standardWorld(), extra: string[] = []) => chainer(dir, world, ['route', 'save', 'nightly', '100', 'USDC', 'arb', 'bas', ...extra])

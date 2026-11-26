@@ -12,5 +12,5 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "include": ["packages/*/src", "packages/*/test", "apps/cli/src", "apps/cli/test"]
+  "include": ["packages/*/src", "packages/*/test", "apps/cli/src", "apps/cli/test", "testing"]
 }

@@ -1,7 +1,7 @@
 // The real chainer command against a fake network: commands that only read.
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
-import { chainer, FRIEND, home, lastError, ME, standardWorld, TOKENS, ZERO } from './fakenet/run.ts'
+import { chainer, FRIEND, home, lastError, ME, standardWorld, TOKENS, ZERO } from './run.ts'
 
 describe('reading commands', { concurrency: true }, () => {
   // ---- chains ----

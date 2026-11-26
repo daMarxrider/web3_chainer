@@ -10,11 +10,11 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseTransaction, recoverTransactionAddress, type Hex } from 'viem'
 import { addAccount } from '@chainer/core'
-import { fileStore } from '../../src/env.ts'
-import { DIAMOND, ZERO, type LogLine, type World } from './world.ts'
+import { fileStore } from '../src/env.ts'
+import { DIAMOND, ZERO, type LogLine, type World } from '../../../testing/fakenet/world.ts'
 
-const MAIN = fileURLToPath(new URL('../../src/main.ts', import.meta.url))
-const PRELOAD = fileURLToPath(new URL('./preload.ts', import.meta.url))
+const MAIN = fileURLToPath(new URL('../src/main.ts', import.meta.url))
+const PRELOAD = fileURLToPath(new URL('../../../testing/fakenet/preload.ts', import.meta.url))
 
 export const SEED = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 /** The seed's first Ethereum account (BIP-44 test vector). */
