@@ -42,7 +42,7 @@ Only non-custodial, account-free routes, ranked by what actually arrives after g
 
 ## Brand Commitments
 
-- Two themes, chosen on first launch and changeable later: an original "Retro" early-2000s desktop look (the default) and a plain modern theme. Retro must be an original design written for this project: no Microsoft names, logos, wallpapers, icons, sounds or fonts, no pixel copy of the Windows XP style, no XP.css.
+- Four themes, chosen on first launch and changeable later, with the plain Modern theme as the default (owner decision, 26 Nov 2026; Retro was the default before): Modern, an original "Retro" early-2000s desktop look, Smoked glass and Night glass. Retro must be an original design written for this project: no Microsoft names, logos, wallpapers, icons, sounds or fonts, no pixel copy of the Windows XP style, no XP.css.
 - The product is called "chainer" (CLI command `chainer`, repository `web3_chainer`).
 - Licence GPLv3.
 

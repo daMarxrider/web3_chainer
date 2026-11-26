@@ -17,7 +17,7 @@ Decisions made with the user:
 - **Hands-off execution:** after one confirmation at the start, the whole run is automatic with a live status view in CLI and GUI.
 - **Test mode:** a configured route can be tried on testnets where they exist.
 - **Saved routes:** a route (including a whole-wallet sweep) can be worked out now and stored to run at a later time.
-- **Form:** CLI and GUI. GUI defaults to a "Retro" early-2000s look, with a modern theme selectable on first launch.
+- **Form:** CLI and GUI. GUI defaults to the Modern theme (changed from Retro on 26 Nov 2026 by the owner), with Retro and two glass themes selectable on first launch.
 - **Platforms:** Windows, Linux, macOS, Android (no iOS).
 - **Install scripts:** one script per desktop system (Linux, macOS, Windows) that installs every dependency; none for Android.
 
@@ -158,7 +158,7 @@ Decided on 14 Nov 2026 to keep the legal risk for the author low:
 
 - **Monero is not supported**, as source, destination or stop-over. Route sources that list it (THORChain once its pool is live, BasicSwap) must have XMR filtered out by a built-in rule the user cannot switch off; eigenwallet (BTC <-> XMR only) is not integrated.
 - **No proxy, VPN or Tor support.** The app has no proxy setting and does not install, bundle or start any of them. The proxy setting built in milestone 1 was removed. Anyone who wants one sets it up on their own system, outside the app.
-- **The default theme is "Retro"**, an original early-2000s desktop look written for this project. It uses no Microsoft names, logos, wallpapers, icons, sounds or fonts, does not copy the Windows XP visual style pixel for pixel, and does not use the XP.css library.
+- **Retro is an original theme (no longer the default since 26 Nov 2026; Modern is)**, an original early-2000s desktop look written for this project. It uses no Microsoft names, logos, wallpapers, icons, sounds or fonts, does not copy the Windows XP visual style pixel for pixel, and does not use the XP.css library.
 - **Disclaimer.** The README and `chainer --help` state that the author is not liable for losses from bugs or misuse; the GUI must show the same text on first launch and in its About screen.
 - **The README says so.** Its "Not supported, and why" section lists Monero and built-in proxy, VPN or Tor routing with the reason, so users are not left guessing. It gives no instructions or hints for doing either outside the app.
 - Wording everywhere stays functional (cost, speed, self-custody); never "anonymous" or "untraceable".
@@ -264,7 +264,7 @@ Rule for later milestones: before a route source, daemon or library is integrate
 
 **GUI:**
 
-- First launch: theme picker (Retro default, Modern), then wallet setup.
+- First launch: theme picker (Modern default; Retro, Smoked glass and Night glass), then wallet setup.
 - Screens: Balances, Transfer (form -> ranked routes -> confirm -> live progress), Bridge Wallet (token table with checkboxes and "select all"), Pipeline builder, Saved routes, Schedules, Address book, History, Settings.
 - The README carries step-by-step usage for CLI and GUI plus one screenshot per theme (`docs/screenshots/`); the screenshots are retaken whenever a change alters how the GUI looks.
 - Themes are CSS only: an original "Retro" stylesheet written for this project and a plain modern one; the choice is stored and changeable later.

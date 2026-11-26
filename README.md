@@ -262,8 +262,8 @@ The browser build keeps the wallet and journal in the browser's local storage; t
 
 The app asks for a theme on first launch, and the choice can be changed later in the settings:
 
-- **Retro** (the default): an original early-2000s desktop look, designed for this project and not a copy of any operating system's interface
-- **Modern**: the same layout, flat, light or dark with your system
+- **Modern** (the default): the same layout as the others, flat, light or dark with your system
+- **Retro**: an original early-2000s desktop look, designed for this project and not a copy of any operating system's interface
 - **Smoked glass**: near-black smoked glass panels with amber instrument accents and mono readouts
 - **Night glass**: a translucent frame with a diagonal sheen around a dark pane, cyan accent
 

@@ -109,7 +109,7 @@ components:
 
 chainer is a tool people operate to move money, so the interface is a desk of real instruments: a window with a title bar, a list of sheets on the left, one working sheet, and a status strip along the bottom that always says which wallet, which network (real or test) and what job is running. One structure serves four skins, chosen by the user on first launch and changeable in Settings. The skin changes materials and light, never layout, copy or behaviour.
 
-The default skin, Retro, is an original early-2000s workstation: a mist-teal desktop tiled with a faint node-and-edge pattern, bevelled windows, indigo title bars, recessed fields, lamps for state. It is written for this project and borrows nothing from any operating system. The other skins are Modern (flat, light or dark with the system), Smoked glass (near-black smoked panels, amber instruments, mono readouts) and Night glass (a translucent frame with a diagonal sheen around a dark pane, cyan accent).
+The default skin is Modern (flat, light or dark with the system). Retro is an original early-2000s workstation: a mist-teal desktop tiled with a faint node-and-edge pattern, bevelled windows, indigo title bars, recessed fields, lamps for state. It is written for this project and borrows nothing from any operating system. The other skins are Modern (flat, light or dark with the system), Smoked glass (near-black smoked panels, amber instruments, mono readouts) and Night glass (a translucent frame with a diagonal sheen around a dark pane, cyan accent).
 
 **Key Characteristics:**
 - One window-and-sheet structure; skins are CSS only.
