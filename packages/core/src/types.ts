@@ -30,6 +30,10 @@ export interface Token {
   symbol: string
   decimals: number
   priceUsd?: number
+  /** Full name, when the token list gives one. */
+  name?: string
+  /** LI.FI's token screening: "flagged" tokens are not offered or sent. */
+  screening?: 'verified' | 'flagged' | 'unverified'
 }
 
 export interface QuoteRequest {

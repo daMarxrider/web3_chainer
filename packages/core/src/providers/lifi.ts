@@ -13,6 +13,8 @@ interface LifiToken {
   symbol: string
   decimals: number
   priceUSD?: string
+  name?: string
+  verificationStatus?: string
 }
 interface LifiChain {
   chainType: 'EVM' | 'SVM' | 'UTXO' | 'MVM' | 'TVM'
@@ -51,6 +53,8 @@ const toToken = (t: LifiToken, chainKey: string): Token => ({
   symbol: t.symbol,
   decimals: t.decimals,
   priceUsd: t.priceUSD ? Number(t.priceUSD) : undefined,
+  name: t.name,
+  screening: t.verificationStatus === 'verified' || t.verificationStatus === 'flagged' || t.verificationStatus === 'unverified' ? t.verificationStatus : undefined,
 })
 
 const FAMILY: Partial<Record<LifiChain['chainType'], ChainFamily>> = { EVM: 'evm', SVM: 'solana', UTXO: 'bitcoin' }
