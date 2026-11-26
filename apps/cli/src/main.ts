@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { parseArgs } from 'node:util'
+import { isSea } from 'node:sea'
 import { parse as parseYaml } from 'yaml'
 import pkg from '../../../package.json' with { type: 'json' }
 import {
@@ -423,7 +424,7 @@ async function providersCommand(): Promise<void> {
   if (opts.json) return printJson({ builtIn: ['lifi', 'cctp', 'thorchain', 'maya'], optional: sdks })
   out('Built in: lifi, cctp, thorchain, maya')
   for (const s of sdks) {
-    out(`${s.provider}: ${s.installed ? 'installed' : s.error ? `broken (${s.error})` : `not installed, ${s.gives} is not offered; add it with "npm install --no-save ${s.pkgs.join(' ')}"`}`)
+    out(`${s.provider}: ${s.installed ? 'installed' : s.error ? `broken (${s.error})` : `not installed, ${s.gives} is not offered; ${isSea() ? 'the standalone binary cannot load it, run chainer from source for it (see the README)' : `add it with "npm install --no-save ${s.pkgs.join(' ')}"`}`}`)
   }
 }
 

@@ -18,10 +18,12 @@
     "test:gui": "node --test --test-concurrency=1 \"apps/gui/test/browser/*.test.ts\"",
     "version:check": "node scripts/version.ts check",
     "version:bump": "node scripts/version.ts bump",
-    "version:tag": "node scripts/version.ts tag"
+    "version:tag": "node scripts/version.ts tag",
+    "build:cli": "node scripts/build-cli.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "esbuild": "^0.28.2",
     "typescript": "^7.0.2"
   }
 }

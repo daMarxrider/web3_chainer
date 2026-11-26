@@ -20,7 +20,8 @@ const nodeImport: Importer = (pkg) => import(pkg)
 
 const isMissing = (err: unknown, pkg: string) => {
   const e = err as { code?: string; message?: string }
-  return (e.code === 'ERR_MODULE_NOT_FOUND' || e.code === 'MODULE_NOT_FOUND') && (e.message ?? '').includes(pkg)
+  // ERR_UNKNOWN_BUILTIN_MODULE: the standalone binary can load only Node's own modules.
+  return ['ERR_MODULE_NOT_FOUND', 'MODULE_NOT_FOUND', 'ERR_UNKNOWN_BUILTIN_MODULE'].includes(e.code ?? '') && (e.message ?? '').includes(pkg)
 }
 
 /**
