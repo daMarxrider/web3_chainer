@@ -63,3 +63,4 @@ for (const [path, runs] of [...byPath].sort()) {
   console.log(`${path}: ${missed.length} lines never run${missed.length ? `: ${missed.join(' ')}` : ''}`)
 }
 await vite.close()
+process.exit(0)
