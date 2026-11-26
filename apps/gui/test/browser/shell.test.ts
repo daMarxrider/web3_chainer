@@ -215,7 +215,7 @@ describe('the GUI shell', { concurrency: 6, skip: browserMissing }, () => {
   test('Balances lists what the wallet holds with value, and the total', async (t) => {
     const page = await mainWindow(t)
     await page.waitFor('document.querySelectorAll("table.data tbody tr").length === 2')
-    assert.deepEqual([await page.text('table.data tbody tr:first-child th'), await page.text('table.data tfoot td.num')], ['USDC', '$1030.00'])
+    assert.deepEqual([await page.text('table.data tbody tr:first-child th'), await page.text('table.data tfoot td.num')], ['USDC', '$1,030.00'])
   })
 
   test('Balances shows the wallet’s address and copies it', async (t) => {
