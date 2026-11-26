@@ -236,6 +236,8 @@ npm install
 npm run dev -w @chainer/gui        # opens on http://127.0.0.1:5173
 ```
 
+**Downloads.** Each release on GitHub has the desktop app for Linux (deb, rpm, AppImage), macOS (Apple silicon and Intel) and Windows (msi and setup.exe). They are not signed yet, so your system asks before the first start: on macOS right-click the app and choose Open, on Windows choose More info, then Run anyway in the SmartScreen window.
+
 **Desktop app (Tauri).** On Linux, `./scripts/install-linux.sh --desktop` also installs Rust and the libraries the shell needs (Arch, Debian, Ubuntu and Fedora package names; this option has not been run on those systems yet). Then:
 
 ```sh
@@ -289,6 +291,8 @@ npm run typecheck
 npm run chainer -- quote 100 USDC arbitrum base
 ./scripts/test-install-linux.sh   # install script on clean Arch, Debian, Ubuntu, Fedora
 ```
+
+**Releases.** Set the version in `apps/gui/src-tauri/tauri.conf.json`, then push a matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The "Release builds" workflow builds Linux, macOS and Windows and attaches the bundles to a draft release, which is published by hand after a look. Pull requests that touch the desktop build run the same builds and keep the bundles as workflow artifacts.
 
 The code is TypeScript, run directly by Node.js without a build step. `packages/core` holds all logic; `apps/cli` is the command line on top of it.
 
