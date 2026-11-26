@@ -9,11 +9,18 @@ import { dirname } from 'node:path'
  */
 
 async function readJson<T>(file: string, empty: T): Promise<T> {
+  let text: string
   try {
-    return JSON.parse(await readFile(file, 'utf8')) as T
+    text = await readFile(file, 'utf8')
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return empty
     throw err
+  }
+  try {
+    return JSON.parse(text) as T
+  } catch (err) {
+    // Never start empty over a damaged file: it may hold what is needed to claim or refund a swap.
+    throw new Error(`The swap file ${file} is damaged and could not be read: ${(err as Error).message}. Keep a copy of it before changing anything.`)
   }
 }
 async function writeJson(file: string, value: unknown): Promise<void> {
