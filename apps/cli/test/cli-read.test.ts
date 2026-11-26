@@ -129,7 +129,7 @@ describe('reading commands', { concurrency: true }, () => {
 
   test('quote when LI.FI rate-limits names the source and the wait', async (t) => {
     const r = await chainer(await home(t), standardWorld({ routesError: { status: 429, message: 'Too many requests' } }), ['quote', '100', 'USDC', 'arb', 'bas'])
-    assert.equal(lastError(r.err), 'Error: No route found. lifi: li.quest is rate-limiting this connection; try again in 0 seconds')
+    assert.equal(lastError(r.err), 'Error: No route found. lifi: li.quest is rate-limiting this connection; try again later')
   })
 
   test('quote of an amount that is not a number is refused', async (t) => {

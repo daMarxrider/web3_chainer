@@ -153,3 +153,14 @@ test('a rate limit given as a date is understood as the time left until then', a
     mock.timers.reset()
   }
 })
+
+test('a rate limit without a waiting time, still there after the retries, says to try again later', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  const { fetchFn } = server(rateLimited())
+  const result = fetchJson(fetchFn, URL_)
+  await settle()
+  t.mock.timers.tick(1000)
+  await settle()
+  t.mock.timers.tick(2000)
+  await assert.rejects(result, { message: 'api.example.org is rate-limiting this connection; try again later' })
+})

@@ -23,8 +23,8 @@ export async function fetchJson<T>(fetchFn: FetchFn, url: string, init?: Request
     }
     const text = await res.text()
     if (res.status === 429) {
-      const wait = retryAfter > 90 ? `${Math.ceil(retryAfter / 60)} minutes` : retryAfter === 1 ? '1 second' : `${retryAfter} seconds`
-      throw new Error(`${new URL(url).host} is rate-limiting this connection; try again in ${wait}`)
+      const wait = retryAfter === 0 ? 'later' : retryAfter > 90 ? `in ${Math.ceil(retryAfter / 60)} minutes` : retryAfter === 1 ? 'in 1 second' : `in ${retryAfter} seconds`
+      throw new Error(`${new URL(url).host} is rate-limiting this connection; try again ${wait}`)
     }
     if (!res.ok) {
       let message = text.slice(0, 300)
