@@ -168,6 +168,11 @@ test('the error for too little money says how much is needed with the fee', asyn
   await assert.rejects(send(esplora(), 100_000n), /^Error: Not enough tBTC: need 100282 sats including the fee, the wallet holds 100000$/)
 })
 
+test('a wallet without coins is told the need with the fee of at least one input', async () => {
+  // 10 000 + 141 vbytes x 2 sat/vB = 10 282
+  await assert.rejects(send(esplora({ utxos: [] }), 10_000n), /^Error: Not enough tBTC: need 10282 sats including the fee, the wallet holds 0$/)
+})
+
 test('a fee above 5 % of the amount plus 5 000 sats is refused', async () => {
   // Cap for 1 000 sats: 50 + 5 000 = 5 050; 141 x 40 sat/vB = 5 640.
   await assert.rejects(send(esplora({ fees: { '3': 40 } }), 1_000n), /^Error: The network fee of 5640 sats is too high for this amount right now$/)

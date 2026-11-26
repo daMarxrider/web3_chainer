@@ -142,7 +142,8 @@ export function bitcoinAdapter(chain: Chain, opts: { fetch: FetchFn; rpcUrl?: st
         if (have >= action.amount + feeFor(chosen.length)) break
       }
       const fee = feeFor(chosen.length)
-      if (have < action.amount + fee) throw new Error(`Not enough ${chain.nativeSymbol}: need ${action.amount + fee} sats including the fee, the wallet holds ${have}`)
+      // With no usable coin at all, the need is stated with the fee of the one input a send takes at least.
+      if (have < action.amount + fee) throw new Error(`Not enough ${chain.nativeSymbol}: need ${action.amount + feeFor(Math.max(1, chosen.length))} sats including the fee, the wallet holds ${have}`)
       if (fee > (action.amount * BigInt(Math.round(MAX_FEE_SHARE * 100))) / 100n + MAX_FEE_FLOOR) throw new Error(`The network fee of ${fee} sats is too high for this amount right now`)
 
       const tx = new btc.Transaction({ allowUnknownOutputs: true })

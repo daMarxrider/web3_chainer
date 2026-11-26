@@ -68,14 +68,16 @@ const bchRest = (call: Call): Backend => ({
   async broadcast(hex) {
     const res = await call(`/rawtransactions/sendRawTransaction/${hex}`)
     const body = (await res.text()).trim()
-    let parsed: unknown = body
+    // The node answers with the transaction id, as a JSON string or as plain text. Anything else, such as a
+    // plain-text refusal ("txn-mempool-conflict"), must never be taken for an id: the transfer would look sent.
+    let answer: unknown = body
     try {
-      parsed = JSON.parse(body)
+      answer = JSON.parse(body)
     } catch {
-      // not JSON: handled below
+      // plain text: checked below like a JSON string
     }
-    if (!res.ok || typeof parsed !== 'string') throw new Error(`The node refused the transaction: ${body.slice(0, 300)}`)
-    return parsed
+    if (!res.ok || typeof answer !== 'string' || !/^[0-9a-f]{64}$/i.test(answer)) throw new Error(`The node refused the transaction: ${body.slice(0, 300)}`)
+    return answer
   },
   async confirmed(txid) {
     const res = await call(`/transaction/details/${txid}`)
@@ -156,7 +158,8 @@ export function legacyUtxoAdapter(chain: Chain, coin: UtxoCoin, opts: { fetch: F
         if (have >= action.amount + feeFor(chosen.length)) break
       }
       const fee = feeFor(chosen.length)
-      if (have < action.amount + fee) throw new Error(`Not enough ${chain.nativeSymbol}: need ${action.amount + fee} including the fee, the wallet holds ${have} (confirmed)`)
+      // With no usable coin at all, the need is stated with the fee of the one input a send takes at least.
+      if (have < action.amount + fee) throw new Error(`Not enough ${chain.nativeSymbol}: need ${action.amount + feeFor(Math.max(1, chosen.length))} including the fee, the wallet holds ${have} (confirmed)`)
       if (fee > (action.amount * 5n) / 100n + coin.maxFeeFloor) throw new Error(`The network fee of ${fee} is too high for this amount right now`)
 
       const inputs: LegacyInput[] = chosen.map((c) => ({ txid: c.txid, vout: c.vout, value: c.value, script: own }))
