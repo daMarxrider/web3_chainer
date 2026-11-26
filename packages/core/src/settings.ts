@@ -58,10 +58,19 @@ const KEY = 'settings.json'
 
 export async function loadSettings(store: Store): Promise<Settings> {
   const raw = await store.get(KEY)
-  const saved = raw ? (JSON.parse(raw) as Partial<Settings> & { gasTopUpUsd?: number }) : {}
+  let saved: Partial<Settings> & { gasTopUpUsd?: number } = {}
+  if (raw) {
+    try {
+      saved = JSON.parse(raw)
+    } catch (err) {
+      throw new Error(`The settings file (${KEY}) is damaged and could not be read: ${(err as Error).message}. Fix or delete it to start from the defaults.`)
+    }
+  }
+  // A fresh copy: callers may change the lists and objects they get without touching the shared defaults.
+  const defaults = structuredClone(defaultSettings)
   // Settings saved while the top-up was a single USD value become the fixed mode.
-  const legacy = saved.gasTopUpUsd !== undefined && !saved.gasTopUp ? { mode: saved.gasTopUpUsd > 0 ? ('fixed' as const) : ('off' as const), fixedUsd: saved.gasTopUpUsd || defaultSettings.gasTopUp.fixedUsd } : {}
-  return { ...defaultSettings, ...saved, lifi: { ...defaultSettings.lifi, ...saved.lifi }, gasTopUp: { ...defaultSettings.gasTopUp, ...legacy, ...saved.gasTopUp } }
+  const legacy = saved.gasTopUpUsd !== undefined && !saved.gasTopUp ? { mode: saved.gasTopUpUsd > 0 ? ('fixed' as const) : ('off' as const), fixedUsd: saved.gasTopUpUsd || defaults.gasTopUp.fixedUsd } : {}
+  return { ...defaults, ...saved, lifi: { ...defaults.lifi, ...saved.lifi }, gasTopUp: { ...defaults.gasTopUp, ...legacy, ...saved.gasTopUp } }
 }
 
 export async function saveSettings(store: Store, settings: Settings): Promise<void> {
