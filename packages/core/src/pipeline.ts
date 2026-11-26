@@ -229,6 +229,8 @@ async function runLeg(record: PipelineRecord, i: number, deps: PipelineDeps): Pr
       throw new Error(`The app stopped while sending this leg, so it is unclear whether the transaction went out. Check the recent transactions of ${t.fromAddress}; it is not re-sent automatically.`)
     }
     if (t?.state === 'done') return finish(t)
+    // Still under way after tracking (a swap that settles later): funds already left, so it must never start again.
+    if (t?.state === 'submitted') throw new Error(`This leg's transfer is still under way (${t.txId ?? 'sent'}); resume again later. It is not sent a second time.`)
     // created / failed: nothing left the wallet, so the leg starts again below.
   }
 
