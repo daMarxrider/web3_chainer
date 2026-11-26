@@ -49,6 +49,8 @@ export interface World {
   gasPriceWei?: string
   /** The curated token list, or absent (then its download fails with 404). */
   tokenList?: { name: string; tokens: { chainId: number; address: string; symbol: string; name: string }[] }
+  /** LI.FI answers every token list request with this error. */
+  tokensError?: { status: number; message: string }
   /** LI.FI answers every route search with this error (e.g. a rate limit). */
   routesError?: { status: number; message: string }
 }

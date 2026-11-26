@@ -38,19 +38,24 @@ let showing = 'balances'
 
 export function mainWindow(root: HTMLElement, onLock: () => void): void {
   const session = engine.requireSession()
-  const sheet = h('main', { class: 'sheet', id: 'sheet', tabindex: '-1' })
+  let sheet = h('main', { class: 'sheet', id: 'sheet', tabindex: '-1' })
   const list = h('nav', { class: 'sheetlist', 'aria-label': 'Screens' })
 
   const open = async (id: string) => {
     showing = id
     for (const b of list.querySelectorAll('button')) b.toggleAttribute('aria-current', b.dataset.id === id)
-    replace(sheet)
+    // A fresh sheet per screen: a screen still loading when another is opened finishes into its own,
+    // detached sheet and cannot replace the newer screen.
+    const fresh = h('main', { class: 'sheet', id: 'sheet', tabindex: '-1' })
+    sheet.replaceWith(fresh)
+    sheet = fresh
     const screen = SCREENS.find((s) => s.id === id)!
     sheet.dataset.screen = id
+    const mine = sheet
     try {
-      await screen.render(sheet)
+      await screen.render(mine)
     } catch (err) {
-      replace(sheet, h('p', { class: 'form-error', role: 'alert' }, (err as Error).message))
+      replace(mine, h('p', { class: 'form-error', role: 'alert' }, (err as Error).message))
     }
   }
   for (const s of SCREENS) {

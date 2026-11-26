@@ -41,6 +41,7 @@ export function fakeNetwork(world: World, log: (line: LogLine) => void): (url: s
       return t ? json(lifiToken(t)) : json({ message: `Could not find token '${url.searchParams.get('token')}' on chain '${url.searchParams.get('chain')}'` }, 404)
     }
     if (p === '/v1/tokens') {
+      if (world.tokensError) return json({ message: world.tokensError.message }, world.tokensError.status)
       const id = url.searchParams.get('chains')!
       const c = chainById(id)
       return json({ tokens: c ? { [id]: tokensOf(c.key).map(lifiToken) } : {} })
