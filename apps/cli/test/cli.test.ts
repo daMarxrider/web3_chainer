@@ -46,6 +46,12 @@ describe('the chainer command', { concurrency: true }, () => {
     assert.equal(chainer(dir, ['--help']).out, chainer(dir, []).out)
   })
 
+  test('--version and -v print the version of the root package.json', (t) => {
+    const dir = home(t)
+    const want = `chainer ${JSON.parse(readFileSync(new URL('../../../package.json', import.meta.url), 'utf8')).version}\n`
+    assert.deepEqual([chainer(dir, ['--version']).out, chainer(dir, ['-v']).out], [want, want])
+  })
+
   test('an unknown command fails with a pointer to the help', (t) => {
     const r = chainer(home(t), ['frobnicate'])
     assert.deepEqual([r.code, r.err.trim()], [1, 'Error: Unknown command "frobnicate". Run "chainer --help".'])
