@@ -373,3 +373,68 @@ test('a leg only uses the route the user chose, even when a better one appears l
   const plan = newPipeline('main', ME, [{ from: A, to: Z, amount: '1000000', fromAddress: ME, toAddress: '0xfriend' }])
   assert.equal((await runPipeline(plan, w.deps(memoryStore()))).state, 'done')
 })
+
+// ---- sending a whole balance ----
+
+/** Chain a's own coin, priced at $2. With 6 decimals, 1_000_000 units are 1 coin. */
+const COIN = { chainKey: 'a', address: '0x0000000000000000000000000000000000000000', symbol: 'ETH', decimals: 6, priceUsd: 2 } satisfies Token
+const allOf = (from: Token, to: Token) => newPipeline('main', ME, [{ from, to, amount: 'all', toAddress: '0xfriend' }])
+
+test('sending all of the chain’s coin keeps twice the leg’s gas cost back', async () => {
+  // Gas is $0.10 per quote in this world; twice that is $0.20 = 0.1 coin at $2 = 100_000 units.
+  const w = world([[COIN, Z, 1]], [[COIN, 1_000_000n]])
+  await runPipeline(allOf(COIN, Z), w.deps(memoryStore()))
+  assert.deepEqual(w.sent.map((q) => q.request.amount), [900_000n])
+})
+
+test('sending all of the chain’s coin leaves exactly the gas reserve in the wallet', async () => {
+  const w = world([[COIN, Z, 1]], [[COIN, 1_000_000n]])
+  await runPipeline(allOf(COIN, Z), w.deps(memoryStore()))
+  assert.equal(w.balances.get(COIN.address), 100_000n)
+})
+
+test('a coin balance that only covers the gas reserve stops the leg with nothing sent', async () => {
+  const w = world([[COIN, Z, 1]], [[COIN, 100_000n]])
+  const result = await runPipeline(allOf(COIN, Z), w.deps(memoryStore()))
+  assert.deepEqual([result.state, result.legs[0]!.error, w.sent.length], ['failed', 'The ETH balance is too small to cover gas for this leg', 0])
+})
+
+test('pinning: all of a coin whose price is unknown is sent without a gas reserve', async () => {
+  // Without a price the reserve cannot be sized; guards today's behaviour, which leaves gas to the chain to refuse.
+  const unpriced = { ...COIN, priceUsd: undefined }
+  const w = world([[unpriced, Z, 1]], [[unpriced, 1_000_000n]])
+  await runPipeline(allOf(unpriced, Z), w.deps(memoryStore()))
+  assert.deepEqual(w.sent.map((q) => q.request.amount), [1_000_000n])
+})
+
+test('sending all of a token sends every unit, as gas is paid in the coin', async () => {
+  const w = world([[A, Z, 1]], [[A, 1_234_567n]])
+  await runPipeline(allOf(A, Z), w.deps(memoryStore()))
+  assert.deepEqual(w.sent.map((q) => q.request.amount), [1_234_567n])
+})
+
+test('sending all of a token the wallet has none of stops with nothing sent', async () => {
+  const w = world([[A, Z, 1]], [])
+  const result = await runPipeline(allOf(A, Z), w.deps(memoryStore()))
+  assert.deepEqual([result.legs[0]!.error, w.sent.length], ['Nothing to send: the wallet holds no AAA on a', 0])
+})
+
+test('a fixed amount larger than the balance stops with nothing sent', async () => {
+  const w = world([[A, Z, 1]], [[A, 999_999n]])
+  const result = await runPipeline(newPipeline('main', ME, [{ from: A, to: Z, amount: '1000000', toAddress: '0xfriend' }]), w.deps(memoryStore()))
+  assert.deepEqual([result.legs[0]!.error, w.sent.length], ['Not enough AAA on a for this leg', 0])
+})
+
+test('a fixed amount equal to the balance is sent in full', async () => {
+  const w = world([[A, Z, 1]], [[A, 1_000_000n]])
+  await runPipeline(newPipeline('main', ME, [{ from: A, to: Z, amount: '1000000', toAddress: '0xfriend' }]), w.deps(memoryStore()))
+  assert.deepEqual(w.sent.map((q) => q.request.amount), [1_000_000n])
+})
+
+test('a later leg sending "all" forwards only what arrived, not what was already in the wallet', async () => {
+  // Leg 1 delivers 500_000 HUB1 at rate 0.5; 7_000 HUB1 were already there and must stay.
+  const w = world([[A, HUB1, 0.5], [HUB1, Z, 1]], [[A, 1_000_000n], [HUB1, 7_000n]])
+  const legs = [{ from: A, to: HUB1, amount: '1000000', toAddress: ME }, { from: HUB1, to: Z, amount: 'all' as const, toAddress: '0xfriend' }]
+  await runPipeline(newPipeline('main', ME, legs), w.deps(memoryStore()))
+  assert.deepEqual(w.sent.map((q) => q.request.amount), [1_000_000n, 500_000n])
+})
