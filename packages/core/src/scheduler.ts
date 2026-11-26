@@ -84,7 +84,8 @@ export async function listSchedules(store: Store): Promise<Schedule[]> {
   return raws.filter((r): r is string => !!r).map((r) => JSON.parse(r) as Schedule).sort((a, b) => a.createdAt.localeCompare(b.createdAt))
 }
 export async function removeSchedule(store: Store, idOrPrefix: string): Promise<Schedule> {
-  const found = (await listSchedules(store)).filter((s) => s.id.startsWith(idOrPrefix))
+  // An empty prefix would match every schedule and remove the only one there is.
+  const found = idOrPrefix.trim() ? (await listSchedules(store)).filter((s) => s.id.startsWith(idOrPrefix.trim())) : []
   if (found.length !== 1) throw new Error(found.length ? `"${idOrPrefix}" matches several schedules; give more characters` : `No schedule "${idOrPrefix}"`)
   // The Store has no delete; an empty value reads back as gone.
   await store.set(file(found[0]!.id), '')
