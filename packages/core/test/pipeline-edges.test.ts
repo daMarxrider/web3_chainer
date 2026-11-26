@@ -290,3 +290,10 @@ test('a leg pinned to a route that is still offered uses it', async () => {
   const result = await runPipeline(oneLeg({ pin: 'fake/AAA>ZZZ' }), deps([linksProvider({ 'AAA>ZZZ': 1 }).p], w.adapter))
   assert.equal(result.legs[0]!.via, 'fake/AAA>ZZZ')
 })
+
+test('a leg whose transaction reverts stops with the reason from the chain', async () => {
+  const w = chainWorld({ [A.address]: 1_000_000n })
+  const reverting = { ...w.adapter, waitForConfirmation: async () => false }
+  const result = await runPipeline(oneLeg(), deps([linksProvider({ 'AAA>ZZZ': 1 }).p], reverting))
+  assert.equal(result.legs[0]!.error, 'The transaction reverted on the source chain; the funds did not leave the wallet')
+})

@@ -262,3 +262,30 @@ test('on test networks Atomiq swaps testnet4 BTC and devnet SOL', async (t) => {
   const { p } = await provider(t, { testnet: true })
   assert.deepEqual(await p.getQuotes({ from: BTCT, to: MAIN_SOL, amount: 1n, fromAddress: 'a', toAddress: 'b', slippage: 0 }, 'cheapest'), [])
 })
+
+test('without a loader of its own, the provider exists exactly when the optional packages are installed', async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), 'atomiq-real-'))
+  t.after(() => rm(dir, { recursive: true, force: true }))
+  const { sdkStatus } = await import('../src/index.ts')
+  const [status] = await sdkStatus()
+  assert.equal((await atomiqProvider(fetch, [], { dir, testnet: false })) !== undefined, status!.installed)
+})
+
+test('a swap paid out while waiting without a payout transaction id leaves it unknown', async (t) => {
+  const { p } = await provider(t)
+  const result = await p.run!(quoteFor(swap({ state: ToBTC.COMMITED, paid: true, outputTx: null }), 'tobtc'), context().ctx)
+  assert.deepEqual(result, { state: 'done', destTxId: undefined, receivedAmount: 777n })
+})
+
+test('a swap found successful only at the end, without a payout transaction id, leaves it unknown', async (t) => {
+  let checks = 0
+  const { p } = await provider(t)
+  const result = await p.run!(quoteFor(swap({ state: ToBTC.COMMITED, paid: false, outputTx: null, successful: () => ++checks > 1 }), 'tobtc'), context().ctx)
+  assert.deepEqual(result, { state: 'done', destTxId: undefined })
+})
+
+test('a settled Bitcoin swap without a payout transaction id leaves it unknown', async (t) => {
+  const { p } = await provider(t)
+  const result = await p.run!(quoteFor(swap({ state: FromBTC.CLAIM_CLAIMED, successful: true, outputTx: null }), 'frombtc'), context().ctx)
+  assert.deepEqual(result, { state: 'done', destTxId: undefined, receivedAmount: 777n })
+})

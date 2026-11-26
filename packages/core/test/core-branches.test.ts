@@ -297,3 +297,13 @@ test('a swap file that cannot be read for another reason than being absent is re
   await mkdir(join(dir, 'store.json'))
   await assert.rejects(new FileUnifiedStorage(join(dir, 'store.json')).init([]), { code: 'EISDIR' })
 })
+
+test('without prices, the larger amount ranks first whichever order the routes came in', () => {
+  assert.deepEqual(rankQuotes([q(7n, 10), q(5n, 10), q(9n, 10)], 'cheapest').map((x) => x.toAmount), [9n, 7n, 5n])
+})
+
+test('an import error without any message counts as a broken package', async () => {
+  await assert.rejects(loadSdk('@atomiqlabs/sdk', async () => {
+    throw { code: 'ERR_MODULE_NOT_FOUND' }
+  }), /is installed but could not be loaded/)
+})

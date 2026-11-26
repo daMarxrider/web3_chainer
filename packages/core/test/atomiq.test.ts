@@ -159,3 +159,11 @@ test('a quote from Bitcoin costs the watchtower fee in dollars', async () => {
   const [q] = await provider.getQuotes(request(BTC, SOL), 'cheapest')
   assert.equal(q!.costUsd, 0.5)
 })
+
+test('a quote from Bitcoin without a watchtower fee costs nothing extra', async () => {
+  const swap = fakeSwap('frombtc')
+  swap.getClaimerBounty = () => undefined
+  const { provider } = await setup(swap)
+  const [q] = await provider.getQuotes(request(BTC, SOL), 'cheapest')
+  assert.equal(q!.costUsd, 0)
+})
