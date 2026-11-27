@@ -6,9 +6,9 @@
 #   artifacts only, so a broken build is seen before it reaches a release.
 #
 # Builds are unsigned for now (macOS Gatekeeper and Windows SmartScreen warn); signing is issue #4.
-# Android: the APK is signed only when the repository has the owner's key as secrets
-# (ANDROID_KEYSTORE_BASE64, ANDROID_KEY_PASSWORD, ANDROID_KEY_ALIAS); a tag without them gets no APK,
-# because an unsigned APK cannot be installed. Pull requests always build it, unsigned, as a check.
+# Android: the signing key never leaves the owner's machine, so the release APK is built, signed and
+# attached to the draft there, by the pre-push hook (scripts/android-release.sh). Here pull requests
+# only build it unsigned, as a check that it still builds.
 name: Release builds
 
 on:
@@ -132,12 +132,9 @@ jobs:
           uploadWorkflowArtifacts: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
   android:
-    name: Android
-    needs: release
-    if: ${{ !cancelled() && needs.release.result != 'failure' }}
+    name: Android (unsigned check)
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-24.04
-    env:
-      HAS_KEY: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -164,57 +161,14 @@ jobs:
       - name: Install the project
         run: npm ci
 
-      # Written only from secrets, into a git-ignored file, and removed again after the build.
-      - name: Signing key
-        if: env.HAS_KEY == 'true'
-        working-directory: apps/gui/src-tauri/gen/android
-        env:
-          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-        run: |
-          echo "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/release.jks"
-          printf 'storeFile=%s\npassword=%s\nkeyAlias=%s\n' "$RUNNER_TEMP/release.jks" "$PASSWORD" "$ALIAS" > keystore.properties
-
+      # The runner's own variables are not in the env context, so NDK_HOME is set in the shell.
       - name: Build the APK
-        env:
-          NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
-        run: npm run tauri -w @chainer/gui -- android build --apk
-
-      - name: Remove the signing key
-        if: always() && env.HAS_KEY == 'true'
-        run: rm -f "$RUNNER_TEMP/release.jks" apps/gui/src-tauri/gen/android/keystore.properties
-
-      - name: Name the APK
-        run: |
-          version=$(node -p "require('./package.json').version")
-          suffix=$([ "$HAS_KEY" = true ] && echo "" || echo "-unsigned")
-          apk=$(find apps/gui/src-tauri/gen/android/app/build/outputs/apk/universal/release -name '*.apk' | head -n 1)
-          mkdir -p dist-android
-          cp "$apk" "dist-android/chainer_${version}_android${suffix}.apk"
-          ls -l dist-android
-
-      - name: Attach to the draft release
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_ID: ${{ needs.release.outputs.id }}
-        run: |
-          if [ "$HAS_KEY" != true ]; then
-            echo "::warning::No Android signing key in the repository secrets; this release has no APK."
-            exit 0
-          fi
-          for file in dist-android/*.apk; do
-            gh api --method POST -H "Content-Type: application/vnd.android.package-archive" \
-              "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets?name=$(basename "$file")" \
-              --input "$file" --jq .browser_download_url
-          done
+        run: NDK_HOME="$ANDROID_NDK_LATEST_HOME" npm run tauri -w @chainer/gui -- android build --apk
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         with:
-          name: chainer-android
-          path: dist-android/*.apk
+          name: chainer-android-unsigned
+          path: apps/gui/src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
           if-no-files-found: error
 
   cli:

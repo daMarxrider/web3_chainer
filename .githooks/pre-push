@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Pushing a v* tag builds and signs the Android APK on this machine first (a failure stops the
+# push), then attaches it to the tag's draft release in the background once CI has made it.
+# Turned on by: scripts/android-release.sh setup <keystore.jks> <alias>
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+tags=()
+while read -r local_ref local_sha _remote_ref _remote_sha; do
+  # A deleted tag has an all-zero local sha.
+  case $local_ref in
+    refs/tags/v*) [[ $local_sha =~ ^0+$ ]] || tags+=("${local_ref#refs/tags/}") ;;
+  esac
+done
+
+[ ${#tags[@]} -eq 0 ] && exit 0
+[ ${#tags[@]} -eq 1 ] || { echo "pre-push: push one version tag at a time (got: ${tags[*]})" >&2; exit 1; }
+
+"$root/scripts/android-release.sh" build "${tags[0]}"
+# Runs on after this push finishes; it waits for CI's draft release.
+nohup "$root/scripts/android-release.sh" upload-notify "${tags[0]}" >/dev/null 2>&1 &
+echo "pre-push: the signed APK goes to the ${tags[0]} draft release once CI has made it (desktop notification)" >&2

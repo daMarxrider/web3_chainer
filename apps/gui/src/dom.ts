@@ -112,11 +112,14 @@ export function showDialog(dlg: HTMLDialogElement): void {
 let ignoredPops = 0
 /** Whether the history step being handled now is one of those. */
 let currentPopIsOwn = false
-// Registered when this module loads, so it runs before any screen's back handler.
-addEventListener('popstate', () => {
-  currentPopIsOwn = ignoredPops > 0
-  if (currentPopIsOwn) ignoredPops--
-})
+// Registered when this module loads, so it runs before any screen's back handler. Not under Node,
+// where the unit tests import this module's formatters and there is no window.
+if (typeof window !== 'undefined') {
+  addEventListener('popstate', () => {
+    currentPopIsOwn = ignoredPops > 0
+    if (currentPopIsOwn) ignoredPops--
+  })
+}
 
 /** True while handling a history step that a dialog closed by itself took out; a back handler then does nothing. */
 export const ownPop = (): boolean => currentPopIsOwn
