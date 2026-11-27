@@ -1,3 +1,4 @@
+import java.io.FileInputStream
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -14,6 +15,12 @@ val tauriProperties = Properties().apply {
     }
 }
 
+// The release signing key is the owner's and never lives in the repository. It is used when
+// keystore.properties (git-ignored; keys: storeFile, password, keyAlias) sits next to this
+// project's gradlew, as the release workflow writes it from repository secrets. Without it the
+// release APK is built unsigned.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+
 android {
     compileSdk = 37
     namespace = "app.chainer"
@@ -24,6 +31,18 @@ android {
         targetSdk = 37
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+    }
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                val keystoreProperties = Properties()
+                FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["password"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["password"] as String
+            }
+        }
     }
     buildTypes {
         getByName("debug") {
@@ -39,6 +58,9 @@ android {
             }
         }
         getByName("release") {
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             optimization {
                enable = true
             }

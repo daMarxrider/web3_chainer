@@ -229,7 +229,7 @@ Every command takes `--json`. `--yes` skips the confirmation, and the `CHAINER_P
 
 ## Using the graphical app
 
-The graphical app has the same functions as the command line, in a window that also works on a phone-sized screen: first launch, wallet, Balances, Transfer, Bridge wallet (whole-wallet sweeps), Pipelines (hand-written multi-leg plans), Saved routes, Schedules, Address book, History and Settings. It runs in a browser window today; the Tauri desktop shell is next and the Android build after it.
+The graphical app has the same functions as the command line, in a window that also works on a phone-sized screen: first launch, wallet, Balances, Transfer, Bridge wallet (whole-wallet sweeps), Pipelines (hand-written multi-leg plans), Saved routes, Schedules, Address book, History and Settings. It runs as a desktop app (Linux, macOS, Windows), as an Android app and in a browser window.
 
 Run it from the repository:
 
@@ -246,6 +246,15 @@ npm run dev -w @chainer/gui        # opens on http://127.0.0.1:5173
 npm run desktop:dev -w @chainer/gui      # opens the app in its own window, with live reload
 npm run desktop:build -w @chainer/gui    # builds the packaged app under apps/gui/src-tauri/target/release/bundle
 ```
+
+**Android app (Tauri).** Releases will carry an APK once the app has its signing key; until then build it yourself. You need the Android SDK and NDK (`ANDROID_HOME` and `NDK_HOME` set), Java 17 or later and the Rust Android targets (`rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android`). Then:
+
+```sh
+npm run tauri -w @chainer/gui -- android dev          # runs on a connected phone or a running emulator
+npm run tauri -w @chainer/gui -- android build --apk  # release APK, under apps/gui/src-tauri/gen/android/app/build/outputs/apk
+```
+
+The release APK is signed only when `apps/gui/src-tauri/gen/android/keystore.properties` names your key (`storeFile`, `password`, `keyAlias`; the file is git-ignored); otherwise it is unsigned and Android will not install it. The build needs a good deal of memory: do not run the emulator while it builds on a machine with 16 GB or less. On a phone the wallet stays in the app's private storage, excluded from cloud backup and device transfer, and Android's back button closes dialogs.
 
 In the desktop app the network requests go through Tauri's HTTP plugin (the window itself may not call other origins) and a content security policy limits the page to its own files. The wallet and journal stay in the app's own storage on this machine.
 

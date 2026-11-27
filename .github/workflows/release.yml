@@ -6,7 +6,9 @@
 #   artifacts only, so a broken build is seen before it reaches a release.
 #
 # Builds are unsigned for now (macOS Gatekeeper and Windows SmartScreen warn); signing is issue #4.
-# Android is left out until the owner has made the signing certificate (issue #3).
+# Android: the APK is signed only when the repository has the owner's key as secrets
+# (ANDROID_KEYSTORE_BASE64, ANDROID_KEY_PASSWORD, ANDROID_KEY_ALIAS); a tag without them gets no APK,
+# because an unsigned APK cannot be installed. Pull requests always build it, unsigned, as a check.
 name: Release builds
 
 on:
@@ -128,6 +130,92 @@ jobs:
           # Only a tag has a draft release to upload into; otherwise the bundles stay workflow artifacts.
           releaseId: ${{ needs.release.outputs.id }}
           uploadWorkflowArtifacts: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+  android:
+    name: Android
+    needs: release
+    if: ${{ !cancelled() && needs.release.result != 'failure' }}
+    runs-on: ubuntu-24.04
+    env:
+      HAS_KEY: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+        with:
+          toolchain: stable
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - uses: swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: apps/gui/src-tauri -> target
+          key: android
+
+      - name: Install the project
+        run: npm ci
+
+      # Written only from secrets, into a git-ignored file, and removed again after the build.
+      - name: Signing key
+        if: env.HAS_KEY == 'true'
+        working-directory: apps/gui/src-tauri/gen/android
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          echo "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          printf 'storeFile=%s\npassword=%s\nkeyAlias=%s\n' "$RUNNER_TEMP/release.jks" "$PASSWORD" "$ALIAS" > keystore.properties
+
+      - name: Build the APK
+        env:
+          NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
+        run: npm run tauri -w @chainer/gui -- android build --apk
+
+      - name: Remove the signing key
+        if: always() && env.HAS_KEY == 'true'
+        run: rm -f "$RUNNER_TEMP/release.jks" apps/gui/src-tauri/gen/android/keystore.properties
+
+      - name: Name the APK
+        run: |
+          version=$(node -p "require('./package.json').version")
+          suffix=$([ "$HAS_KEY" = true ] && echo "" || echo "-unsigned")
+          apk=$(find apps/gui/src-tauri/gen/android/app/build/outputs/apk/universal/release -name '*.apk' | head -n 1)
+          mkdir -p dist-android
+          cp "$apk" "dist-android/chainer_${version}_android${suffix}.apk"
+          ls -l dist-android
+
+      - name: Attach to the draft release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ needs.release.outputs.id }}
+        run: |
+          if [ "$HAS_KEY" != true ]; then
+            echo "::warning::No Android signing key in the repository secrets; this release has no APK."
+            exit 0
+          fi
+          for file in dist-android/*.apk; do
+            gh api --method POST -H "Content-Type: application/vnd.android.package-archive" \
+              "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}/assets?name=$(basename "$file")" \
+              --input "$file" --jq .browser_download_url
+          done
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        with:
+          name: chainer-android
+          path: dist-android/*.apk
+          if-no-files-found: error
 
   cli:
     name: Command line, ${{ matrix.name }}
