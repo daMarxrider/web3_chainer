@@ -260,7 +260,7 @@ In the desktop app the network requests go through Tauri's HTTP plugin (the wind
 9. **Address book and History.** Saved addresses are validated against their chain and can be typed as the recipient; History lists every run, with the reason when one stopped.
 10. **Test networks.** Click the network button in the status strip (bottom) to switch between real and test networks. In test mode everything runs on test networks with test funds, and the confirmation says so. See [docs/TESTNET.md](docs/TESTNET.md) for free test funds.
 
-The browser build keeps the wallet and journal in the browser's local storage; the desktop shell will keep them in a data folder like the command line does.
+The desktop app keeps the wallet, settings and journal in the same data folder as the command line (`CHAINER_HOME`, otherwise `~/.config/chainer`, or `%APPDATA%\chainer` on Windows), as owner-only files, so both use the same wallet. Versions before this one kept them in the app's web view storage; the first start moves them into the folder. If the folder already holds a different file under the same name (for example a wallet made with the command line), that file is kept, the app's copy is saved under `webview-backup/` in the folder, and the app says so. The browser build (`npm run dev`) keeps everything in the browser's local storage.
 
 ### Themes
 
