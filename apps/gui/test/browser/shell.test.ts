@@ -29,7 +29,7 @@ describe('the GUI shell', { concurrency: 6, skip: browserMissing }, () => {
     const page = await pageFor(t)
     await page.open(fresh())
     await page.waitFor('document.querySelector(".theme-picker")')
-    assert.deepEqual([await page.evaluate('document.querySelectorAll(".theme-choice").length'), await page.evaluate(buttonEnabled('Continue'))], [4, false])
+    assert.deepEqual([await page.evaluate('document.querySelectorAll(".theme-choice").length'), await page.evaluate(buttonEnabled('Continue'))], [5, false])
   })
 
   test('picking a look on first launch shows it at once', async (t) => {

@@ -1,0 +1,53 @@
+/* Option A: Piano roll. A vocal-synth editor at night: plum-black lanes, crimson note blocks, rounded type. */
+[data-theme='teto'] {
+  --font: 'M PLUS Rounded 1c', 'Noto Sans', sans-serif;
+  --mono: ui-monospace, 'DejaVu Sans Mono', monospace;
+  --font-size: 13px; --h1: 20px; --h2: 14px;
+  --desktop-pad: 20px; --title-h: 38px; --status-h: 30px; --list-w: 180px; --control-h: 30px;
+  --desktop:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='168'%3E%3Cg fill='%23e8445f'%3E%3Crect x='24' y='26' width='86' height='12' rx='3' opacity='.32'/%3E%3Crect x='122' y='50' width='44' height='12' rx='3' opacity='.22'/%3E%3Crect x='178' y='38' width='120' height='12' rx='3' opacity='.28'/%3E%3Crect x='312' y='86' width='62' height='12' rx='3' opacity='.2'/%3E%3Crect x='388' y='62' width='70' height='12' rx='3' opacity='.26'/%3E%3C/g%3E%3C/svg%3E"),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.05) 0 1px, transparent 1px 120px),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.025) 0 1px, transparent 1px 30px),
+    repeating-linear-gradient(180deg, rgb(0 0 0 / 0.28) 0 12px, transparent 12px 24px),
+    #1a1419;
+  --face: #241d23; --field: #171216; --line: rgb(255 255 255 / 0.09);
+  --text: #f3e9ec; --text-dim: #a8979e; --hover: rgb(255 255 255 / 0.05);
+  --accent: #ef4a66; --select: rgb(239 74 102 / 0.2); --select-text: #ffc3cd;
+  --err: #ff8f8f; --ok: #7fe0a8; --backdrop: rgb(10 5 8 / 0.65);
+  --title-bg: #2d242b; --title-text: var(--text); --logo-edge: #2d242b;
+  --lamp-off: #4a3d45; --lamp-amber: #f5b14c; --lamp-green: #5fd99a; --lamp-red: #ef4a66; --lamp-blue: #7cc7ff;
+  --focus: 2px solid var(--accent); --focus-offset: 2px;
+}
+[data-theme='teto'] .window { background: var(--face); border: 1px solid rgb(255 255 255 / 0.08); border-radius: 10px; overflow: hidden; box-shadow: 0 18px 44px rgb(0 0 0 / 0.55); }
+[data-theme='teto'] .titlebar { background: var(--title-bg); border-bottom: 1px solid var(--line); padding: 0 14px; font-weight: 800; letter-spacing: 0.01em;
+  /* playhead ruler under the title */
+  background-image: repeating-linear-gradient(90deg, rgb(255 255 255 / 0.18) 0 1px, transparent 1px 16px); background-size: 100% 5px; background-repeat: no-repeat; background-position: bottom; }
+[data-theme='teto'] .titlebar .mark { color: var(--accent); }
+[data-theme='teto'] .title-meta { color: var(--accent); font-weight: 500; }
+/* sheet list as a keyboard: alternating key shades */
+[data-theme='teto'] .sheetlist { background: #1d171c; border-right: 1px solid var(--line); padding: 8px 0; }
+[data-theme='teto'] .sheet-item { border-radius: 0 6px 6px 0; margin-right: 8px; color: var(--text-dim); border-left: 0; }
+[data-theme='teto'] .sheet-item:nth-child(even) { background: rgb(0 0 0 / 0.22); }
+[data-theme='teto'] .sheet-item:hover { background: var(--hover); color: var(--text); }
+[data-theme='teto'] .sheet-item[aria-current] { background: var(--accent); color: #fff; font-weight: 800; }
+[data-theme='teto'] .sheet-title { font-weight: 800; }
+[data-theme='teto'] .statusbar { background: #1d171c; border-top: 1px solid var(--line); font-size: 0.9em; }
+[data-theme='teto'] .seg { color: var(--text-dim); }
+[data-theme='teto'] input:not([type='checkbox'], [type='radio']), [data-theme='teto'] select, [data-theme='teto'] textarea { background: var(--field); border: 1px solid var(--line); border-radius: 6px; color: var(--text); }
+[data-theme='teto'] .btn { background: rgb(255 255 255 / 0.06); border: 1px solid rgb(255 255 255 / 0.14); border-radius: 6px; color: var(--text); }
+[data-theme='teto'] .btn:hover:not(:disabled) { background: rgb(255 255 255 / 0.11); }
+[data-theme='teto'] .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 800; }
+[data-theme='teto'] .group { border: 1px solid var(--line); border-radius: 8px; }
+[data-theme='teto'] .group legend { color: var(--accent); font-weight: 800; }
+[data-theme='teto'] .table-wrap { border: 1px solid var(--line); border-radius: 8px; background: var(--field); }
+[data-theme='teto'] .data thead th { color: var(--text-dim); font-weight: 500; border-bottom: 1px solid rgb(255 255 255 / 0.16); }
+[data-theme='teto'] .tag { border-radius: 4px; background: rgb(239 74 102 / 0.16); color: #ffb3c0; border: 1px solid rgb(239 74 102 / 0.4); }
+[data-theme='teto'] .banner { border-radius: 6px; border: 1px solid var(--line); }
+[data-theme='teto'] .banner.test { background: rgb(245 177 76 / 0.13); color: #ffd9a0; border-color: rgb(245 177 76 / 0.4); }
+[data-theme='teto'] .dialog { border-radius: 12px; background: #2a2229; box-shadow: 0 24px 60px rgb(0 0 0 / 0.7); }
+[data-theme='teto'] .data, [data-theme='teto'] .num, [data-theme='teto'] .summary dd { font-variant-numeric: tabular-nums; }
+[data-theme='teto'] .data tbody tr + tr > * { border-top: 1px solid var(--line); }
+[data-theme='teto'] .data tr[data-selected='true'] { background: var(--select); color: var(--select-text); }
+[data-theme='teto'] .data tr[data-selected='true'] .via { color: inherit; }
+[data-theme='teto'] ::selection { background: rgb(239 74 102 / 0.35); }
+[data-theme='teto'] input[type='radio'] { accent-color: var(--accent); }

@@ -1,0 +1,50 @@
+/* Option C: 0401 concert ticket. Crimson stage, graphite windows, ticket stubs with perforations. */
+[data-theme='teto'] {
+  --font: 'M PLUS Rounded 1c', 'Noto Sans', sans-serif;
+  --mono: ui-monospace, 'DejaVu Sans Mono', monospace;
+  --font-size: 13px; --h1: 22px; --h2: 14px;
+  --desktop-pad: 22px; --title-h: 40px; --status-h: 30px; --list-w: 176px; --control-h: 30px;
+  --desktop:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='120'%3E%3Ctext x='8' y='70' font-family='sans-serif' font-weight='900' font-size='64' fill='%23000' opacity='.08'%3E0401%3C/text%3E%3C/svg%3E"),
+    radial-gradient(60% 50% at 50% 0%, #d7263f 0%, transparent 70%), #9e1429;
+  --face: #2a272b; --field: #1d1b1e; --line: rgb(255 255 255 / 0.1);
+  --text: #f4eff0; --text-dim: #aaa1a4; --hover: rgb(255 255 255 / 0.06);
+  --accent: #ff4d63; --select: rgb(255 77 99 / 0.18); --select-text: #ffc6ce;
+  --err: #ff9a8f; --ok: #7fe0a8; --backdrop: rgb(40 0 8 / 0.6);
+  --title-bg: #161416; --title-text: #fff; --logo-edge: #161416;
+  --lamp-off: #4a4448; --lamp-amber: #f5b14c; --lamp-green: #5fd99a; --lamp-red: #ff4d63; --lamp-blue: #7cc7ff;
+  --focus: 2px solid var(--accent); --focus-offset: 2px;
+}
+[data-theme='teto'] .window { background: var(--face); border: 1px solid #000; border-radius: 6px; overflow: hidden; box-shadow: 0 20px 50px rgb(50 0 10 / 0.55); }
+[data-theme='teto'] .titlebar { background: var(--title-bg); color: var(--title-text); padding: 0 16px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 3px solid var(--accent); }
+[data-theme='teto'] .titlebar .mark { color: var(--accent); }
+[data-theme='teto'] .title-meta { color: var(--accent); }
+[data-theme='teto'] .sheetlist { background: #211f22; border-right: 2px dashed rgb(255 255 255 / 0.14); padding: 8px; }
+[data-theme='teto'] .sheet-item { border-radius: 4px; color: var(--text-dim); }
+[data-theme='teto'] .sheet-item:hover { background: var(--hover); color: var(--text); }
+[data-theme='teto'] .sheet-item[aria-current] { background: var(--select); color: var(--select-text); box-shadow: inset 0 0 0 1px rgb(255 77 99 / 0.5); font-weight: 800; }
+[data-theme='teto'] .sheet-title { font-weight: 800; letter-spacing: 0.02em; }
+[data-theme='teto'] .statusbar { background: var(--title-bg); border-top: 1px solid #000; font-family: var(--mono); font-size: 0.88em; }
+[data-theme='teto'] .seg { color: var(--text-dim); }
+[data-theme='teto'] input:not([type='checkbox'], [type='radio']), [data-theme='teto'] select, [data-theme='teto'] textarea { background: var(--field); border: 1px solid var(--line); border-radius: 4px; color: var(--text); }
+[data-theme='teto'] .btn { background: rgb(255 255 255 / 0.06); border: 1px solid rgb(255 255 255 / 0.16); border-radius: 4px; color: var(--text); }
+[data-theme='teto'] .btn:hover:not(:disabled) { background: rgb(255 255 255 / 0.11); }
+[data-theme='teto'] .btn.primary { background: var(--accent); border-color: var(--accent); color: #1a0306; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+[data-theme='teto'] .group { border: 1px dashed rgb(255 255 255 / 0.18); border-radius: 6px; }
+[data-theme='teto'] .group legend { color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85em; }
+[data-theme='teto'] .table-wrap { border: 1px solid var(--line); border-radius: 6px; background: var(--field); }
+[data-theme='teto'] .data thead th { color: var(--text-dim); font-weight: 500; border-bottom: 1px solid rgb(255 255 255 / 0.18); text-transform: uppercase; font-size: 0.82em; letter-spacing: 0.05em; }
+[data-theme='teto'] .tag { border-radius: 3px; background: var(--accent); color: #1a0306; font-weight: 800; }
+[data-theme='teto'] .banner { border-radius: 4px; }
+[data-theme='teto'] .banner.test { background: rgb(245 177 76 / 0.14); color: #ffd9a0; border: 1px solid rgb(245 177 76 / 0.4); }
+/* the confirm dialog is a ticket: notches cut on both sides at the stub line */
+[data-theme='teto'] .dialog { border-radius: 8px; background: #2f2b30; box-shadow: 0 26px 60px rgb(40 0 8 / 0.7);
+  -webkit-mask: radial-gradient(circle 11px at 0 64px, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 64px, transparent 98%, #000) right / 51% 100% no-repeat;
+          mask: radial-gradient(circle 11px at 0 64px, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 64px, transparent 98%, #000) right / 51% 100% no-repeat; }
+[data-theme='teto'] .dialog .titlebar { border-bottom: 2px dashed rgb(255 255 255 / 0.25); }
+[data-theme='teto'] .data, [data-theme='teto'] .num, [data-theme='teto'] .summary dd { font-variant-numeric: tabular-nums; }
+[data-theme='teto'] .data tbody tr + tr > * { border-top: 1px solid var(--line); }
+[data-theme='teto'] .data tr[data-selected='true'] { background: var(--select); color: var(--select-text); }
+[data-theme='teto'] .data tr[data-selected='true'] .via { color: inherit; }
+[data-theme='teto'] ::selection { background: rgb(255 77 99 / 0.35); }
+[data-theme='teto'] input[type='radio'] { accent-color: var(--accent); }

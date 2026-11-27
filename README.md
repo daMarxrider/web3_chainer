@@ -270,6 +270,7 @@ The app asks for a theme on first launch, and the choice can be changed later in
 - **Retro**: an original early-2000s desktop look, designed for this project and not a copy of any operating system's interface
 - **Smoked glass**: near-black smoked glass panels with amber instrument accents and mono readouts
 - **Night glass**: a translucent frame with a diagonal sheen around a dark pane, cyan accent
+- **Crimson ticket**: a crimson stage with a faint "0401" print, graphite windows under a black title bar with a red rule, dashed ticket edges and rounded type (M PLUS Rounded 1c, SIL Open Font License)
 
 The Transfer screen with ranked routes in each theme (browser build, test networks, Arc Testnet to Base Sepolia through Circle CCTP; captured 26 Nov 2026):
 
@@ -278,6 +279,8 @@ The Transfer screen with ranked routes in each theme (browser build, test networ
 | ![Modern theme](docs/screenshots/modern.png) | ![Retro theme](docs/screenshots/retro.png) |
 | **Smoked glass** | **Night glass** |
 | ![Smoked glass theme](docs/screenshots/smoked.png) | ![Night glass theme](docs/screenshots/night.png) |
+| **Crimson ticket** | |
+| ![Crimson ticket theme](docs/screenshots/ticket.png) | |
 
 ## Where your data lives
 

@@ -1,0 +1,81 @@
+/* Crimson ticket: a crimson stage with a faint 0401 print, graphite windows under a black title bar with a red rule, dashed ticket edges, rounded type. */
+@font-face { font-family: 'M PLUS Rounded 1c'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/m-plus-rounded-1c-500-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'M PLUS Rounded 1c'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/m-plus-rounded-1c-500-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'M PLUS Rounded 1c'; font-style: normal; font-weight: 800; font-display: swap; src: url('../fonts/m-plus-rounded-1c-800-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'M PLUS Rounded 1c'; font-style: normal; font-weight: 800; font-display: swap; src: url('../fonts/m-plus-rounded-1c-800-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+[data-theme='ticket'] {
+  --font: 'M PLUS Rounded 1c', 'Noto Sans', 'Liberation Sans', sans-serif;
+  --mono: ui-monospace, 'DejaVu Sans Mono', 'Liberation Mono', monospace;
+  --font-size: 13px;
+  --h1: 22px;
+  --h2: 14px;
+  --desktop-pad: 22px;
+  --title-h: 40px;
+  --status-h: 30px;
+  --list-w: 176px;
+  --control-h: 30px;
+
+  --desktop:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='120'%3E%3Ctext x='8' y='70' font-family='sans-serif' font-weight='900' font-size='64' fill='%23000' opacity='.08'%3E0401%3C/text%3E%3C/svg%3E"),
+    radial-gradient(60% 50% at 50% 0%, #d7263f 0%, transparent 70%), #9e1429;
+  --face: #2a272b;
+  --field: #1d1b1e;
+  --line: rgb(255 255 255 / 0.1);
+  --text: #f4eff0;
+  --text-dim: #aaa1a4;
+  --hover: rgb(255 255 255 / 0.06);
+  --accent: #ff4d63;
+  --select: rgb(255 77 99 / 0.18);
+  --select-text: #ffc6ce;
+  --err: #ff9a8f;
+  --ok: #7fe0a8;
+  --backdrop: rgb(40 0 8 / 0.6);
+  --title-bg: #161416;
+  --title-text: #fff;
+  --logo-edge: #161416;
+  --lamp-off: #4a4448;
+  --lamp-amber: #f5b14c;
+  --lamp-green: #5fd99a;
+  --lamp-red: #ff4d63;
+  --lamp-blue: #7cc7ff;
+  --focus: 2px solid var(--accent);
+  --focus-offset: 2px;
+  --popup: #222023;
+  --scroll: #5a5357;
+}
+[data-theme='ticket'] ::selection { background: rgb(255 77 99 / 0.35); }
+[data-theme='ticket'] input[type='radio'], [data-theme='ticket'] input[type='checkbox'] { accent-color: var(--accent); }
+[data-theme='ticket'] .window { background: var(--face); border: 1px solid #000; border-radius: 6px; overflow: hidden; box-shadow: 0 20px 50px rgb(50 0 10 / 0.55); }
+[data-theme='ticket'] .titlebar { background: var(--title-bg); color: var(--title-text); padding: 0 16px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 3px solid var(--accent); }
+[data-theme='ticket'] .titlebar .mark { color: var(--accent); }
+[data-theme='ticket'] .title-meta { color: var(--accent); }
+[data-theme='ticket'] .sheetlist { background: #211f22; border-right: 2px dashed rgb(255 255 255 / 0.14); padding: 8px; }
+[data-theme='ticket'] .sheet-item { border-radius: 4px; color: var(--text-dim); border: 1px solid transparent; }
+[data-theme='ticket'] .sheet-item:hover { background: var(--hover); color: var(--text); }
+[data-theme='ticket'] .sheet-item[aria-current] { background: var(--select); color: var(--select-text); border-color: rgb(255 77 99 / 0.5); font-weight: 800; }
+[data-theme='ticket'] .sheet-title { font-weight: 800; letter-spacing: 0.02em; }
+[data-theme='ticket'] .statusbar { background: var(--title-bg); border-top: 1px solid #000; font-family: var(--mono); font-size: 0.88em; }
+[data-theme='ticket'] .seg { color: var(--text-dim); }
+[data-theme='ticket'] input:not([type='checkbox'], [type='radio']), [data-theme='ticket'] select, [data-theme='ticket'] textarea { background: var(--field); border: 1px solid var(--line); border-radius: 4px; color: var(--text); }
+[data-theme='ticket'] .btn { background: rgb(255 255 255 / 0.06); border: 1px solid rgb(255 255 255 / 0.16); border-radius: 4px; color: var(--text); }
+[data-theme='ticket'] .btn:hover:not(:disabled) { background: rgb(255 255 255 / 0.11); }
+[data-theme='ticket'] .btn.primary { background: var(--accent); border-color: var(--accent); color: #1a0306; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+[data-theme='ticket'] .btn.primary:hover:not(:disabled) { background: #ff6b7e; }
+[data-theme='ticket'] .btn:disabled { opacity: 0.4; }
+[data-theme='ticket'] .group { border: 1px dashed rgb(255 255 255 / 0.18); border-radius: 6px; }
+[data-theme='ticket'] .group legend { color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85em; }
+[data-theme='ticket'] .table-wrap { border: 1px solid var(--line); border-radius: 6px; background: var(--field); }
+[data-theme='ticket'] .data, [data-theme='ticket'] .num, [data-theme='ticket'] .summary dd { font-variant-numeric: tabular-nums; }
+[data-theme='ticket'] .data thead th { color: var(--text-dim); font-weight: 500; border-bottom: 1px solid rgb(255 255 255 / 0.18); text-transform: uppercase; font-size: 0.82em; letter-spacing: 0.05em; }
+[data-theme='ticket'] .data tbody tr + tr > * { border-top: 1px solid var(--line); }
+[data-theme='ticket'] .data tr[data-selected='true'] { background: var(--select); color: var(--select-text); }
+[data-theme='ticket'] .data tr[data-selected='true'] .via { color: inherit; }
+[data-theme='ticket'] .tag { border-radius: 3px; background: var(--accent); color: #1a0306; font-weight: 800; }
+[data-theme='ticket'] .banner { border-radius: 4px; border: 1px solid var(--line); }
+[data-theme='ticket'] .banner.test { background: rgb(245 177 76 / 0.14); color: #ffd9a0; border-color: rgb(245 177 76 / 0.4); }
+[data-theme='ticket'] .geo { border: 1px solid rgb(245 177 76 / 0.4); border-radius: 6px; background: rgb(245 177 76 / 0.08); color: #ffe2b0; }
+[data-theme='ticket'] .dialog { border: 1px solid #000; border-radius: 8px; background: #2f2b30; box-shadow: 0 26px 60px rgb(40 0 8 / 0.7); }
+[data-theme='ticket'] .dialog .titlebar { border-bottom: 2px dashed rgb(255 255 255 / 0.25); }
+[data-theme='ticket'] .log { border: 1px solid var(--line); border-radius: 4px; background: var(--field); }
+[data-theme='ticket'] .combo-list { border-radius: 4px; }
