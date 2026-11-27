@@ -96,9 +96,15 @@ export class Browser {
 
   async close(): Promise<void> {
     this.ws.close()
+    // Chromium keeps writing to its profile for a moment after the signal, so removing the folder
+    // straight away can fail with ENOTEMPTY: wait for the exit (bounded) and let rmSync retry.
+    const exited = this.chrome.exitCode !== null || this.chrome.signalCode !== null
+      ? Promise.resolve()
+      : new Promise<void>((done) => this.chrome.once('exit', () => done()))
     this.chrome.kill()
+    await Promise.race([exited, new Promise((done) => setTimeout(done, 5000).unref())])
     await this.vite.close()
-    rmSync(this.profile, { recursive: true, force: true })
+    rmSync(this.profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
   }
 }
 
