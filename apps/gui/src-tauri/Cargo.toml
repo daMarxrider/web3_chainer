@@ -1,6 +1,6 @@
 [package]
 name = "chainer"
-version = "0.1.0"
+version = "0.2.0"
 description = "Move tokens between blockchains over the best route, with your own keys"
 license = "GPL-3.0-only"
 edition = "2021"
