@@ -2,9 +2,11 @@
 # Builds, signs and uploads the Android APK of a release on this machine, so the signing key never
 # leaves it. Normally run by the pre-push hook (.githooks/pre-push) when a v* tag is pushed.
 #
-#   scripts/android-release.sh setup <keystore.jks> <key alias>
-#       once per machine: remembers the keystore and alias (this repository's git config), stores
-#       the key password in the desktop keyring (secret-tool asks for it) and turns the hooks on
+#   scripts/android-release.sh setup <keystore.jks> <key alias> [<keyring attribute> <value> ...]
+#       once per machine: remembers the keystore and alias (this repository's git config) and turns
+#       the hooks on. With attribute/value pairs it uses the keystore password already in the
+#       desktop keyring under them (nothing new is stored); without, secret-tool asks for the
+#       password and stores it under service chainer-android, key release
 #   scripts/android-release.sh build <tag>
 #       builds the release APK of the checked-out tag and signs it (the hook runs this before the
 #       push; a failure stops the push)
@@ -12,8 +14,8 @@
 #       waits for the draft release CI makes for the tag and attaches the signed APK to it (the hook
 #       runs this in the background after the push)
 #
-# The keystore password is read from the keyring (service chainer-android, key release); it is
-# never written to a file. One key for all releases: Android refuses an update signed differently.
+# The keystore password is read from the keyring entry named by git config chainer.androidKeyring
+# (default: service chainer-android key release); it is never written to a file. One key for all releases: Android refuses an update signed differently.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -27,9 +29,15 @@ MIN_FREE_MB=7000
 die() { echo "android-release: $*" >&2; exit 1; }
 say() { echo "android-release: $*" >&2; }
 
+DEFAULT_KEYRING='service chainer-android key release'
+
+keyring_attrs() { git -C "$ROOT" config chainer.androidKeyring || echo "$DEFAULT_KEYRING"; }
+
 password() {
-  secret-tool lookup service chainer-android key release 2>/dev/null \
-    || die "no key password in the keyring; run: scripts/android-release.sh setup <keystore.jks> <alias>"
+  local attrs
+  read -ra attrs <<<"$(keyring_attrs)"
+  secret-tool lookup "${attrs[@]}" 2>/dev/null \
+    || die "no key password in the keyring under '${attrs[*]}'; run: scripts/android-release.sh setup <keystore.jks> <alias> [<attribute> <value> ...]"
 }
 
 apk_name() { echo "chainer_${1#v}_android.apk"; }
@@ -45,13 +53,23 @@ build_tools() {
 
 setup() {
   local ks=${1:-} alias=${2:-}
-  [ -n "$ks" ] && [ -n "$alias" ] || die "usage: setup <keystore.jks> <key alias>"
+  [ -n "$ks" ] && [ -n "$alias" ] || die "usage: setup <keystore.jks> <key alias> [<keyring attribute> <value> ...]"
+  shift 2
+  [ $(($# % 2)) -eq 0 ] || die "keyring attributes come in attribute/value pairs"
+  [[ "$*" != *$'\n'* ]] || die "keyring attributes cannot contain line breaks"
   [ -f "$ks" ] || die "no keystore at $ks"
   ks=$(cd "$(dirname "$ks")" && pwd)/$(basename "$ks")
   git -C "$ROOT" config chainer.androidKeystore "$ks"
   git -C "$ROOT" config chainer.androidKeyAlias "$alias"
-  say "key password for $ks (stored in the keyring, not in a file):"
-  secret-tool store --label='chainer Android release key' service chainer-android key release
+  if [ $# -gt 0 ]; then
+    git -C "$ROOT" config chainer.androidKeyring "$*"
+    say "using the keystore password already in the keyring under: $*"
+  else
+    git -C "$ROOT" config --unset chainer.androidKeyring || true
+    say "key password for $ks (stored in the keyring, not in a file):"
+    # shellcheck disable=SC2086
+    secret-tool store --label='chainer Android release key' $DEFAULT_KEYRING
+  fi
   # Check the password and alias now rather than at the next release.
   CHAINER_KS_PASS=$(password) keytool -list -keystore "$ks" -alias "$alias" -storepass:env CHAINER_KS_PASS >/dev/null 2>&1 \
     || die "the keystore did not open with that password and alias '$alias'"
@@ -140,5 +158,5 @@ case ${1:-} in
     log="$LOG_DIR/android-release-$1.log"
     if "$0" upload "$1" >"$log" 2>&1; then notify "$1" "Android APK attached to the draft release"
     else notify "$1" "Android APK upload failed, see $log"; fi ;;
-  *) sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *) sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
