@@ -65,6 +65,8 @@ import {
   addressSlot,
   defaultSettings,
 } from '@chainer/core'
+import { invoke } from '@tauri-apps/api/core'
+import { localStore, moveWebviewData, tauriStore } from './storage.ts'
 
 /** Test networks standing in for each main network in test mode (same table as the CLI). */
 const TESTNET_OF: Record<string, string> = { eth: 'eths', opt: 'opst', arb: 'arbs', bas: 'bast' }
@@ -81,24 +83,6 @@ const HUBS: [chain: string, token: string][] = [
   ['sol', 'SOL'],
   ['btc', 'BTC'],
 ]
-
-/** localStorage with the same shape as the CLI's file store; test runs live under their own prefix. */
-export function localStore(prefix = 'chainer/'): Store {
-  const all = () => Object.keys(localStorage).filter((k) => k.startsWith(prefix))
-  return {
-    async get(key) {
-      return localStorage.getItem(prefix + key)
-    },
-    async set(key, value) {
-      localStorage.setItem(prefix + key, value)
-    },
-    async keys(p) {
-      return all()
-        .map((k) => k.slice(prefix.length))
-        .filter((k) => k.startsWith(p))
-    },
-  }
-}
 
 /**
  * Network requests. In the browser this is fetch; in the Tauri shell it is the HTTP plugin,
@@ -137,7 +121,8 @@ export interface GasPlan {
 type RunEvent = (record: PipelineRecord, legIndex: number, message: string) => void
 
 class Engine {
-  readonly store: Store = localStore()
+  /** Files in the data folder in the desktop app, local storage in the browser build. */
+  readonly store: Store = inTauri ? tauriStore(invoke) : localStore()
   settings: Settings = defaultSettings
   /** True runs everything on test networks with test funds. */
   testMode = false
@@ -151,6 +136,15 @@ class Engine {
     if (!this.testMode) return this.store
     const s = this.store
     return { get: (k) => s.get(`testnet/${k}`), set: (k, v) => s.set(`testnet/${k}`, v), keys: async (p) => (await s.keys(`testnet/${p}`)).map((k) => k.slice('testnet/'.length)) }
+  }
+
+  /**
+   * In the desktop app, moves wallet, settings and journal left in the webview's local storage by
+   * earlier versions into the data folder. Returns the keys kept as backups because the folder
+   * already held a different file. Runs before anything else reads the store.
+   */
+  async moveWebviewData(): Promise<string[]> {
+    return inTauri ? moveWebviewData(localStore(), this.store) : []
   }
 
   async load(): Promise<void> {
