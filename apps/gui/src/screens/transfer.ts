@@ -1,5 +1,5 @@
 import { geoKeys, geoNotices, geoStatement, parseUnits, resolveRecipient, routeEta, routeNetUsd, type Chain, type PipelineRecord, type Route, type Token } from '@chainer/core'
-import { amount, duration, h, replace, shortAddress, usd } from '../dom.ts'
+import { amount, duration, h, replace, shortAddress, showDialog, usd } from '../dom.ts'
 import { engine, type GasPlan } from '../engine.ts'
 import { icon } from '../icons.ts'
 import { tokenPicker, trustNote } from '../tokenpicker.ts'
@@ -260,7 +260,7 @@ export async function transferScreen(sheet: HTMLElement): Promise<void> {
     dlg.addEventListener('close', () => dlg.remove())
     yes.addEventListener('click', () => (dlg.close(), go()))
     sheet.append(dlg)
-    dlg.showModal()
+    showDialog(dlg)
   }
 
   replace(

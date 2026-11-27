@@ -6,4 +6,4 @@ target/
 apps/gui/.impeccable/review/
 apps/gui/.impeccable/hook.cache.json
 apps/gui/src-tauri/target/
-apps/gui/src-tauri/gen/
+apps/gui/src-tauri/gen/schemas/

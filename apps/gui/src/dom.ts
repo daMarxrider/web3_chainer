@@ -87,3 +87,56 @@ export function labelTableCells(root: HTMLElement): void {
   }
   new MutationObserver(label).observe(root, { childList: true, subtree: true })
 }
+
+/**
+ * Opens a modal dialog as a step of its own in the history, so the back button (Android's, or the
+ * browser's) closes it. Closing it any other way takes that step out again. Call it from a tap or
+ * key press: a history step added without one is skipped by the back button.
+ */
+export function showDialog(dlg: HTMLDialogElement): void {
+  dlg.showModal()
+  history.pushState({ ...(history.state as object | null), dialog: true }, '')
+  dlg.addEventListener(
+    'close',
+    () => {
+      if ((history.state as { dialog?: boolean } | null)?.dialog) {
+        ignoredPops++
+        history.back()
+      }
+    },
+    { once: true },
+  )
+}
+
+/** Back steps taken by `showDialog` itself, which the back handler must not act on. */
+let ignoredPops = 0
+/** Whether the history step being handled now is one of those. */
+let currentPopIsOwn = false
+// Registered when this module loads, so it runs before any screen's back handler.
+addEventListener('popstate', () => {
+  currentPopIsOwn = ignoredPops > 0
+  if (currentPopIsOwn) ignoredPops--
+})
+
+/** True while handling a history step that a dialog closed by itself took out; a back handler then does nothing. */
+export const ownPop = (): boolean => currentPopIsOwn
+
+/**
+ * Closes a dialog opened with `showDialog` and resolves once the history step it took out is gone,
+ * so a step added next (opening a screen) cannot be lost to it. The close event, and with it that
+ * step, comes a moment after `close()`.
+ */
+export function closeDialog(dlg: HTMLDialogElement): Promise<void> {
+  return new Promise((done) => {
+    // Runs after showDialog's own close listener, which was added first.
+    dlg.addEventListener(
+      'close',
+      () => {
+        if (ignoredPops === 0) return done()
+        addEventListener('popstate', () => done(), { once: true })
+      },
+      { once: true },
+    )
+    dlg.close()
+  })
+}

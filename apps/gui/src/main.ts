@@ -31,9 +31,21 @@ function movedNotice(root: HTMLElement, keys: string[]): Promise<void> {
   })
 }
 
+/**
+ * Marks the page while a phone's on-screen keyboard is open (the window then loses a large part of
+ * its height), so the tab strip and job strip can step aside for the field being typed in.
+ */
+function watchKeyboard(): void {
+  if (!matchMedia('(pointer: coarse)').matches) return
+  const check = () => document.documentElement.classList.toggle('keyboard', innerHeight < screen.height * 0.75)
+  addEventListener('resize', check)
+  check()
+}
+
 async function boot(): Promise<void> {
   const root = document.getElementById('app')!
   labelTableCells(root)
+  watchKeyboard()
   const conflicts = await engine.moveWebviewData()
   await loadPrefs()
   if (conflicts.length > 0) await movedNotice(root, conflicts)

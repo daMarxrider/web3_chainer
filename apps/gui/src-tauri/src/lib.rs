@@ -28,11 +28,12 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .setup(|app| {
             // Desktop: the command line's folder, so both share one wallet. Phones have no such
-            // folder (and no command line), so the app's own data folder is used there.
+            // folder (and no command line), so a folder of its own inside the app's private data
+            // is used there, apart from what the web view keeps in the same place.
             let dir = if cfg!(mobile) { None } else { store::cli_data_dir() };
             let dir = match dir {
                 Some(dir) => dir,
-                None => app.path().app_data_dir()?,
+                None => app.path().app_data_dir()?.join("chainer"),
             };
             app.manage(FileStore::new(dir));
             Ok(())

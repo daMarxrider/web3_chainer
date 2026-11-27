@@ -1,4 +1,4 @@
-import { append, h, replace } from './dom.ts'
+import { append, h, closeDialog, ownPop, replace, showDialog } from './dom.ts'
 import { engine } from './engine.ts'
 import { icon, type icons } from './icons.ts'
 import { prefs, savePrefs } from './prefs.ts'
@@ -78,15 +78,13 @@ export function mainWindow(root: HTMLElement, onLock: () => void): void {
     onLock()
   }
 
-  // Back closes the dialog on top if there is one (and keeps the screen), otherwise returns to the previous screen.
+  // Back closes the dialog on top if there is one (each open dialog is a history step, see
+  // showDialog), otherwise returns to the previous screen.
   if (onBack) removeEventListener('popstate', onBack)
   onBack = (e: PopStateEvent) => {
+    if (ownPop()) return
     const dialogs = [...root.querySelectorAll<HTMLDialogElement>('dialog[open]')]
-    if (dialogs.length > 0) {
-      dialogs.at(-1)!.close()
-      history.pushState({ screen: showing }, '')
-      return
-    }
+    if (dialogs.length > 0) return dialogs.at(-1)!.close()
     const id = (e.state as { screen?: string } | null)?.screen
     void open(SCREENS.some((s) => s.id === id) ? id! : 'balances')
   }
@@ -95,8 +93,8 @@ export function mainWindow(root: HTMLElement, onLock: () => void): void {
 
   /** Phone: the screens that are not tabs, and Lock, in a sheet that rises from the bottom. */
   const openMore = () => {
-    const pick = (fn: () => void) => () => {
-      dlg.close()
+    const pick = (fn: () => void) => async () => {
+      await closeDialog(dlg)
       fn()
     }
     const item = (label: string, ic: keyof typeof icons, current: boolean, fn: () => void) =>
@@ -116,7 +114,7 @@ export function mainWindow(root: HTMLElement, onLock: () => void): void {
     // A tap on the dimmed backdrop lands on the dialog element itself.
     dlg.addEventListener('click', (e) => e.target === dlg && dlg.close())
     root.append(dlg)
-    dlg.showModal()
+    showDialog(dlg)
     dlg.querySelector<HTMLElement>('[aria-current]')?.focus()
   }
 

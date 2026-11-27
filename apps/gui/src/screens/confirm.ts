@@ -1,5 +1,5 @@
 import { GEO_RESTRICTIONS, geoKeys, geoNotices, geoStatement, type Route } from '@chainer/core'
-import { h } from '../dom.ts'
+import { h, showDialog } from '../dom.ts'
 import { engine } from '../engine.ts'
 import { icon } from '../icons.ts'
 
@@ -53,7 +53,7 @@ export function confirmRun(host: HTMLElement, opts: ConfirmOptions): Promise<str
       resolve(answer)
     })
     host.append(dlg)
-    dlg.showModal()
+    showDialog(dlg)
   })
 }
 
@@ -82,7 +82,7 @@ export function askText(host: HTMLElement, title: string, label: string, placeho
       resolve(answer)
     })
     host.append(dlg)
-    dlg.showModal()
+    showDialog(dlg)
     input.focus()
   })
 }
@@ -124,6 +124,6 @@ export async function askLocation(host: HTMLElement, intro: string): Promise<str
       resolve(answer)
     })
     host.append(dlg)
-    dlg.showModal()
+    showDialog(dlg)
   })
 }

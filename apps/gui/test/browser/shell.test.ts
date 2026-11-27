@@ -216,6 +216,33 @@ describe('the GUI shell', { concurrency: 6, skip: browserMissing }, () => {
     await page.waitFor('document.querySelector("#sheet").dataset.screen === "balances"')
   })
 
+  test('a screen picked under More is one back step away from the screen before it', async (t) => {
+    const page = await phoneWindow(t)
+    await page.click('.sheetlist button', 'History')
+    await page.waitFor('document.querySelector("#sheet").dataset.screen === "history"')
+    const before = await page.evaluate<number>('history.length')
+    await page.click('.more-tab')
+    await page.click('.more-item', 'Settings')
+    await page.waitFor('document.querySelector("#sheet").dataset.screen === "settings"')
+    assert.equal(await page.evaluate('history.length'), before + 1, 'one step for Settings; the closed sheet left none')
+    await page.evaluate('history.back()')
+    await page.waitFor('document.querySelector("#sheet").dataset.screen === "history" && !history.state.dialog')
+    await page.evaluate('history.back()')
+    await page.waitFor('document.querySelector("#sheet").dataset.screen === "balances"')
+  })
+
+  test('a sheet closed without the back button leaves no step behind', async (t) => {
+    const page = await phoneWindow(t)
+    await page.click('.sheetlist button', 'History')
+    await page.waitFor('document.querySelector("#sheet").dataset.screen === "history"')
+    await page.click('.more-tab')
+    await page.waitFor('document.querySelector(".more-sheet[open]")')
+    await page.evaluate('document.querySelector(".more-sheet").close()')
+    await page.waitFor('!document.querySelector(".more-sheet") && !history.state?.dialog')
+    await page.evaluate('history.back()')
+    await page.waitFor('document.querySelector("#sheet").dataset.screen === "balances"')
+  })
+
   test('on a phone a table row reads as heading and value lines', async (t) => {
     const page = await phoneWindow(t)
     await page.waitFor('document.querySelector("#sheet table.data tbody td")')
