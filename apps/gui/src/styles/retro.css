@@ -6,6 +6,7 @@
  */
 
 [data-theme='retro'] {
+  --item-radius: 0;
   --font: 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', 'DejaVu Sans', system-ui, sans-serif;
   --mono: 'DejaVu Sans Mono', 'Liberation Mono', ui-monospace, monospace;
   --font-size: 13px;
@@ -112,6 +113,10 @@
   background: var(--face);
   border-color: var(--face-hi) var(--edge) var(--edge) var(--face-hi);
   box-shadow: inset -1px -1px 0 var(--shade);
+}
+/* phone: the network switch is a raised button on the title bar, so it takes the face's text colour */
+[data-theme='retro'] .titlebar .mode-top {
+  color: var(--text);
 }
 [data-theme='retro'] .seg-button:active {
   border-color: var(--edge) var(--face-hi) var(--face-hi) var(--edge);

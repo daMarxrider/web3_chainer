@@ -229,7 +229,7 @@ Every command takes `--json`. `--yes` skips the confirmation, and the `CHAINER_P
 
 ## Using the graphical app
 
-The graphical app has the same functions as the command line, in a window that also works on a phone-sized screen: first launch, wallet, Balances, Transfer, Bridge wallet (whole-wallet sweeps), Pipelines (hand-written multi-leg plans), Saved routes, Schedules, Address book, History and Settings. It runs in a browser window today; the Tauri desktop shell is next and the Android build after it.
+The graphical app has the same functions as the command line, in a window that also works on a phone-sized screen: first launch, wallet, Balances, Transfer, Bridge wallet (whole-wallet sweeps), Pipelines (hand-written multi-leg plans), Saved routes, Schedules, Address book, History and Settings. It runs as a desktop app (Linux, macOS, Windows), as an Android app and in a browser window.
 
 Run it from the repository:
 
@@ -246,6 +246,15 @@ npm run dev -w @chainer/gui        # opens on http://127.0.0.1:5173
 npm run desktop:dev -w @chainer/gui      # opens the app in its own window, with live reload
 npm run desktop:build -w @chainer/gui    # builds the packaged app under apps/gui/src-tauri/target/release/bundle
 ```
+
+**Android app (Tauri).** Releases will carry an APK once the app has its signing key; until then build it yourself. You need the Android SDK and NDK (`ANDROID_HOME` and `NDK_HOME` set), Java 17 or later and the Rust Android targets (`rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android`). Then:
+
+```sh
+npm run tauri -w @chainer/gui -- android dev          # runs on a connected phone or a running emulator
+npm run tauri -w @chainer/gui -- android build --apk  # release APK, under apps/gui/src-tauri/gen/android/app/build/outputs/apk
+```
+
+The release APK is built unsigned (Android will not install it as it is). Releases are signed on the maintainer's machine so the key never goes to GitHub; see *Signed Android releases* under Versions. The build needs a good deal of memory: do not run the emulator while it builds on a machine with 16 GB or less. On a phone the wallet stays in the app's private storage, excluded from cloud backup and device transfer, and Android's back button closes dialogs.
 
 In the desktop app the network requests go through Tauri's HTTP plugin (the window itself may not call other origins) and a content security policy limits the page to its own files. The wallet and journal stay in the app's own storage on this machine.
 
@@ -311,6 +320,14 @@ The app stays on 0.x until milestones 1 to 8 of the [plan](docs/PLAN.md) are don
 2. On an up-to-date `main`: `npm run version:tag` checks the files and creates the tag `vX.Y.Z`; `git push origin vX.Y.Z` starts the build.
 
 The "Release builds" workflow refuses a tag that does not match the version, builds Linux, macOS and Windows and attaches the bundles to a draft release, which is published by hand after a look. Pull requests that touch the desktop build run the same builds and keep the bundles as workflow artifacts.
+
+**Signed Android releases.** The Android signing key stays on the maintainer's machine; GitHub never sees it. Pushing the tag (step 2) builds and signs the APK there, through a git hook, before the tag leaves: if the build or the signing fails, the push stops. After the push the APK is attached to the draft release in the background, once the workflow has made it, with a desktop notification (log in `~/.local/state/chainer/`). Once per machine, with the Android SDK set up as under *Android app*:
+
+```sh
+scripts/android-release.sh setup /path/to/release.jks <key alias>
+```
+
+This remembers the keystore and alias in the repository's git config, puts the key password in the desktop keyring (`secret-tool`, service `chainer-android`) and turns the hook on (`core.hooksPath .githooks`). Push the tag from the checked-out, clean tag commit, with no emulator running and about 7 GB of memory free (the hook checks all three). `scripts/android-release.sh build vX.Y.Z` and `upload vX.Y.Z` do the two halves by hand. Keep the key safe: Android refuses an update signed with a different one.
 
 The code is TypeScript, run directly by Node.js without a build step. `packages/core` holds all logic; `apps/cli` is the command line on top of it.
 
