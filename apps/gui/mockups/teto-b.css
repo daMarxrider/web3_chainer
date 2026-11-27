@@ -1,0 +1,46 @@
+/* Option B: Bakery morning. Warm crust-and-cream paper, crimson twin-drill curls, soft rounded type. */
+[data-theme='teto'] {
+  --font: 'Zen Maru Gothic', 'Noto Sans', sans-serif;
+  --mono: ui-monospace, 'DejaVu Sans Mono', monospace;
+  --font-size: 13.5px; --h1: 21px; --h2: 14.5px;
+  --desktop-pad: 22px; --title-h: 40px; --status-h: 32px; --list-w: 180px; --control-h: 32px;
+  --desktop:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cg fill='none' stroke='%23d23a55' stroke-width='3' stroke-linecap='round' opacity='.16'%3E%3Cpath d='M30 20c14 0 18 14 8 18c-8 3-12-6-6-9c4-2 7 1 5 4'/%3E%3Cpath d='M100 90c14 0 18 14 8 18c-8 3-12-6-6-9c4-2 7 1 5 4'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(180deg, #f8ecd9 0%, #f3dfc4 100%);
+  --face: #fffaf3; --field: #ffffff; --line: #ead7bf;
+  --text: #2b1d1f; --text-dim: #7a6460; --hover: #f7ebdc;
+  --accent: #c4223f; --select: #fbe0e4; --select-text: #8e1229;
+  --err: #b3261e; --ok: #2f7d4a; --backdrop: rgb(60 30 30 / 0.35);
+  --title-bg: #c4223f; --title-text: #fff; --logo-edge: #c4223f;
+  --lamp-off: #d9c8b4; --lamp-amber: #e09a2d; --lamp-green: #2fa05a; --lamp-red: #c4223f; --lamp-blue: #3b82c4;
+  --focus: 2px solid var(--accent); --focus-offset: 2px;
+}
+[data-theme='teto'] .window { background: var(--face); border: 1px solid #e2cba9; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 0 #e9d3b4, 0 18px 40px rgb(120 70 40 / 0.18); }
+[data-theme='teto'] .titlebar { background: var(--title-bg); color: var(--title-text); padding: 0 16px; font-weight: 700; }
+[data-theme='teto'] .titlebar .mark { color: #fff; }
+[data-theme='teto'] .title-meta { color: #ffd6dd; }
+[data-theme='teto'] .sheetlist { background: #fbf1e4; border-right: 1px solid var(--line); padding: 10px 8px; }
+[data-theme='teto'] .sheet-item { border-radius: 999px; color: var(--text-dim); }
+[data-theme='teto'] .sheet-item:hover { background: var(--hover); color: var(--text); }
+[data-theme='teto'] .sheet-item[aria-current] { background: var(--accent); color: #fff; font-weight: 700; }
+[data-theme='teto'] .sheet-title { font-weight: 700; color: var(--text); }
+[data-theme='teto'] .statusbar { background: #fbf1e4; border-top: 1px solid var(--line); }
+[data-theme='teto'] .seg { color: var(--text-dim); }
+[data-theme='teto'] input:not([type='checkbox'], [type='radio']), [data-theme='teto'] select, [data-theme='teto'] textarea { background: var(--field); border: 1px solid #dcc3a2; border-radius: 10px; color: var(--text); }
+[data-theme='teto'] .btn { background: #fff; border: 1px solid #dcc3a2; border-radius: 999px; color: var(--text); }
+[data-theme='teto'] .btn:hover:not(:disabled) { background: var(--hover); }
+[data-theme='teto'] .btn.primary { background: var(--accent); border-color: #a51833; color: #fff; font-weight: 700; padding-inline: 18px; }
+[data-theme='teto'] .group { border: 1px solid var(--line); border-radius: 12px; background: #fffdf9; }
+[data-theme='teto'] .group legend { color: var(--accent); font-weight: 700; padding: 0 6px; }
+[data-theme='teto'] .table-wrap { border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+[data-theme='teto'] .data thead th { color: var(--text-dim); font-weight: 500; border-bottom: 1px solid var(--line); background: #fdf5ea; }
+[data-theme='teto'] .tag { border-radius: 999px; background: #fbe0e4; color: #8e1229; border: 1px solid #f0b6c0; padding-inline: 7px; }
+[data-theme='teto'] .banner { border-radius: 10px; border: 1px solid var(--line); }
+[data-theme='teto'] .banner.test { background: #fff1d6; color: #7a4a06; border-color: #f0cf8c; }
+[data-theme='teto'] .dialog { border-radius: 16px; box-shadow: 0 24px 60px rgb(90 40 30 / 0.3); }
+[data-theme='teto'] .data, [data-theme='teto'] .num, [data-theme='teto'] .summary dd { font-variant-numeric: tabular-nums; }
+[data-theme='teto'] .data tbody tr + tr > * { border-top: 1px solid var(--line); }
+[data-theme='teto'] .data tr[data-selected='true'] { background: var(--select); color: var(--select-text); }
+[data-theme='teto'] .data tr[data-selected='true'] .via { color: inherit; }
+[data-theme='teto'] ::selection { background: rgb(196 34 63 / 0.35); }
+[data-theme='teto'] input[type='radio'] { accent-color: var(--accent); }

@@ -1,12 +1,13 @@
 import { engine } from './engine.ts'
 
-export type ThemeName = 'retro' | 'modern' | 'smoked' | 'night'
+export type ThemeName = 'retro' | 'modern' | 'smoked' | 'night' | 'ticket'
 
 export const THEMES: { id: ThemeName; label: string; blurb: string }[] = [
   { id: 'modern', label: 'Modern', blurb: 'The same layout, flat and quiet, light or dark with your system.' },
   { id: 'retro', label: 'Retro', blurb: 'A workstation desktop: windows, bevels and a status strip.' },
   { id: 'smoked', label: 'Smoked glass', blurb: 'Near-black smoked panels, amber instruments, mono readouts.' },
   { id: 'night', label: 'Night glass', blurb: 'A translucent frame with a sheen around a dark pane, cyan accent.' },
+  { id: 'ticket', label: 'Crimson ticket', blurb: 'A crimson stage, graphite windows and ticket edges, red accent.' },
 ]
 
 interface Prefs {
