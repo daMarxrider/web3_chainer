@@ -180,7 +180,18 @@ Green #2fae55 done, amber #e3a51b running or test, red #c8392e failed, blue #4d8
 
 ## Layout
 
-A window centred on the desktop with 18 to 26px of desktop around it, filling the screen on a phone. Inside: a 176 to 196px sheet list on the left and the working sheet on the right; the status strip runs along the bottom. Forms use a label column (150px) and a field column; tables scroll horizontally inside their own frame rather than the page. Under 760px the window fills the screen, the sheet list becomes a horizontally scrolling tab strip at the bottom, and form rows stack.
+A window centred on the desktop with 18 to 26px of desktop around it, filling the screen on a phone. Inside: a 176 to 196px sheet list on the left and the working sheet on the right; the status strip runs along the bottom. Forms use a label column (150px) and a field column; tables scroll horizontally inside their own frame rather than the page. Under 760px the phone shell takes over, from the same DOM (see Phone below).
+
+### Phone (under 760px, and touch screens of any width)
+A desktop is a workstation; a phone is held in one hand, so its shell is built for the thumb rather than shrunk:
+- **Title bar** as the app bar, carrying the network switch (lamp and word) at its right; the safe-area inset sits above it.
+- **Sheet** fills the screen and scrolls alone; a one-line job strip (wallet, job lamp and text) sits under it.
+- **Tab strip** at the bottom edge: Balances, Transfer, History and More, four equal 56px targets. More opens a bottom sheet with the other screens and Lock; while one of them is open, More is the current tab.
+- **Tables** become stacks: the row's name on top, then one "heading: value" line per cell, values right-aligned and tabular. A row's radio or checkbox sits left of its name.
+- **Dialogs** rise from the bottom edge, full width, square at the bottom; their actions split the width.
+- **Forms**: label above field, fields at 16px, a form's actions span the width.
+- **Touch** (`pointer: coarse`, any width): controls 44px high, checkboxes and radios 22px.
+- **Back** (Android's back button or the browser's) closes an open dialog or sheet first, then returns to the previous screen.
 
 ## Elevation & Depth
 
@@ -206,16 +217,16 @@ Recessed in Retro, hairline with a focus border in the others; focus ring is a d
 **Token picker** (`tokenpicker.ts`, `.combo`): a text field with a listbox under it (ARIA combobox; arrow keys, Enter, Escape). Empty: "In your wallet" and "Popular on <chain>" groups; typing: matches, then a "Not on the token list" group. Rows are symbol, name (dim), trust tag, balance (tabular, right). The list sits on `--popup` (opaque in the glass skins, where `--field` is translucent), takes the skin's field radius, and is the one surface besides dialogs that floats over the sheet.
 
 ### Tables
-A framed, horizontally scrolling table; header row in the skin's raised or dim style, selected row in the selection colour with its secondary text inheriting it, numbers right-aligned. The routes table carries a radio per row and a `region` tag for restricted services.
+A framed, horizontally scrolling table (a stack of heading and value lines on a phone); header row in the skin's raised or dim style, selected row in the selection colour with its secondary text inheriting it, numbers right-aligned. The routes table carries a radio per row and a `region` tag for restricted services.
 
 ### Navigation
-A sheet list on the left (a bottom tab strip under 760px) with icon and label; the current sheet uses the selection colour. All icons are drawn for the app on a 16px grid with a 1.5px stroke.
+A sheet list on the left (on a phone: a bottom tab strip of four, the rest under More) with icon and label; the current sheet uses the selection colour. All icons are drawn for the app on a 16px grid with a 1.5px stroke.
 
 ### Dialogs
 Native `<dialog>` windows for the single confirmation before anything is signed, and for short name prompts. The confirmation always opens with a banner saying real or test networks.
 
 ### Status strip
-Wallet name, the network toggle (a button) and the job lamp with its text.
+Wallet name, the network toggle (a button) and the job lamp with its text. On a phone the toggle moves to the title bar.
 
 ## Do's and Don'ts
 

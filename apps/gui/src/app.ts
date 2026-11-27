@@ -36,6 +36,12 @@ const SCREENS: Screen[] = [
 
 let showing = 'balances'
 
+/** On a phone these three sit in the tab strip; every other screen and Lock are under More. */
+const TABS = new Set(['balances', 'transfer', 'history'])
+
+/** The back button's listener of the open main window (Android's back button, or the browser's). */
+let onBack: ((e: PopStateEvent) => void) | undefined
+
 export function mainWindow(root: HTMLElement, onLock: () => void): void {
   const session = engine.requireSession()
   let sheet = h('main', { class: 'sheet', id: 'sheet', tabindex: '-1' })
@@ -43,7 +49,8 @@ export function mainWindow(root: HTMLElement, onLock: () => void): void {
 
   const open = async (id: string) => {
     showing = id
-    for (const b of list.querySelectorAll('button')) b.toggleAttribute('aria-current', b.dataset.id === id)
+    for (const b of list.querySelectorAll<HTMLButtonElement>('button[data-id]')) b.toggleAttribute('aria-current', b.dataset.id === id)
+    moreTab.toggleAttribute('aria-current', !TABS.has(id))
     // A fresh sheet per screen: a screen still loading when another is opened finishes into its own,
     // detached sheet and cannot replace the newer screen.
     const fresh = h('main', { class: 'sheet', id: 'sheet', tabindex: '-1' })
@@ -58,10 +65,66 @@ export function mainWindow(root: HTMLElement, onLock: () => void): void {
       replace(mine, h('p', { class: 'form-error', role: 'alert' }, (err as Error).message))
     }
   }
-  for (const s of SCREENS) {
-    append(list, [h('button', { class: 'sheet-item', type: 'button', dataset: { id: s.id }, onClick: () => void open(s.id) }, icon(s.icon), h('span', {}, s.label))])
+  /** Opens a screen as a step the back button returns from. */
+  const go = (id: string) => {
+    if (id !== showing) history.pushState({ screen: id }, '')
+    return open(id)
   }
-  append(list, [h('button', { class: 'sheet-item lock', type: 'button', onClick: () => { stopScheduler(); engine.lock(); onLock() } }, icon('lock'), h('span', {}, 'Lock'))])
+  const lock = () => {
+    if (onBack) removeEventListener('popstate', onBack)
+    onBack = undefined
+    stopScheduler()
+    engine.lock()
+    onLock()
+  }
+
+  // Back closes the dialog on top if there is one (and keeps the screen), otherwise returns to the previous screen.
+  if (onBack) removeEventListener('popstate', onBack)
+  onBack = (e: PopStateEvent) => {
+    const dialogs = [...root.querySelectorAll<HTMLDialogElement>('dialog[open]')]
+    if (dialogs.length > 0) {
+      dialogs.at(-1)!.close()
+      history.pushState({ screen: showing }, '')
+      return
+    }
+    const id = (e.state as { screen?: string } | null)?.screen
+    void open(SCREENS.some((s) => s.id === id) ? id! : 'balances')
+  }
+  addEventListener('popstate', onBack)
+  history.replaceState({ screen: showing }, '')
+
+  /** Phone: the screens that are not tabs, and Lock, in a sheet that rises from the bottom. */
+  const openMore = () => {
+    const pick = (fn: () => void) => () => {
+      dlg.close()
+      fn()
+    }
+    const item = (label: string, ic: keyof typeof icons, current: boolean, fn: () => void) =>
+      h('button', { class: 'more-item', type: 'button', 'aria-current': current ? 'page' : undefined, onClick: pick(fn) }, icon(ic), h('span', {}, label))
+    const dlg = h(
+      'dialog',
+      { class: 'window dialog more-sheet', 'aria-labelledby': 'more-title' },
+      h('header', { class: 'titlebar' }, h('span', { class: 'title', id: 'more-title' }, 'More')),
+      h(
+        'nav',
+        { class: 'more-list', 'aria-label': 'More screens' },
+        SCREENS.filter((s) => !TABS.has(s.id)).map((s) => item(s.label, s.icon, s.id === showing, () => void go(s.id))),
+        item('Lock', 'lock', false, lock),
+      ),
+    )
+    dlg.addEventListener('close', () => dlg.remove())
+    // A tap on the dimmed backdrop lands on the dialog element itself.
+    dlg.addEventListener('click', (e) => e.target === dlg && dlg.close())
+    root.append(dlg)
+    dlg.showModal()
+    dlg.querySelector<HTMLElement>('[aria-current]')?.focus()
+  }
+
+  for (const s of SCREENS) {
+    append(list, [h('button', { class: TABS.has(s.id) ? 'sheet-item' : 'sheet-item in-more', type: 'button', dataset: { id: s.id }, onClick: () => void go(s.id) }, icon(s.icon), h('span', {}, s.label))])
+  }
+  const moreTab = h('button', { class: 'sheet-item more-tab', type: 'button', 'aria-haspopup': 'dialog', onClick: openMore }, icon('more'), h('span', {}, 'More'))
+  append(list, [moreTab, h('button', { class: 'sheet-item lock in-more', type: 'button', onClick: lock }, icon('lock'), h('span', {}, 'Lock'))])
 
   const lamp = h('span', { class: 'lamp', dataset: { state: currentJob().state }, 'aria-hidden': 'true' })
   const jobText = h('span', { class: 'job-text' }, currentJob().text)
@@ -69,28 +132,30 @@ export function mainWindow(root: HTMLElement, onLock: () => void): void {
     lamp.dataset.state = j.state
     jobText.textContent = j.text
   })
-  const modeBtn = h(
-    'button',
-    { class: 'seg seg-button mode', type: 'button', title: 'Switch between real and test networks', onClick: async () => {
-      await savePrefs({ testMode: !prefs().testMode })
-      mainWindow(root, onLock)
-    } },
-    h('span', { class: 'lamp', dataset: { state: prefs().testMode ? 'test' : 'real' }, 'aria-hidden': 'true' }),
-    prefs().testMode ? 'Test networks' : 'Real networks',
-  )
+  // The network switch sits in the status strip on a desktop and in the title bar on a phone.
+  const modeButton = (where: string) =>
+    h(
+      'button',
+      { class: `seg seg-button mode ${where}`, type: 'button', title: 'Switch between real and test networks', onClick: async () => {
+        await savePrefs({ testMode: !prefs().testMode })
+        mainWindow(root, onLock)
+      } },
+      h('span', { class: 'lamp', dataset: { state: prefs().testMode ? 'test' : 'real' }, 'aria-hidden': 'true' }),
+      prefs().testMode ? 'Test networks' : 'Real networks',
+    )
 
   const status = h(
     'footer',
     { class: 'statusbar', role: 'status' },
-    h('span', { class: 'seg grow' }, `Wallet ${session.walletName}`),
-    modeBtn,
+    h('span', { class: 'seg grow wallet-seg' }, `Wallet ${session.walletName}`),
+    modeButton('mode-strip'),
     h('span', { class: 'seg job' }, lamp, jobText),
   )
 
   const win = h(
     'div',
     { class: 'desktop' },
-    h('div', { class: 'window main', role: 'application', 'aria-label': 'chainer' }, titlebar('chainer', h('span', { class: 'title-meta' }, prefs().testMode ? 'Test networks' : 'Real networks')), h('div', { class: 'window-body' }, list, sheet), status),
+    h('div', { class: 'window main', role: 'application', 'aria-label': 'chainer' }, titlebar('chainer', h('span', { class: 'title-meta' }, prefs().testMode ? 'Test networks' : 'Real networks'), modeButton('mode-top')), h('div', { class: 'window-body' }, list, sheet), status),
   )
   replace(root, win)
   void open(showing)

@@ -20,6 +20,8 @@ async function pageFor(t: { after: (fn: () => Promise<void>) => void }, world: W
   return page
 }
 const fresh = (prefs: Record<string, unknown> = {}) => ({ 'chainer/ui.json': JSON.stringify({ theme: 'modern', disclaimerAccepted: false, testMode: false, ...prefs }) })
+/** The labels of the screen buttons that can be seen (a phone hides some under More). */
+const visibleTabs = '[...document.querySelectorAll(".sheetlist button")].filter((b) => b.offsetParent !== null).map((b) => b.textContent)'
 const buttonEnabled = (text: string) => `[...document.querySelectorAll('button')].some((b) => b.textContent.includes(${JSON.stringify(text)}) && !b.disabled)`
 
 describe('the GUI shell', { concurrency: 6, skip: browserMissing }, () => {
@@ -164,8 +166,62 @@ describe('the GUI shell', { concurrency: 6, skip: browserMissing }, () => {
 
   test('the main window lists the nine screens and Lock, with Balances open', async (t) => {
     const page = await mainWindow(t)
-    const labels = await page.evaluate<string[]>('[...document.querySelectorAll(".sheetlist button")].map((b) => b.textContent)')
+    const labels = await page.evaluate<string[]>(visibleTabs)
     assert.deepEqual([labels, await page.evaluate('document.querySelector("#sheet").dataset.screen')], [['Balances', 'Transfer', 'Bridge wallet', 'Pipelines', 'Saved routes', 'Schedules', 'Address book', 'History', 'Settings', 'Lock'], 'balances'])
+  })
+
+  // ---- the phone shell ----
+
+  const phoneWindow = async (t: Parameters<typeof pageFor>[0]) => {
+    const page = await pageFor(t)
+    await page.phone()
+    await page.open(await setUpApp({ lastChain: 'arb' }))
+    await unlock(page)
+    return page
+  }
+  const moreItems = '[...document.querySelectorAll(".more-sheet .more-item")].map((b) => b.textContent)'
+
+  test('on a phone the tab strip holds Balances, Transfer, History and More, and the network switch sits in the title bar', async (t) => {
+    const page = await phoneWindow(t)
+    assert.deepEqual(await page.evaluate(visibleTabs), ['Balances', 'Transfer', 'History', 'More'])
+    assert.equal(await page.evaluate('document.querySelector(".titlebar .mode-top").offsetParent !== null && document.querySelector(".statusbar .mode-strip").offsetParent === null'), true)
+  })
+
+  test('on a phone More lists the other screens and Lock, opens the one picked and marks More as current', async (t) => {
+    const page = await phoneWindow(t)
+    await page.click('.more-tab')
+    await page.waitFor('document.querySelector(".more-sheet[open]")')
+    assert.deepEqual(await page.evaluate(moreItems), ['Bridge wallet', 'Pipelines', 'Saved routes', 'Schedules', 'Address book', 'Settings', 'Lock'])
+    await page.click('.more-item', 'Settings')
+    await page.waitFor('document.querySelector("#sheet").dataset.screen === "settings" && !document.querySelector(".more-sheet") && document.querySelector(".more-tab").hasAttribute("aria-current")')
+  })
+
+  test('on a phone Lock under More locks the wallet', async (t) => {
+    const page = await phoneWindow(t)
+    await page.click('.more-tab')
+    await page.click('.more-item', 'Lock')
+    await page.waitFor('document.querySelector("input[type=password]") && !document.querySelector(".window.main")')
+  })
+
+  test('the back button closes an open sheet first, then returns to the previous screen', async (t) => {
+    const page = await phoneWindow(t)
+    await page.click('.sheetlist button', 'History')
+    await page.waitFor('document.querySelector("#sheet").dataset.screen === "history"')
+    await page.click('.more-tab')
+    await page.waitFor('document.querySelector(".more-sheet[open]")')
+    await page.evaluate('history.back()')
+    await page.waitFor('!document.querySelector(".more-sheet")')
+    assert.equal(await page.evaluate('document.querySelector("#sheet").dataset.screen'), 'history')
+    await page.evaluate('history.back()')
+    await page.waitFor('document.querySelector("#sheet").dataset.screen === "balances"')
+  })
+
+  test('on a phone a table row reads as heading and value lines', async (t) => {
+    const page = await phoneWindow(t)
+    await page.waitFor('document.querySelector("#sheet table.data tbody td")')
+    const cells = await page.evaluate<string[]>('[...document.querySelector("#sheet table.data tbody tr").cells].map((c) => (c.dataset.label ?? "-") + "=" + getComputedStyle(c, "::before").content)')
+    assert.deepEqual(cells.slice(1), ['Balance="Balance"', 'Value="Value"', 'Contract="Contract"'])
+    assert.equal(await page.evaluate('getComputedStyle(document.querySelector("#sheet table.data thead")).position'), 'absolute')
   })
 
   test('opening a screen marks it as the current one', async (t) => {

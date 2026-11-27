@@ -437,6 +437,10 @@ input.narrow {
   overflow-x: auto;
   max-width: 100%;
 }
+/* an empty list says so inside the frame the table would have */
+.table-wrap > p {
+  margin: 10px 12px;
+}
 .data {
   width: 100%;
   border-collapse: collapse;
@@ -777,67 +781,302 @@ input.narrow {
 
 /* ---- phone ---- */
 
+/*
+ * A desktop shows the workstation: a window with a sheet list on the left and a status strip.
+ * A phone gets its own shell from the same DOM: a title bar with the network switch, the sheet
+ * filling the screen, a one-line job strip, and a tab strip at the bottom (Balances, Transfer,
+ * History, More) within reach of a thumb; the other screens and Lock open from More as a sheet
+ * that rises from the bottom. Tables become stacks of "heading: value" lines, dialogs become
+ * bottom sheets, and the main actions span the width.
+ */
+
+.more-tab,
+.mode-top {
+  display: none;
+}
+
+.more-sheet .more-list {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px 10px;
+}
+.more-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 0 14px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: var(--item-radius, 6px);
+  cursor: pointer;
+}
+.more-item[aria-current] {
+  background: var(--select);
+  color: var(--select-text);
+  font-weight: 700;
+}
+.more-item .icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Touch screens, whatever their width: controls a finger can hit. */
+@media (pointer: coarse) {
+  :root[data-theme] {
+    --control-h: 44px;
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 22px;
+    height: 22px;
+  }
+  .check {
+    min-height: 44px;
+    align-items: center;
+  }
+  .check input {
+    margin-top: 0;
+  }
+  .btn.small {
+    min-height: 40px;
+  }
+}
+
 @media (max-width: 760px) {
+  :root[data-theme] {
+    --font-size: 15px;
+    --h1: 22px;
+  }
+  /* 16px keeps fields readable and stops a browser from zooming in on focus */
+  input:not([type='checkbox'], [type='radio']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
   .desktop {
     padding: 0;
-    align-items: stretch;
+    place-items: stretch;
   }
   .window.main {
     width: 100%;
     height: 100dvh;
     min-height: 0;
   }
-  .window-body {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto;
+  .window.main > .titlebar {
+    order: 0;
+    padding-top: env(safe-area-inset-top);
+    min-height: calc(var(--title-h) + env(safe-area-inset-top));
   }
-  .sheet {
-    grid-row: 1;
-    padding: 12px 12px 20px;
+  .window.main .title-meta {
+    display: none;
   }
-  .sheetlist {
-    grid-row: 2;
-    flex-direction: row;
-    padding: 4px;
-    justify-content: space-around;
-  }
-  .sheet-item {
-    flex-direction: column;
-    gap: 2px;
-    justify-content: center;
-    text-align: center;
-    padding: 6px 4px;
+  .mode-top {
+    display: inline-flex;
+    min-height: 36px;
+    padding: 0 10px;
+    font-weight: 600;
     font-size: 0.9em;
   }
-  .sheet-item.lock {
-    margin-top: 0;
+  /* the body's two parts take their own places in the window's column */
+  .window.main > .window-body {
+    display: contents;
   }
+  .sheet {
+    order: 1;
+    flex: 1;
+    min-height: 0;
+    padding: 14px 14px 24px;
+    overscroll-behavior: contain;
+  }
+  .statusbar {
+    order: 2;
+    min-height: 30px;
+    font-size: 0.85em;
+  }
+  .statusbar .mode-strip {
+    display: none;
+  }
+  .job-text {
+    max-width: none;
+  }
+
+  .sheetlist {
+    order: 3;
+    flex-direction: row;
+    gap: 4px;
+    padding: 4px 6px max(4px, env(safe-area-inset-bottom));
+    overflow: visible;
+  }
+  .sheetlist .in-more {
+    display: none;
+  }
+  .sheet-item.more-tab {
+    display: flex;
+  }
+  .sheet-item {
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 56px;
+    padding: 6px 2px;
+    font-size: 0.8em;
+    text-align: center;
+  }
+  .sheet-item .icon {
+    width: 20px;
+    height: 20px;
+  }
+  .sheet-item span:last-child {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* forms: label above field, the main action across the width */
   .row {
     grid-template-columns: minmax(0, 1fr);
-    gap: 3px;
+    gap: 4px;
   }
-  .theme-picker {
-    grid-template-columns: 1fr;
+  .group {
+    padding: 8px 12px 14px;
+  }
+  .toolbar {
+    flex-wrap: wrap;
+  }
+  .actions {
+    flex-wrap: wrap;
+  }
+  .actions > .btn {
+    flex: 1 1 0;
+  }
+  .actions > .hint {
+    flex-basis: 100%;
   }
   .leg-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-  .sheetlist {
-    overflow-x: auto;
-    justify-content: flex-start;
-  }
-  .sheet-item {
-    flex: none;
+  .leg-grid .combo-list {
+    right: 0;
     width: auto;
-    min-width: 78px;
   }
-  .statusbar {
-    flex-wrap: wrap;
-  }
-  .job-text {
-    max-width: 22ch;
+  .theme-picker {
+    grid-template-columns: 1fr;
   }
   .window.wizard {
     width: 100%;
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .wizard-body {
+    padding: 16px 16px 24px;
+  }
+  .combo-option {
+    min-height: 44px;
+    align-items: center;
+  }
+  .run-list li {
+    flex-wrap: wrap;
+  }
+
+  /* tables: each row a block of "heading: value" lines */
+  .table-wrap {
+    overflow: visible;
+  }
+  .data thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .data,
+  .data tbody,
+  .data tfoot {
+    display: block;
+  }
+  .data tr {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 12px;
+    padding: 8px 2px;
+  }
+  .data tr + tr,
+  .data tfoot tr {
+    border-top: 1px solid var(--line, var(--shade));
+  }
+  .data th,
+  .data td {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 2px 0;
+    white-space: normal;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  .data tbody th,
+  .data tfoot th {
+    justify-content: flex-start;
+    text-align: left;
+    font-size: 1.05em;
+  }
+  .data td[data-label]:not([data-label=''], .pick)::before {
+    content: attr(data-label);
+    flex: none;
+    max-width: 45%;
+    color: var(--text-dim);
+    font-weight: 400;
+    text-align: left;
+  }
+  .data td:empty {
+    display: none;
+  }
+  /* a row with a choice: the radio or checkbox sits left of the row's name */
+  .data td.pick {
+    grid-column: 1;
+    justify-content: flex-start;
+    grid-row: 1;
+    align-self: center;
+    padding: 0;
+  }
+  .data tr:has(> td.pick) > th {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .data .via-cell {
+    min-width: 0;
+  }
+
+  /* dialogs rise from the bottom edge */
+  [data-theme] dialog.dialog {
+    width: 100%;
+    max-width: none;
+    margin: auto 0 0;
+    max-height: 88dvh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .summary {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .summary dt {
+    margin-top: 8px;
+    font-size: 0.88em;
+  }
+  .summary dd {
+    overflow-wrap: anywhere;
   }
 }

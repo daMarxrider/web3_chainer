@@ -172,6 +172,12 @@ export class Page {
     await this.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false })
   }
 
+  /** Shows the page as a phone would: a 393x852 touch screen. Call before `open`. */
+  async phone(): Promise<void> {
+    await this.send('Emulation.setDeviceMetricsOverride', { width: 393, height: 852, deviceScaleFactor: 2, mobile: true })
+    await this.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 })
+  }
+
   private async answer(p: { requestId: string; request: { url: string; method: string; postData?: string } }): Promise<void> {
     const { url, method, postData } = p.request
     if (url.startsWith(this.b.origin) || url.startsWith('data:')) return void (await this.send('Fetch.continueRequest', { requestId: p.requestId }).catch(() => undefined))

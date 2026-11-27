@@ -5,7 +5,7 @@ import './styles/smoked.css'
 import './styles/night.css'
 import './styles/ticket.css'
 import { mainWindow } from './app.ts'
-import { h, replace } from './dom.ts'
+import { h, labelTableCells, replace } from './dom.ts'
 import { engine } from './engine.ts'
 import { firstLaunch, titlebar, unlockWindow } from './firstlaunch.ts'
 import { loadPrefs } from './prefs.ts'
@@ -33,6 +33,7 @@ function movedNotice(root: HTMLElement, keys: string[]): Promise<void> {
 
 async function boot(): Promise<void> {
   const root = document.getElementById('app')!
+  labelTableCells(root)
   const conflicts = await engine.moveWebviewData()
   await loadPrefs()
   if (conflicts.length > 0) await movedNotice(root, conflicts)

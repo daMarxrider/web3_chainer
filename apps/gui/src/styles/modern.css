@@ -265,7 +265,8 @@
 }
 
 @media (max-width: 760px) {
-  [data-theme='modern'] .window {
+  [data-theme='modern'] .window.main,
+  [data-theme='modern'] .window.wizard {
     border-radius: 0;
     border: 0;
   }

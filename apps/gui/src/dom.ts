@@ -61,3 +61,29 @@ export function field<T extends HTMLElement>(root: ParentNode, name: string): T 
   if (!el) throw new Error(`Missing field ${name}`)
   return el
 }
+
+/**
+ * Gives every cell of a `table.data` its column's heading as `data-label`, so on a phone, where
+ * each row is shown as a stack of "heading: value" lines, a value keeps its name. Watches `root`
+ * because screens fill tables in after they are attached.
+ */
+export function labelTableCells(root: HTMLElement): void {
+  const label = () => {
+    for (const table of root.querySelectorAll<HTMLTableElement>('table.data')) {
+      const heads = table.tHead?.rows[0]
+      if (!heads) continue
+      const names: string[] = []
+      for (const th of heads.cells) for (let i = 0; i < th.colSpan; i++) names.push(th.textContent?.trim() ?? '')
+      for (const body of [...table.tBodies, table.tFoot].filter((b): b is HTMLTableSectionElement => b !== null)) {
+        for (const row of body.rows) {
+          let col = 0
+          for (const cell of row.cells) {
+            if (!cell.hasAttribute('data-label')) cell.dataset.label = cell.colSpan > 1 ? '' : (names[col] ?? '')
+            col += cell.colSpan
+          }
+        }
+      }
+    }
+  }
+  new MutationObserver(label).observe(root, { childList: true, subtree: true })
+}
