@@ -324,10 +324,10 @@ The "Release builds" workflow refuses a tag that does not match the version, bui
 **Signed Android releases.** The Android signing key stays on the maintainer's machine; GitHub never sees it. Pushing the tag (step 2) builds and signs the APK there, through a git hook, before the tag leaves: if the build or the signing fails, the push stops. After the push the APK is attached to the draft release in the background, once the workflow has made it, with a desktop notification (log in `~/.local/state/chainer/`). Once per machine, with the Android SDK set up as under *Android app*:
 
 ```sh
-scripts/android-release.sh setup /path/to/release.jks <key alias>
+scripts/android-release.sh setup /path/to/release.jks <key alias> [<keyring attribute> <value> ...]
 ```
 
-This remembers the keystore and alias in the repository's git config, puts the key password in the desktop keyring (`secret-tool`, service `chainer-android`) and turns the hook on (`core.hooksPath .githooks`). Push the tag from the checked-out, clean tag commit, with no emulator running and about 7 GB of memory free (the hook checks all three). `scripts/android-release.sh build vX.Y.Z` and `upload vX.Y.Z` do the two halves by hand. Keep the key safe: Android refuses an update signed with a different one.
+This remembers the keystore and alias in the repository's git config and turns the hook on (`core.hooksPath .githooks`). If the keystore password is already in the desktop keyring, name its entry's attributes (as `secret-tool lookup` takes them, e.g. `service android-release user me`) and that entry is used; otherwise `setup` asks for the password and stores it in the keyring under `service chainer-android key release`. The hook reads it from there, so nothing is typed at push time and the password is never in a file. Push the tag from the checked-out, clean tag commit, with no emulator running and about 7 GB of memory free (the hook checks all three). `scripts/android-release.sh build vX.Y.Z` and `upload vX.Y.Z` do the two halves by hand. Keep the key safe: Android refuses an update signed with a different one.
 
 The code is TypeScript, run directly by Node.js without a build step. `packages/core` holds all logic; `apps/cli` is the command line on top of it.
 
