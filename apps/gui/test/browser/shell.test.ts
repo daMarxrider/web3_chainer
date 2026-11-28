@@ -170,6 +170,13 @@ describe('the GUI shell', { concurrency: 6, skip: browserMissing }, () => {
     assert.deepEqual([labels, await page.evaluate('document.querySelector("#sheet").dataset.screen')], [['Balances', 'Transfer', 'Bridge wallet', 'Pipelines', 'Saved routes', 'Schedules', 'Address book', 'History', 'Settings', 'Lock'], 'balances'])
   })
 
+  test('without fingerprint unlock the unlock window offers no fingerprint button', async (t) => {
+    const page = await pageFor(t)
+    await page.open(await setUpApp())
+    await page.waitFor('document.querySelector("input[type=password]")')
+    assert.equal(await page.evaluate('[...document.querySelectorAll("button")].some((b) => b.textContent === "Use fingerprint" && b.offsetParent !== null)'), false)
+  })
+
   // ---- the phone shell ----
 
   const phoneWindow = async (t: Parameters<typeof pageFor>[0]) => {
