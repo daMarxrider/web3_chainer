@@ -1,6 +1,7 @@
 import { version } from '../../../../package.json'
 import { h, replace } from '../dom.ts'
 import { engine } from '../engine.ts'
+import { disableFingerprint, enableFingerprint, fingerprintStatus } from '../fingerprint.ts'
 import { disclaimerBlock } from '../firstlaunch.ts'
 import { prefs, savePrefs, THEMES, type ThemeName } from '../prefs.ts'
 
@@ -61,12 +62,38 @@ export async function settingsScreen(sheet: HTMLElement): Promise<void> {
     h('div', { class: 'actions' }, h('button', { class: 'btn primary', type: 'submit' }, 'Save')),
   )
 
+  // Fingerprint unlock, for the wallet that is open; only where the device has a fingerprint set up.
+  const wallet = engine.requireSession().walletName
+  const finger = await fingerprintStatus(wallet).catch(() => ({ available: false, enabled: false }))
+  const fingerBox = h('input', { type: 'checkbox', name: 'fingerprint', checked: finger.enabled, onChange: async () => {
+    fingerBox.disabled = true
+    try {
+      if (fingerBox.checked) {
+        const r = await enableFingerprint(wallet, engine.requireSession().password)
+        fingerBox.checked = r.ok
+        if (r.ok) flash('Fingerprint unlock on')
+        else if (r.reason !== 'cancelled') flash(r.message ?? 'Fingerprint unlock could not be turned on')
+      } else {
+        await disableFingerprint(wallet)
+        flash('Fingerprint unlock off')
+      }
+    } catch (e) {
+      fingerBox.checked = !fingerBox.checked
+      flash((e as Error).message)
+    }
+    fingerBox.disabled = false
+  } })
+  const fingerGroup = finger.available
+    ? h('fieldset', { class: 'group' }, h('legend', {}, 'Fingerprint'), h('p', { class: 'hint' }, 'The password is kept on this phone, encrypted with a key that only your fingerprint opens. Adding a fingerprint to the phone turns this off, and the password is needed once to turn it on again.'), h('label', { class: 'check block' }, fingerBox, h('span', {}, `Unlock wallet ${wallet} with a fingerprint`)))
+    : null
+
   replace(
     sheet,
     h('h1', { class: 'sheet-title' }, 'Settings'),
     saved,
     h('fieldset', { class: 'group' }, h('legend', {}, 'Look'), THEMES.map((t) => themeRadio(t.id, t.label, t.blurb))),
     h('fieldset', { class: 'group' }, h('legend', {}, 'Networks'), h('p', { class: 'hint' }, 'Test networks use test funds and keep their own run history. Switch here, or with the Real networks / Test networks button: in the status strip on a desktop, at the top on a phone.'), h('label', { class: 'check block' }, h('input', { type: 'checkbox', name: 'test', checked: prefs().testMode, onChange: async (e: Event) => { await savePrefs({ testMode: (e.target as HTMLInputElement).checked }); flash(prefs().testMode ? 'Test networks on. Reopen a screen to see them.' : 'Real networks on.') } }), h('span', {}, 'Use test networks'))),
+    fingerGroup,
     h('fieldset', { class: 'group' }, h('legend', {}, 'Defaults'), form),
     h('fieldset', { class: 'group' }, h('legend', {}, 'About and disclaimer'), h('p', { class: 'hint' }, `chainer ${version} is free software under the GNU GPL v3. It holds your keys on this device only.`), disclaimerBlock()),
   )
