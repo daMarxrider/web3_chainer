@@ -71,8 +71,7 @@ export async function settingsScreen(sheet: HTMLElement): Promise<void> {
       if (fingerBox.checked) {
         const r = await enableFingerprint(wallet, engine.requireSession().password)
         fingerBox.checked = r.ok
-        if (r.ok) flash('Fingerprint unlock on')
-        else if (r.reason !== 'cancelled') flash(r.message ?? 'Fingerprint unlock could not be turned on')
+        flash(r.ok ? 'Fingerprint unlock on' : (r.message ?? 'Fingerprint unlock could not be turned on'))
       } else {
         await disableFingerprint(wallet)
         flash('Fingerprint unlock off')
@@ -84,7 +83,7 @@ export async function settingsScreen(sheet: HTMLElement): Promise<void> {
     fingerBox.disabled = false
   } })
   const fingerGroup = finger.available
-    ? h('fieldset', { class: 'group' }, h('legend', {}, 'Fingerprint'), h('p', { class: 'hint' }, 'The password is kept on this phone, encrypted with a key that only your fingerprint opens. Adding a fingerprint to the phone turns this off, and the password is needed once to turn it on again.'), h('label', { class: 'check block' }, fingerBox, h('span', {}, `Unlock wallet ${wallet} with a fingerprint`)))
+    ? h('fieldset', { class: 'group' }, h('legend', {}, 'Fingerprint'), h('p', { class: 'hint' }, 'On by default. The password is kept on this phone, encrypted with a key that only your fingerprint opens. Adding a fingerprint to the phone turns this off until you turn it on again here.'), h('label', { class: 'check block' }, fingerBox, h('span', {}, `Unlock wallet ${wallet} with a fingerprint`)))
     : null
 
   replace(

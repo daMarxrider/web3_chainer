@@ -1,7 +1,7 @@
 import { addAccount, newMnemonic } from '@chainer/core'
 import { append, h, replace } from './dom.ts'
 import { engine } from './engine.ts'
-import { disableFingerprint, fingerprintPassword, fingerprintStatus } from './fingerprint.ts'
+import { disableFingerprint, fingerprintByDefault, fingerprintPassword, fingerprintStatus } from './fingerprint.ts'
 import { icon } from './icons.ts'
 import { savePrefs, prefs, THEMES, type ThemeName } from './prefs.ts'
 
@@ -198,6 +198,7 @@ export function unlockWindow(root: HTMLElement, names: string[]): Promise<string
         btn.disabled = true
         try {
           await unlockWith(pw.value)
+          void fingerprintByDefault(which.value, pw.value)
         } catch (err) {
           msg.textContent = (err as Error).message
           btn.disabled = false
