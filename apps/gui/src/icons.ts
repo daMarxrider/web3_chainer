@@ -18,6 +18,7 @@ export const icons = {
   check: wrap('<path d="M3 8.5l3.2 3L13 4.5"/>'),
   cross: wrap('<path d="M4 4l8 8M12 4l-8 8"/>'),
   more: wrap('<circle cx="3.5" cy="8" r="1"/><circle cx="8" cy="8" r="1"/><circle cx="12.5" cy="8" r="1"/>'),
+  info: wrap('<circle cx="8" cy="8" r="5.5"/><path d="M8 7.2v3.8M8 5v.1"/>'),
   arrow: wrap('<path d="M3 8h10M9.5 4.5L13 8l-3.5 3.5"/>'),
   logo: `<svg class="icon logo" viewBox="0 0 32 32" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 21l6-10 8 8"/></g><g fill="currentColor" stroke="var(--logo-edge, #26306b)" stroke-width="1.6"><circle cx="9" cy="21" r="3.4"/><circle cx="15" cy="11" r="3.4"/><circle cx="23" cy="19" r="3.4"/></g></svg>`,
 }
