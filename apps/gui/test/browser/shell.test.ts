@@ -182,6 +182,13 @@ describe('the GUI shell', { concurrency: 6, skip: browserMissing }, () => {
     assert.equal(await page.evaluate('document.querySelector("#sheet").textContent.includes("not liable")'), true)
   })
 
+  test('without fingerprint unlock the unlock window offers no fingerprint button', async (t) => {
+    const page = await pageFor(t)
+    await page.open(await setUpApp())
+    await page.waitFor('document.querySelector("input[type=password]")')
+    assert.equal(await page.evaluate('[...document.querySelectorAll("button")].some((b) => b.textContent === "Use fingerprint" && b.offsetParent !== null)'), false)
+  })
+
   // ---- the phone shell ----
 
   const phoneWindow = async (t: Parameters<typeof pageFor>[0]) => {

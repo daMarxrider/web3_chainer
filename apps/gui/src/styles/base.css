@@ -368,6 +368,9 @@ input.narrow {
   cursor: pointer;
   white-space: nowrap;
 }
+.btn[hidden] {
+  display: none;
+}
 .btn.small {
   padding: 3px 10px;
 }

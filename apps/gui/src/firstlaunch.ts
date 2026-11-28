@@ -1,6 +1,7 @@
 import { addAccount, newMnemonic } from '@chainer/core'
 import { append, h, replace } from './dom.ts'
 import { engine } from './engine.ts'
+import { disableFingerprint, fingerprintByDefault, fingerprintPassword, fingerprintStatus } from './fingerprint.ts'
 import { icon } from './icons.ts'
 import { savePrefs, prefs, THEMES, type ThemeName } from './prefs.ts'
 
@@ -143,13 +144,52 @@ export function titlebar(title: string, ...extra: (Node | string)[]): HTMLElemen
   return bar
 }
 
-/** The window shown when a wallet exists but is locked. */
+/** The window shown when a wallet exists but is locked. On Android a fingerprint can stand in for the password. */
 export function unlockWindow(root: HTMLElement, names: string[]): Promise<string> {
   return new Promise((done) => {
     const msg = h('p', { class: 'form-error', role: 'alert' })
     const pw = h('input', { type: 'password', name: 'password', autocomplete: 'current-password', required: true })
     const which = h('select', { name: 'wallet', hidden: names.length < 2 }, names.map((n) => h('option', { value: n }, n)))
     const btn = h('button', { class: 'btn primary', type: 'submit' }, 'Unlock')
+    const finger = h('button', { class: 'btn', type: 'button', hidden: true, onClick: () => void byFingerprint() }, 'Use fingerprint')
+
+    const unlockWith = async (password: string) => {
+      await engine.unlock(which.value || undefined, password)
+      done(which.value)
+    }
+    const byFingerprint = async () => {
+      const wallet = which.value
+      msg.textContent = ''
+      finger.disabled = btn.disabled = true
+      try {
+        const r = await fingerprintPassword(wallet)
+        if (r.ok) {
+          try {
+            return await unlockWith(r.password!)
+          } catch {
+            // The stored password no longer opens the wallet: drop it rather than keep failing.
+            await disableFingerprint(wallet)
+            finger.hidden = true
+            msg.textContent = 'The password kept for the fingerprint no longer opens this wallet, so fingerprint unlock was turned off. Type the password; you can turn it on again in Settings.'
+          }
+        } else if (r.reason === 'invalidated') {
+          finger.hidden = true
+          msg.textContent = `${r.message}. Type the password; you can turn it on again in Settings.`
+        } else if (r.reason !== 'cancelled') msg.textContent = r.message ?? 'Fingerprint unlock failed. Type the password.'
+      } catch (err) {
+        msg.textContent = (err as Error).message
+      }
+      finger.disabled = btn.disabled = false
+      pw.focus()
+    }
+    /** Offers the fingerprint when it is on for the chosen wallet, and asks for it straight away. */
+    const offerFingerprint = async (ask: boolean) => {
+      const { enabled } = await fingerprintStatus(which.value).catch(() => ({ enabled: false }))
+      finger.hidden = !enabled
+      if (enabled && ask) void byFingerprint()
+    }
+    which.addEventListener('change', () => void offerFingerprint(true))
+
     const form = h(
       'form',
       { class: 'form', onSubmit: async (e: Event) => {
@@ -157,8 +197,8 @@ export function unlockWindow(root: HTMLElement, names: string[]): Promise<string
         msg.textContent = ''
         btn.disabled = true
         try {
-          await engine.unlock(which.value || undefined, pw.value)
-          done(which.value)
+          await unlockWith(pw.value)
+          void fingerprintByDefault(which.value, pw.value)
         } catch (err) {
           msg.textContent = (err as Error).message
           btn.disabled = false
@@ -168,9 +208,10 @@ export function unlockWindow(root: HTMLElement, names: string[]): Promise<string
       names.length > 1 ? h('label', { class: 'row' }, h('span', { class: 'label' }, 'Wallet'), which) : null,
       h('label', { class: 'row' }, h('span', { class: 'label' }, 'Password'), pw),
       msg,
-      h('div', { class: 'actions' }, btn),
+      h('div', { class: 'actions' }, finger, btn),
     )
     replace(root, h('div', { class: 'desktop' }, h('section', { class: 'window wizard narrow', 'aria-labelledby': 'u1' }, titlebar('chainer'), h('div', { class: 'wizard-body' }, h('h1', { id: 'u1' }, 'Unlock your wallet'), form))))
     pw.focus()
+    void offerFingerprint(true)
   })
 }
