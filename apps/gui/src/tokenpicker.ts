@@ -1,4 +1,4 @@
-import { isNative, popularTokens, searchTokens, type Chain, type RatedToken, type Token, type TokenIndex } from '@chainer/core'
+import { isFreezable, isNative, popularTokens, searchTokens, type Chain, type RatedToken, type Token, type TokenIndex } from '@chainer/core'
 import { amount, h, replace } from './dom.ts'
 import { engine } from './engine.ts'
 
@@ -12,6 +12,8 @@ const TRUST_TAG: Partial<Record<RatedToken['trust'], [string, string]>> = {
   unknown: ['unchecked', 'Neither on the token list nor checked by LI.FI’s screening. Check the contract address.'],
   flagged: ['flagged', 'Flagged by LI.FI’s token screening as a likely scam. It cannot be sent from here.'],
 }
+
+const FREEZE_TAG = 'Its issuer can freeze or blacklist addresses holding it, which would lock the funds there.'
 
 /**
  * What to tell the user about a token that is not on the list; nothing for listed tokens. Where the
@@ -76,7 +78,7 @@ export function tokenPicker(opts: { id: string; name?: string; value?: string; p
       { id: `${listId}-${i}`, class: 'combo-option', role: 'option', 'aria-selected': 'false', 'aria-disabled': r.trust === 'flagged' ? 'true' : undefined, dataset: { index: String(i) } },
       h('span', { class: 'sym' }, r.token.symbol),
       h('span', { class: 'name' }, nameOf(r.token)),
-      tag ? h('span', { class: 'tag', title: tag[1] }, tag[0]) : h('span'),
+      h('span', { class: 'tags' }, tag ? h('span', { class: 'tag', title: tag[1] }, tag[0]) : null, isFreezable(r.token) ? h('span', { class: 'tag', title: FREEZE_TAG }, 'freezable') : null),
       h('span', { class: 'bal' }, bal ? amount(bal.balance, bal.token) : ''),
     )
   }

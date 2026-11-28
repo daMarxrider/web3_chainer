@@ -18,6 +18,12 @@ describe('sending and following runs', { concurrency: true }, () => {
     assert.deepEqual([r.out.includes('Route:     lifi/stargate'), r.out.includes(`Recipient: ${ME}`), r.out.trim().split('\n').at(-1), r.broadcasts], [true, true, 'Dry run: nothing was signed or sent.', []])
   })
 
+  test('receiving USDC warns that its issuer can freeze it, before anything is asked', async (t) => {
+    const r = await chainer(await home(t), standardWorld(), send100, { input: 'n\n' })
+    const warning = 'Warning:   You receive USDC on Base. Its issuer can freeze or blacklist addresses, which would lock the funds there.'
+    assert.deepEqual([r.out.split('\n').filter((l) => l === warning).length, r.out.indexOf(warning) < r.out.indexOf('Cancelled.')], [1, true])
+  })
+
   test('sending more than the wallet holds is refused before any route search', async (t) => {
     const r = await chainer(await home(t), standardWorld(), ['send', '2000', 'USDC', 'arb', 'bas'])
     assert.deepEqual([r.code, lastError(r.err), r.requests.some((q) => q.includes('advanced/routes'))], [1, 'Error: Not enough USDC on Arbitrum: the wallet holds 1000 USDC', false])

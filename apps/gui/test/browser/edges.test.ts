@@ -107,7 +107,7 @@ describe('remaining GUI paths', { concurrency: 6, skip: browserMissing }, () => 
     await page.waitFor('document.querySelector(".job-result .banner.err")?.textContent.includes("The gas for eth did not arrive, so the main transfer was not started")', 30_000)
   })
 
-  test('a top-up whose route search fails is left out, and the confirmation says only that', async (t) => {
+  test('a top-up whose route search fails is left out, and the confirmation says so next to the freeze warning for USDC', async (t) => {
     // ETH is on the avoid list, so the search for the top-up into ETH refuses outright.
     const world = standardWorld({ balances: { [ME]: { [`arb:${TOKENS.usdcArb.address}`]: '1000000000', [`arb:${ZERO}`]: '10000000000000000' } } })
     const page = await appAt(t, 'Transfer', world, { settings: { avoidTokens: ['ETH'] } })
@@ -118,7 +118,7 @@ describe('remaining GUI paths', { concurrency: 6, skip: browserMissing }, () => 
     await page.click('button', 'Review and send')
     await page.waitFor('document.querySelector("dialog[open]")', 45_000)
     const notes = await page.evaluate<string[]>('[...document.querySelectorAll("dialog[open] .hint")].map((p) => p.textContent)')
-    assert.deepEqual(notes, ['No gas top-up: no route for it (ETH is on your list of tokens to avoid).'])
+    assert.deepEqual(notes, ['You receive USDC on Base. Its issuer can freeze or blacklist addresses, which would lock the funds there.', 'No gas top-up: no route for it (ETH is on your list of tokens to avoid).'])
   })
 
   // ---- flagged tokens typed by hand ----

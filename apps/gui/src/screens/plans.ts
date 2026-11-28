@@ -1,4 +1,4 @@
-import type { Chain, PipelineLeg, Token } from '@chainer/core'
+import { freezeNote, type Chain, type PipelineLeg, type Token } from '@chainer/core'
 import { amount, duration, h, replace, usd } from '../dom.ts'
 import { engine } from '../engine.ts'
 import { askLocation, confirmRun } from './confirm.ts'
@@ -82,7 +82,7 @@ export async function plansScreen(sheet: HTMLElement): Promise<void> {
         pickers[i]!.to.resolve(l.toSymbol, `Leg ${i + 1}: there is no token "${l.toSymbol.trim()}" on ${tc.name}.`),
       ])
       const [from, to] = [fromRated.token, toRated.token]
-      for (const n of [trustNote(fromRated, fc, pickers[i]!.from.covers()), trustNote(toRated, tc, pickers[i]!.to.covers())]) if (n && !tokenNotes.includes(n)) tokenNotes.push(n)
+      for (const n of [trustNote(fromRated, fc, pickers[i]!.from.covers()), trustNote(toRated, tc, pickers[i]!.to.covers()), freezeNote(to, tc)]) if (n && !tokenNotes.includes(n)) tokenNotes.push(n)
       const a = l.amount.trim().toLowerCase()
       if (i === 0 && a === 'all') throw new Error('Leg 1 needs an amount; later legs can send "all" of what arrived')
       if (i > 0 && a !== 'all' && a !== '') throw new Error(`Leg ${i + 1} must send "all": it continues with what the previous leg delivered`)

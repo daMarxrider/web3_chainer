@@ -101,6 +101,16 @@ describe('workflows', { concurrency: 6, skip: browserMissing }, () => {
     assert.deepEqual([await page.evaluate('[...document.querySelectorAll("#sheet .results table tbody th")].map((x) => x.textContent)'), await page.evaluate('[...document.querySelectorAll("#sheet .results ul li")].map((x) => x.textContent)')], [['USDC'], ['ETH: no route']])
   })
 
+  test('a plan that receives USDC warns once that its issuer can freeze it, in the plan and the confirmation', async (t) => {
+    const page = await screen(t, 'Bridge wallet', sweepWorld({ routes: [{ from: 'USDC@arb', to: 'USDC@bas', tool: 'stargate', rate: 0.999 }] }))
+    await planned(page)
+    const warning = 'You receive USDC on Base. Its issuer can freeze or blacklist addresses, which would lock the funds there.'
+    assert.deepEqual(await page.evaluate('[...document.querySelectorAll("#sheet .results .notice")].map((x) => x.textContent.trim())'), [warning])
+    await page.click('#sheet .results button', 'Review and send')
+    await page.waitFor('document.querySelector("dialog[open]")')
+    assert.deepEqual(await page.evaluate('[...document.querySelectorAll("dialog[open] .hint")].map((p) => p.textContent)'), [warning, '1 token is skipped (see the plan).'])
+  })
+
   test('a plan where nothing can go says so', async (t) => {
     const page = await screen(t, 'Bridge wallet', sweepWorld({ routes: [] }))
     await planned(page)
