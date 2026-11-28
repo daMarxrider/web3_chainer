@@ -1,6 +1,7 @@
 // The GUI in headless Chromium against the fake network: first launch, unlocking, the main
 // window, Settings, Balances, History and the address book.
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { after, describe, test } from 'node:test'
 import { browserMissing, lazyBrowser, ME, PASSWORD, SEED, setUpApp, unlock, type Page } from './harness.ts'
 import { standardWorld, TOKENS } from './worlds.ts'
@@ -164,10 +165,21 @@ describe('the GUI shell', { concurrency: 6, skip: browserMissing }, () => {
     return page
   }
 
-  test('the main window lists the nine screens and Lock, with Balances open', async (t) => {
+  test('the main window lists the ten screens and Lock, with Balances open', async (t) => {
     const page = await mainWindow(t)
     const labels = await page.evaluate<string[]>(visibleTabs)
-    assert.deepEqual([labels, await page.evaluate('document.querySelector("#sheet").dataset.screen')], [['Balances', 'Transfer', 'Bridge wallet', 'Pipelines', 'Saved routes', 'Schedules', 'Address book', 'History', 'Settings', 'Lock'], 'balances'])
+    assert.deepEqual([labels, await page.evaluate('document.querySelector("#sheet").dataset.screen')], [['Balances', 'Transfer', 'Bridge wallet', 'Pipelines', 'Saved routes', 'Schedules', 'Address book', 'History', 'Settings', 'About', 'Lock'], 'balances'])
+  })
+
+  test('About shows the version, the developer and the disclaimer', async (t) => {
+    const page = await mainWindow(t)
+    await page.click('.sheetlist button', 'About')
+    await page.waitFor('document.querySelector("#sheet").dataset.screen === "about"')
+    const facts = await page.evaluate<string[]>('[...document.querySelectorAll("#sheet .summary dd")].map((d) => d.textContent)')
+    const { version } = JSON.parse(readFileSync(new URL('../../../../package.json', import.meta.url), 'utf8')) as { version: string }
+    assert.deepEqual(facts.slice(0, 2), [version, 'DaMarxrider'])
+    assert.equal(await page.evaluate(buttonEnabled('Check for updates')), true)
+    assert.equal(await page.evaluate('document.querySelector("#sheet").textContent.includes("not liable")'), true)
   })
 
   test('without fingerprint unlock the unlock window offers no fingerprint button', async (t) => {
@@ -198,7 +210,7 @@ describe('the GUI shell', { concurrency: 6, skip: browserMissing }, () => {
     const page = await phoneWindow(t)
     await page.click('.more-tab')
     await page.waitFor('document.querySelector(".more-sheet[open]")')
-    assert.deepEqual(await page.evaluate(moreItems), ['Bridge wallet', 'Pipelines', 'Saved routes', 'Schedules', 'Address book', 'Settings', 'Lock'])
+    assert.deepEqual(await page.evaluate(moreItems), ['Bridge wallet', 'Pipelines', 'Saved routes', 'Schedules', 'Address book', 'Settings', 'About', 'Lock'])
     await page.click('.more-item', 'Settings')
     await page.waitFor('document.querySelector("#sheet").dataset.screen === "settings" && !document.querySelector(".more-sheet") && document.querySelector(".more-tab").hasAttribute("aria-current")')
   })

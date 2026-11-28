@@ -93,7 +93,8 @@ let tauriFetch: Promise<TauriFetch> | undefined
 const inTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 const platformFetch: typeof fetch = inTauri ? async (input, init) => (await (tauriFetch ??= import('@tauri-apps/plugin-http').then((m) => m.fetch as TauriFetch)))(input, init) : (input, init) => fetch(input, init)
 
-const withTimeout: typeof fetch = (input, init) => platformFetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(30_000) })
+/** Network requests with a 30 second timeout, for the app's own checks outside the core (the update check). */
+export const withTimeout: typeof fetch = (input, init) => platformFetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(30_000) })
 
 export interface Session {
   walletName: string
