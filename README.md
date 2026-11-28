@@ -229,7 +229,7 @@ Every command takes `--json`. `--yes` skips the confirmation, and the `CHAINER_P
 
 ## Using the graphical app
 
-The graphical app has the same functions as the command line, in a window that also works on a phone-sized screen: first launch, wallet, Balances, Transfer, Bridge wallet (whole-wallet sweeps), Pipelines (hand-written multi-leg plans), Saved routes, Schedules, Address book, History and Settings. It runs as a desktop app (Linux, macOS, Windows), as an Android app and in a browser window.
+The graphical app has the same functions as the command line, in a window that also works on a phone-sized screen: first launch, wallet, Balances, Transfer, Bridge wallet (whole-wallet sweeps), Pipelines (hand-written multi-leg plans), Saved routes, Schedules, Address book, History, Settings and About. It runs as a desktop app (Linux, macOS, Windows), as an Android app and in a browser window.
 
 Run it from the repository:
 
@@ -268,6 +268,7 @@ In the desktop app the network requests go through Tauri's HTTP plugin (the wind
 8. **Saved routes and Schedules.** Saved routes are re-quoted along their saved path when they run. A schedule (once, repeating, or when gas and fees are low) runs a saved route while the app is open and the wallet unlocked; the location form is answered once when you create the schedule.
 9. **Address book and History.** Saved addresses are validated against their chain and can be typed as the recipient; History lists every run, with the reason when one stopped.
 10. **Test networks.** Click the network button in the status strip (bottom) to switch between real and test networks. In test mode everything runs on test networks with test funds, and the confirmation says so. See [docs/TESTNET.md](docs/TESTNET.md) for free test funds.
+11. **About.** Shows the version, the developer and the disclaimer. Check for updates compares the version with the latest release on GitHub and gives the link to its release page; it downloads nothing.
 
 The desktop app keeps the wallet, settings and journal in the same data folder as the command line (`CHAINER_HOME`, otherwise `~/.config/chainer`, or `%APPDATA%\chainer` on Windows), as owner-only files, so both use the same wallet. Versions before this one kept them in the app's web view storage; the first start moves them into the folder. If the folder already holds a different file under the same name (for example a wallet made with the command line), that file is kept, the app's copy is saved under `webview-backup/` in the folder, and the app says so. The browser build (`npm run dev`) keeps everything in the browser's local storage.
 

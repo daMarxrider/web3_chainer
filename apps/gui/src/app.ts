@@ -11,6 +11,7 @@ import { schedulesScreen } from './screens/schedules.ts'
 import { sweepScreen } from './screens/sweep.ts'
 import { startScheduler, stopScheduler } from './scheduler.ts'
 import { settingsScreen } from './screens/settings.ts'
+import { aboutScreen } from './screens/about.ts'
 import { transferScreen } from './screens/transfer.ts'
 import { currentJob, onJob } from './status.ts'
 import { titlebar } from './firstlaunch.ts'
@@ -32,6 +33,7 @@ const SCREENS: Screen[] = [
   { id: 'book', label: 'Address book', icon: 'book', render: addressBookScreen },
   { id: 'history', label: 'History', icon: 'history', render: historyScreen },
   { id: 'settings', label: 'Settings', icon: 'settings', render: settingsScreen },
+  { id: 'about', label: 'About', icon: 'info', render: aboutScreen },
 ]
 
 let showing = 'balances'

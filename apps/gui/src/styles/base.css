@@ -307,6 +307,24 @@ input[type='radio'] {
 .actions > .hint:empty {
   display: none;
 }
+.actions.start {
+  justify-content: flex-start;
+}
+/* A link shown as text with a Copy button (About): the app cannot open the system browser. */
+.copyable {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.copyable code {
+  font-family: var(--mono);
+  user-select: all;
+  word-break: break-all;
+}
+.update-result > p {
+  margin: 10px 0 6px;
+}
 .check {
   display: flex;
   align-items: flex-start;
