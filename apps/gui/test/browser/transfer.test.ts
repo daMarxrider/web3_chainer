@@ -333,12 +333,12 @@ describe('the Transfer screen', { concurrency: 6, skip: browserMissing }, () => 
     assert.deepEqual(await page.evaluate('[...document.querySelectorAll("#f-fromSymbol-list .combo-group")].map((g) => g.textContent)'), ['In your wallet'])
   })
 
-  test('typing filters the tokens, with the listed one first and a look-alike tagged', async (t) => {
+  test('typing filters the tokens, with the listed one first, a look-alike tagged and both marked freezable', async (t) => {
     const page = await transferScreen(t, pickerWorld())
     await page.fill('#f-fromSymbol', 'usdc')
     await page.waitFor('document.querySelectorAll("#f-fromSymbol-list .combo-option").length === 2')
-    const rows = await page.evaluate<string[]>('[...document.querySelectorAll("#f-fromSymbol-list .combo-option")].map((o) => o.querySelector(".sym").textContent + "|" + o.querySelector(".tag")?.textContent)')
-    assert.deepEqual(rows, ['USDC|undefined', 'USDC|unchecked'])
+    const rows = await page.evaluate<string[]>('[...document.querySelectorAll("#f-fromSymbol-list .combo-option")].map((o) => o.querySelector(".sym").textContent + "|" + [...o.querySelectorAll(".tag")].map((t) => t.textContent).join(" "))')
+    assert.deepEqual(rows, ['USDC|freezable', 'USDC|unchecked freezable'])
   })
 
   test('a token flagged as a scam is never offered', async (t) => {

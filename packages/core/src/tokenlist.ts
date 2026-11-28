@@ -110,6 +110,21 @@ const RANK: Record<TokenTrust, number> = { listed: 0, screened: 1, unknown: 2, f
 
 /** Symbols that track a fiat currency, for grouping. */
 export const STABLECOINS = new Set(['USDC', 'USDT', 'USDT0', 'DAI', 'USDS', 'USDE', 'PYUSD', 'FDUSD', 'RLUSD', 'GHO', 'FRAX', 'LUSD', 'CRVUSD', 'USDC.E', 'USDBC', 'EURC', 'EURE'])
+/**
+ * Symbols of tokens whose issuer can freeze or blacklist the addresses holding them (Circle, Tether,
+ * Paxos, First Digital, Ripple, Coinbase). Matched by symbol, so it says what kind of token this is,
+ * not anything proven about one contract.
+ */
+export const FREEZABLE = new Set(['USDC', 'USDC.E', 'USDBC', 'EURC', 'USDT', 'USDT0', 'PYUSD', 'USDP', 'PAXG', 'FDUSD', 'RLUSD', 'TUSD', 'XAUT', 'CBBTC'])
+
+export const isFreezable = (token: Token): boolean => !isNative(token) && FREEZABLE.has(token.symbol.toUpperCase())
+
+/** The warning for receiving a token its issuer can freeze, or undefined for any other token. */
+export function freezeNote(token: Token, chain: Chain): string | undefined {
+  if (!isFreezable(token)) return undefined
+  return `You receive ${token.symbol} on ${chain.name}. Its issuer can freeze or blacklist addresses, which would lock the funds there.`
+}
+
 /** What most people move, in the order offered: the chain's coin first, then ETH, BTC, SOL and stablecoins. */
 const POPULAR = ['ETH', 'WETH', 'WBTC', 'CBBTC', 'TBTC', 'BTC.B', 'BTCB', 'LBTC', 'SOL', 'WSOL', 'USDC', 'USDT', 'USDT0', 'DAI', 'USDS', 'USDE', 'PYUSD', 'EURC']
 

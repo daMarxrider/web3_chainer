@@ -568,6 +568,10 @@ input.narrow {
 .combo-option[aria-selected='true'] .name {
   color: inherit;
 }
+.combo-option .tags {
+  display: flex;
+  gap: 6px;
+}
 .combo-option .tag {
   margin-left: 0;
 }

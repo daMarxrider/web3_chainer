@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { loadTokenList, popularTokens, searchTokens, TokenIndex, type Chain, type ListedToken, type Store, type Token } from '../src/index.ts'
+import { freezeNote, isFreezable, loadTokenList, popularTokens, searchTokens, TokenIndex, type Chain, type ListedToken, type Store, type Token } from '../src/index.ts'
 
 // ---- chains ----
 
@@ -233,4 +233,19 @@ test('among equal matches the chain’s coin comes first, then majors, then the 
   const all = new TokenIndex({ name: 't', fetchedAt: '2026-11-26T00:00:00.000Z', tokens: coveredList(named(zed), named(abc), named(realUsdc)) })
   const found = searchTokens([named(zed), named(abc), named(realUsdc), named(ether)], 'token', ethereum, all)
   assert.deepEqual(found.map((r) => r.token.symbol), ['ETH', 'USDC', 'ABC', 'ZED'])
+})
+
+// ---- tokens whose issuer can freeze addresses ----
+
+test('stablecoins with an issuer blacklist are freezable, whatever the case or bridge suffix', () => {
+  for (const t of [realUsdc, bridgedUsdc, token('usdt', '0x4444444444444444444444444444444444444444'), token('cbBTC', '0x5555555555555555555555555555555555555555')]) assert.ok(isFreezable(t), t.symbol)
+})
+
+test('the chain coin and tokens without an issuer blacklist are not freezable', () => {
+  for (const t of [ether, token('DAI', '0x6666666666666666666666666666666666666666'), token('tBTC', '0x7777777777777777777777777777777777777777'), token('WBTC', '0x8888888888888888888888888888888888888888')]) assert.equal(isFreezable(t), false, t.symbol)
+})
+
+test('the freeze warning names the token and chain, and is absent for other tokens', () => {
+  assert.equal(freezeNote(realUsdc, ethereum), 'You receive USDC on Ethereum. Its issuer can freeze or blacklist addresses, which would lock the funds there.')
+  assert.equal(freezeNote(ether, ethereum), undefined)
 })

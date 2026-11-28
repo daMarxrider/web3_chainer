@@ -13,6 +13,7 @@ import {
   chainAddress,
   evmAdapter,
   findAccount,
+  freezeNote,
   findChain,
   findPipelineRoutes,
   findRoutes,
@@ -215,6 +216,10 @@ const runStore: Store = opts.testnet
 
 /** Text for the user. With --json it goes to stderr, so stdout carries nothing but the JSON. */
 const out = (line = '') => (opts.json ? console.error(line) : console.log(line))
+/** Prints each distinct warning about receiving a token its issuer can freeze. */
+const warnFreezable = (notes: (string | undefined)[]) => {
+  for (const n of new Set(notes)) if (n) out(`Warning:   ${n}`)
+}
 const printJson = (value: unknown) => console.log(JSON.stringify(value, (_, v) => (typeof v === 'bigint' ? v.toString() : v), 2))
 const usd = (n: number | undefined) => (n === undefined ? '?' : `$${n.toFixed(2)}`)
 const stamp = () => new Date().toTimeString().slice(0, 8)
@@ -665,6 +670,7 @@ async function sendCommand(args: string[]): Promise<void> {
     out(`Route:     ${routeVia(routes[0]!)}`)
     out(`Recipient: ${request.toAddress}`)
   }
+  warnFreezable([freezeNote(request.to, plan.toChain)])
   const stops = await stopOverTopUps(routes[0]!, balance!, request.amount)
   printStopOvers(stops)
   const topUp = await gasTopUpRoute(plan, balance! - stops.reduce((s, t) => s + t.route.legs[0]!.request.amount, 0n))
@@ -742,6 +748,7 @@ async function sweepCommand(args: string[]): Promise<void> {
   }
   out()
   out(`Recipient: ${toAddress} on ${toChain.name}`)
+  warnFreezable(plan.items.map((i) => freezeNote(i.to, toChain)))
   if (opts['dry-run']) return out('Dry run: nothing was signed or sent.')
   if (!opts.yes && !(await confirm(`Send ${plan.items.length} transfer(s) one after the other?`))) return out('Cancelled.')
   const accepted = await geoAcceptance({ legs: plan.items.flatMap((i) => i.route.legs) })
@@ -1060,6 +1067,7 @@ async function pipelineCommand(sub: string | undefined, file: string | undefined
   const account = findAccount(await loadKeystore(store), opts.wallet ?? plan.wallet)
 
   const legs: Omit<PipelineLeg, 'state'>[] = []
+  const freezeNotes: (string | undefined)[] = []
   for (const [i, spec] of plan.legs.entries()) {
     if (spec.amount === undefined || !spec.from || !spec.to) throw new Error(`Leg ${i + 1} needs "amount", "from" and "to"`)
     const [from, to] = await Promise.all([resolveToken(spec.from), resolveToken(spec.to)])
@@ -1071,6 +1079,7 @@ async function pipelineCommand(sub: string | undefined, file: string | undefined
     if (!adapterFor(toChain).validateAddress(toAddress)) throw new Error(`Leg ${i + 1}: "${toAddress}" is not a valid address on ${toChain.name}`)
     if (i < plan.legs.length - 1 && toAddress !== ownAddress(account, toChain)) throw new Error(`Leg ${i + 1} sends to another address, so the next leg would have nothing to continue with`)
     legs.push({ from, to, amount, fromAddress: ownAddress(account, fromChain), toAddress })
+    freezeNotes.push(freezeNote(to, toChain))
   }
   const record = newPipeline(account.name, legs[0]!.fromAddress!, legs)
 
@@ -1078,6 +1087,7 @@ async function pipelineCommand(sub: string | undefined, file: string | undefined
     out(`Plan with ${legs.length} leg${legs.length === 1 ? '' : 's'}, wallet ${account.name}${opts.testnet ? ', on test networks' : ''}:`)
     record.legs.forEach((leg, i) => out(`  ${i + 1}. ${legText(leg)}`))
   }
+  warnFreezable(freezeNotes)
   // Gas for the chains the plan stops on: needs a fixed first amount to size the extra against.
   let stops: StopTopUp[] = []
   const firstLeg = record.legs[0]!
